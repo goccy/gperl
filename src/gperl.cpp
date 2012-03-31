@@ -20,13 +20,18 @@ GPerl::GPerl(int argc, char **argv)
 	GPerlTokenizer t;
 	std::vector<Token *> *tokens = t.tokenize(script);
 	t.annotateTokens(tokens);
-	fprintf(stderr, "============<TOKENIZE>===========\n");
+	DBG_P("=============<TOKENIZE>============");
 	t.dump(tokens);
 	GPerlParser p;
-	fprintf(stderr, "=============<PARSE>=============\n");
+	DBG_P("==============<PARSE>==============");
 	GPerlAST *ast = p.parse(tokens);
 	ast->show();//graph debug with graphviz
 	GPerlCompiler compiler;
+	DBG_P("=============<COMPILE>=============");
 	GPerlVirtualMachineCode *codes = compiler.compile(ast);
+	compiler.dumpPureVMCode(codes);
+	GPerlVirtualMachine vm;
+	vm.run(codes);//create threading code
+	vm.run(codes);//execute code
 	fclose(fp);
 }

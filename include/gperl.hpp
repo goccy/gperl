@@ -48,6 +48,9 @@ typedef enum {
 typedef enum {
 	OPMOV,
 	OPADD,
+	OPRET,
+	OPTHCODE,
+	OPNOP,
 } GPerlOpCodes;
 
 class GPerl {
@@ -180,14 +183,23 @@ public:
 	int dst;
 	int src;
 	int code_num;
+	std::vector<GPerlVirtualMachineCode *> *codes;
+
 	GPerlCompiler(void);
 	GPerlVirtualMachineCode *compile(GPerlAST *ast);
+	GPerlVirtualMachineCode *getPureCodes(void);
 	void compile_(GPerlCell *path);
 	GPerlVirtualMachineCode *createVMCode(GPerlCell *c);
+	GPerlVirtualMachineCode *createTHCODE(void);
+	GPerlVirtualMachineCode *createRET(void);
+	void addVMCode(GPerlVirtualMachineCode *code);
 	void dumpVMCode(GPerlVirtualMachineCode *code);
+	void dumpPureVMCode(GPerlVirtualMachineCode *codes);
 };
 
 class GPerlVirtualMachine {
 public:
 	GPerlVirtualMachine();
+	void createDirectThreadingCode(GPerlVirtualMachineCode *codes, void **jmp_tbl);
+	int run(GPerlVirtualMachineCode *codes);
 };
