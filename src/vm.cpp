@@ -27,7 +27,8 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 	GPerlVirtualMachineCode *pc = codes;
 	int reg[MAX_REG_SIZE] = {0};
 	static void *jmp_table[] = {
-		&&L(OPMOV), &&L(OPADD), &&L(OPRET), &&L(OPTHCODE), &&L(OPNOP),/*&&L(OPSUB), &&L(OPMUL), &&L(OPDIV),
+		&&L(OPMOV), &&L(OPADD), &&L(OPRET), &&L(OPTHCODE), &&L(OPNOP),
+		&&L(OPPRINT), /*&&L(OPSUB), &&L(OPMUL), &&L(OPDIV),
 		&&L(OPCALL), &&L(OPJMP), &&L(OPCMP), &&L(OPPOP), &&L(OPPUSH),
 		&&L(OPRET), &&L(OPJL), &&L(OPJG), &&L(OPSTORE), &&L(OPLOAD),
 		&&L(OPiADDC), &&L(OPiSUBC), &&L(OPiJLC), &&L(OPiJGC), &&L(OPFASTCALL),
@@ -44,6 +45,12 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 	CASE(OPADD) {
 		DBG_P("OPADD");
 		reg[pc->dst] += reg[pc->src];
+		pc++;
+		GOTO_NEXTOP();
+	}
+	CASE(OPPRINT) {
+		DBG_P("OPPRINT");
+		fprintf(stderr, "%d", reg[0]);
 		pc++;
 		GOTO_NEXTOP();
 	}

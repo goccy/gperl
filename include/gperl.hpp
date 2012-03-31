@@ -51,6 +51,7 @@ typedef enum {
 	OPRET,
 	OPTHCODE,
 	OPNOP,
+	OPPRINT,
 } GPerlOpCodes;
 
 class GPerl {
@@ -84,6 +85,7 @@ public:
 	GPerlCell *center;/* for if stmt */
 	GPerlCell *right;
 	GPerlCell *next;/* for next stmt */
+	GPerlCell *vargs; /* for print */
 	GPerlTypes type;
 	std::string vname;/* variable name */
 	std::string rawstr;

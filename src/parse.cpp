@@ -45,6 +45,13 @@ void GPerlAST::draw(GraphvizGraph *graph, GPerlCell *c, GraphvizNode *node)
 	GraphvizNode *left;
 	GraphvizNode *right;
 	char buf[32] = {0};
+	if (c->vargs) {//TODO multi vargs => for stmt
+		const char *to_name = c->vargs->rawstr.c_str();
+		snprintf(buf, 32, "%s : [%p]", to_name, to_name);
+		left = createNode(graph, (const char *)buf);
+		drawEdge(graph, node, left);
+		draw(graph, c->vargs, left);
+	}
 	if (c->left != NULL) {
 		const char *to_name = c->left->rawstr.c_str();
 		snprintf(buf, 32, "%s : [%p]", to_name, to_name);
@@ -97,6 +104,7 @@ GPerlCell::GPerlCell(GPerlTypes type_) : type(type_)
 	center = NULL;
 	right = NULL;
 	next = NULL;
+	vargs = NULL;
 }
 
 GPerlParser::GPerlParser(void)
@@ -259,8 +267,9 @@ GPerlAST *GPerlParser::parse(vector<Token *> *tokens)
 			fprintf(stderr, "PRINT:NEW BLOCK->BLOCKS\n");
 			GPerlCell *p = new GPerlCell(PrintDecl);
 			p->rawstr = t->data;
-			blocks.push_back(p);
-			block_num++;
+			root = p;
+			//blocks.push_back(p);
+			//block_num++;
 			break;
 		}
 		case LeftParenthesis:
@@ -289,9 +298,14 @@ GPerlAST *GPerlParser::parse(vector<Token *> *tokens)
 			int size = blocks.size();
 			fprintf(stderr, "BLOCKS SIZE = [%d]\n", size);
 			if (size == 1) {
-				//Print Statement
 				GPerlCell *stmt = blocks.at(0);
-				root = stmt;
+				if (root->type == PrintDecl) {
+					GPerlCell *v = root;
+					for (; v->vargs; v = v->vargs) {}
+					v->vargs = stmt;
+				} else {
+					root = stmt;
+				}
 			} else if (size == 2) {
 				//Assign Statement
 				GPerlCell *left = blocks.at(0); /* [=] */

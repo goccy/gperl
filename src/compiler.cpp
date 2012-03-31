@@ -34,6 +34,7 @@ void GPerlCompiler::addVMCode(GPerlVirtualMachineCode *code)
 void GPerlCompiler::compile_(GPerlCell *path)
 {
 	GPerlVirtualMachineCode *code;
+	if (path->vargs) compile_(path->vargs);
 	for (; path->left; path = path->left) {}
 	code = createVMCode(path);
 	addVMCode(code);
@@ -87,6 +88,11 @@ GPerlVirtualMachineCode *GPerlCompiler::createVMCode(GPerlCell *c)
 		code->dst = dst - 1;
 		code->src = dst;
 		break;
+	case PrintDecl:
+		code->op = OPPRINT;
+		code->dst = 0;
+		code->src = 0;
+		break;
 	default:
 		break;
 	}
@@ -129,6 +135,9 @@ void GPerlCompiler::dumpVMCode(GPerlVirtualMachineCode *code)
 		break;
 	case OPNOP:
 		DBG_P("L[%d] : OPNOP [%d], [%d]", code->code_num, code->dst, code->src);
+		break;
+	case OPPRINT:
+		DBG_P("L[%d] : OPPRINT [%d], [%d]", code->code_num, code->dst, code->src);
 		break;
 	default:
 		break;
