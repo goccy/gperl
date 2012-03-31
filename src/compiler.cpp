@@ -12,65 +12,31 @@ GPerlVirtualMachineCode *GPerlCompiler::compile(GPerlAST *ast)
 	GPerlCell *root = ast->root;
 	for (; root; root = root->next) {
 		GPerlCell *path = root;
-		//fprintf(stderr, "path = [%p]\n", path);
-		for (; path->left; path = path->left) {
-			//fprintf(stderr, "[%s]\n", path->rawstr.c_str());
-		}
-		dumpVMCode(createVMCode(path));
-		//fprintf(stderr, "CODE : [%s]\n", path->rawstr.c_str());
-		GPerlCell *branch = path->parent->right;
-		if (branch->left == NULL && branch->right == NULL) {
-			dumpVMCode(createVMCode(branch));
-			//dumpVMCode(createVMCode(path->parent));
-			//fprintf(stderr, "CODE : [%s]\n", branch->rawstr.c_str());
-			//fprintf(stderr, "CODE : [%s]\n", path->parent->rawstr.c_str());
-		} else {
-			recursiveCompile(branch);
-		}
-		dumpVMCode(createVMCode(path->parent));
-		//fprintf(stderr, "CODE : [%s]\n", path->parent->rawstr.c_str());
-		if (path->parent->parent) {
-			GPerlCell *parentBranch = path->parent->parent->right;
-			if (parentBranch->left == NULL && parentBranch->right == NULL) {
-				dumpVMCode(createVMCode(parentBranch));
-				//fprintf(stderr, "CODE : [%s]\n", parentBranch->rawstr.c_str());
-			} else {
-				recursiveCompile(parentBranch);
-			}
-			dumpVMCode(createVMCode(path->parent));
-			//fprintf(stderr, "CODE : [%s]\n", path->parent->rawstr.c_str());
-		}
-		fprintf(stderr, "============================\n");
+		compile_(path);
+		DBG_P("============================");
 	}
 	return NULL;
 }
 
-void GPerlCompiler::recursiveCompile(GPerlCell *path)
+void GPerlCompiler::compile_(GPerlCell *path)
 {
-	for (; path->left; path = path->left) {
-		//fprintf(stderr, "[%s]\n", path->rawstr.c_str());
-	}
-	//fprintf(stderr, "CODE : [%s]\n", path->rawstr.c_str());
+	for (; path->left; path = path->left) {}
 	dumpVMCode(createVMCode(path));
 	GPerlCell *branch = path->parent->right;
 	if (branch->left == NULL && branch->right == NULL) {
 		dumpVMCode(createVMCode(branch));
-		//fprintf(stderr, "CODE : [%s]\n", branch->rawstr.c_str());
 	} else {
-		recursiveCompile(branch);
+		compile_(branch);
 	}
 	dumpVMCode(createVMCode(path->parent));
-	//fprintf(stderr, "CODE : [%s]\n", path->parent->rawstr.c_str());
 	if (path->parent->parent) {
 		GPerlCell *parentBranch = path->parent->parent->right;
 		if (parentBranch->left == NULL && parentBranch->right == NULL) {
 			dumpVMCode(createVMCode(parentBranch));
-			//fprintf(stderr, "CODE : [%s]\n", parentBranch->rawstr.c_str());
 		} else {
-			recursiveCompile(parentBranch);
+			compile_(parentBranch);
 		}
 		dumpVMCode(createVMCode(path->parent));
-		//fprintf(stderr, "CODE : [%s]\n", path->parent->rawstr.c_str());
 	}
 }
 

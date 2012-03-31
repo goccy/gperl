@@ -182,7 +182,7 @@ public:
 	int code_num;
 	GPerlCompiler(void);
 	GPerlVirtualMachineCode *compile(GPerlAST *ast);
-	void recursiveCompile(GPerlCell *path);
+	void compile_(GPerlCell *path);
 	GPerlVirtualMachineCode *createVMCode(GPerlCell *c);
 	void dumpVMCode(GPerlVirtualMachineCode *code);
 };
