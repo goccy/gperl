@@ -6,6 +6,7 @@ GPerlAST::GPerlAST(void)
 {
 	root = NULL;
 	cur = NULL;
+	root_node = NULL;
 	size = 0;
 }
 
@@ -49,7 +50,7 @@ void GPerlAST::draw(GraphvizGraph *graph, GPerlCell *c, GraphvizNode *node)
 		const char *to_name = c->vargs->rawstr.c_str();
 		snprintf(buf, 32, "%s : [%p]", to_name, to_name);
 		left = createNode(graph, (const char *)buf);
-		drawEdge(graph, node, left);
+		drawEdge(graph, root_node, left);
 		draw(graph, c->vargs, left);
 	}
 	if (c->left != NULL) {
@@ -84,7 +85,9 @@ void GPerlAST::show(void)
 		char buf[32] = {0};
 		snprintf(buf, 32, "%s : [%p]", root_name, root_name);
 		GraphvizNode *root_node = createNode(graph, (const char *)buf);//root_name);
+		this->root_node = root_node;
 		draw(graph, stmt, root_node);
+		fprintf(stderr, "hogehgoe\n");
 		//fprintf(stderr, "root_name = [%s]\n", root_name);
 		//fprintf(stderr, "root->next = [%p]\n", root->next);
 		//fprintf(stderr, "root = [%p]\n", root);
@@ -270,6 +273,16 @@ GPerlAST *GPerlParser::parse(vector<Token *> *tokens)
 			root = p;
 			//blocks.push_back(p);
 			//block_num++;
+			break;
+		}
+		case Comma: {
+			fprintf(stderr, "COMMA:VARGS->BLOCKS & CLEAR BLOCKS\n");
+			GPerlCell *stmt = blocks.at(0);
+			GPerlCell *v = root;
+			for (; v->vargs; v = v->vargs) {}
+			v->vargs = stmt;
+			blocks.clear();
+			block_num = 0;
 			break;
 		}
 		case LeftParenthesis:

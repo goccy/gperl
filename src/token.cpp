@@ -18,12 +18,13 @@ vector<Token *> *GPerlTokenizer::tokenize(char *script)
 	int token_idx = 0;
 	vector<Token*> *tokens = new vector<Token *>();
 	bool isStringStarted = false;
+	bool escapeFlag = false;
 	while (script[i] != EOL) {
 		fprintf(stderr, "[%c]\n", script[i]);
 		switch (script[i]) {
 		case '\"':
 			if (isStringStarted) {
-				token[token_idx] = script[i];
+				//token[token_idx] = script[i];
 				Token *t = new Token(string(token));
 				t->type = String;
 				tokens->push_back(t);
@@ -33,6 +34,8 @@ vector<Token *> *GPerlTokenizer::tokenize(char *script)
 			} else {
 				isStringStarted = true;
 			}
+			escapeFlag = false;
+			break;
 		case ' ':
 			if (isStringStarted) {
 				token[token_idx] = script[i];
@@ -45,6 +48,19 @@ vector<Token *> *GPerlTokenizer::tokenize(char *script)
 				memset(token, 0, MAX_TOKEN_SIZE);
 				token_idx = 0;
 			}
+			escapeFlag = false;
+			break;
+		case '\\':
+			escapeFlag = true;
+			break;
+		case 'n':
+			if (escapeFlag) {
+				token[token_idx] = '\n';
+			} else {
+				token[token_idx] = 'n';
+			}
+			token_idx++;
+			escapeFlag = false;
 			break;
 		case ',': case ':': case ';': case '=': case '+': case '-':
 		case '(': case ')': {
@@ -63,6 +79,7 @@ vector<Token *> *GPerlTokenizer::tokenize(char *script)
 			tmp[0] = script[i];
 			tokens->push_back(new Token(string(tmp)));
 			token_idx = 0;
+			escapeFlag = false;
 			break;
 		}
 		case '0': case '1': case '2': case '3': case '4': case '5':
@@ -74,13 +91,16 @@ vector<Token *> *GPerlTokenizer::tokenize(char *script)
 			t->type = Int;
 			tokens->push_back(t);
 			token_idx = 0;
+			escapeFlag = false;
 			break;
 		}
 		case '\n':
+			escapeFlag = false;
 			break;
 		default:
 			token[token_idx] = script[i];
 			token_idx++;
+			escapeFlag = false;
 			break;
 		}
 		i++;

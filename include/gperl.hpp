@@ -21,7 +21,7 @@
 #endif
 
 typedef enum {
-	Undefined,
+	Undefined = -1,
 	Return,
 	Add,
 	FunctionDecl,
@@ -47,10 +47,14 @@ typedef enum {
 
 typedef enum {
 	OPMOV,
+	OPiMOV,
+	OPsMOV,
 	OPADD,
 	OPRET,
 	OPTHCODE,
 	OPNOP,
+	OPiWRITE,
+	OPsWRITE,
 	OPPRINT,
 } GPerlOpCodes;
 
@@ -109,6 +113,8 @@ public:
 	int size;
 	GPerlCell *root;
 	GPerlCell *cur;
+	GraphvizNode *root_node;
+
 	GPerlAST(void);
 	void add(GPerlCell *root);
 	void show(void);
@@ -180,20 +186,25 @@ typedef struct _GPerlVirtualMachineCode {
 	void *opnext; /* for direct threading */
 } GPerlVirtualMachineCode;
 
+#define MAX_REG_SIZE 32
+
 class GPerlCompiler {
 public:
 	int dst;
 	int src;
 	int code_num;
+	GPerlTypes reg_type[MAX_REG_SIZE];
 	std::vector<GPerlVirtualMachineCode *> *codes;
 
 	GPerlCompiler(void);
 	GPerlVirtualMachineCode *compile(GPerlAST *ast);
 	GPerlVirtualMachineCode *getPureCodes(void);
-	void compile_(GPerlCell *path);
+	void compile_(GPerlCell *path, bool isRecursive);
 	GPerlVirtualMachineCode *createVMCode(GPerlCell *c);
 	GPerlVirtualMachineCode *createTHCODE(void);
 	GPerlVirtualMachineCode *createRET(void);
+	GPerlVirtualMachineCode *createiWRITE(void);
+	GPerlVirtualMachineCode *createsWRITE(void);
 	void addVMCode(GPerlVirtualMachineCode *code);
 	void dumpVMCode(GPerlVirtualMachineCode *code);
 	void dumpPureVMCode(GPerlVirtualMachineCode *codes);

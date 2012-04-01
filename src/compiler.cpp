@@ -7,6 +7,9 @@ GPerlCompiler::GPerlCompiler(void)
 	dst = 0;
 	src = 0;
 	code_num = 0;
+	for (int i = 0; i < MAX_REG_SIZE; i++) {
+		reg_type[i] = Undefined;
+	}
 	codes = new vector<GPerlVirtualMachineCode *>();
 }
 
@@ -17,7 +20,7 @@ GPerlVirtualMachineCode *GPerlCompiler::compile(GPerlAST *ast)
 	addVMCode(thcode);
 	for (; root; root = root->next) {
 		GPerlCell *path = root;
-		compile_(path);
+		compile_(path, true);
 		DBG_P("============================");
 		dst = 0;//reset dst number
 	}
@@ -31,10 +34,28 @@ void GPerlCompiler::addVMCode(GPerlVirtualMachineCode *code)
 	codes->push_back(code);
 }
 
-void GPerlCompiler::compile_(GPerlCell *path)
+void GPerlCompiler::compile_(GPerlCell *path, bool isRecursive)
 {
 	GPerlVirtualMachineCode *code;
-	if (path->vargs) compile_(path->vargs);
+	GPerlCell *p = path;
+	for (;p->vargs && isRecursive; p = p->vargs) {
+		compile_(p->vargs, false);
+		switch (reg_type[0]) {
+		case Int:
+			code = createiWRITE();
+			addVMCode(code);
+			dumpVMCode(code);
+			break;
+		case String:
+			code = createsWRITE();
+			addVMCode(code);
+			dumpVMCode(code);
+			break;
+		default:
+			break;
+		}
+		dst = 0;
+	}
 	for (; path->left; path = path->left) {}
 	code = createVMCode(path);
 	addVMCode(code);
@@ -48,7 +69,7 @@ void GPerlCompiler::compile_(GPerlCell *path)
 			addVMCode(code);
 			dumpVMCode(code);
 		} else {
-			compile_(branch);
+			compile_(branch, true);
 		}
 		code = createVMCode(parent);
 		addVMCode(code);
@@ -79,7 +100,16 @@ GPerlVirtualMachineCode *GPerlCompiler::createVMCode(GPerlCell *c)
 	case Int:
 		code->dst = dst;
 		code->src = c->data.idata;
-		code->op = OPMOV;
+		code->op = OPiMOV;
+		reg_type[dst] = Int;
+		dst++;
+		break;
+	case String:
+		code->dst = dst;
+		code->src = -1;
+		code->name = c->data.sdata;
+		code->op = OPsMOV;
+		reg_type[dst] = String;
 		dst++;
 		break;
 	case Add:
@@ -118,11 +148,35 @@ GPerlVirtualMachineCode *GPerlCompiler::createRET(void)
 	return code;
 }
 
+GPerlVirtualMachineCode *GPerlCompiler::createiWRITE(void)
+{
+	GPerlVirtualMachineCode *code = new GPerlVirtualMachineCode();
+	code->code_num = code_num;
+	code->op = OPiWRITE;
+	code_num++;
+	return code;
+}
+
+GPerlVirtualMachineCode *GPerlCompiler::createsWRITE(void)
+{
+	GPerlVirtualMachineCode *code = new GPerlVirtualMachineCode();
+	code->code_num = code_num;
+	code->op = OPsWRITE;
+	code_num++;
+	return code;
+}
+
 void GPerlCompiler::dumpVMCode(GPerlVirtualMachineCode *code)
 {
 	switch (code->op) {
 	case OPMOV:
 		DBG_P("L[%d] : OPMOV [%d], [%d]", code->code_num, code->dst, code->src);
+		break;
+	case OPiMOV:
+		DBG_P("L[%d] : OPiMOV [%d], [%d]", code->code_num, code->dst, code->src);
+		break;
+	case OPsMOV:
+		DBG_P("L[%d] : OPsMOV [%d], [%s]", code->code_num, code->dst, code->name);
 		break;
 	case OPADD:
 		DBG_P("L[%d] : OPADD [%d], [%d]", code->code_num, code->dst, code->src);
