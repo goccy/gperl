@@ -87,7 +87,6 @@ void GPerlAST::show(void)
 		GraphvizNode *root_node = createNode(graph, (const char *)buf);//root_name);
 		this->root_node = root_node;
 		draw(graph, stmt, root_node);
-		fprintf(stderr, "hogehgoe\n");
 		//fprintf(stderr, "root_name = [%s]\n", root_name);
 		//fprintf(stderr, "root->next = [%p]\n", root->next);
 		//fprintf(stderr, "root = [%p]\n", root);
@@ -241,6 +240,9 @@ GPerlAST *GPerlParser::parse(vector<Token *> *tokens)
 			GPerlCell *op;
 			if (t->data == "+") {
 				op = new GPerlCell(Add);
+				op->rawstr = t->data;
+			} else if (t->data == "-") {
+				op = new GPerlCell(Sub);
 				op->rawstr = t->data;
 			}
 			//fprintf(stderr, "op = [%p]\n", op);

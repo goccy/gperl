@@ -39,7 +39,9 @@ void GPerlCompiler::compile_(GPerlCell *path, bool isRecursive)
 	GPerlVirtualMachineCode *code;
 	GPerlCell *p = path;
 	for (;p->vargs && isRecursive; p = p->vargs) {
+		//path : PrintDecl
 		compile_(p->vargs, false);
+		//add WRITE CODE for Print Stmt
 		switch (reg_type[0]) {
 		case Int:
 			code = createiWRITE();
@@ -114,7 +116,27 @@ GPerlVirtualMachineCode *GPerlCompiler::createVMCode(GPerlCell *c)
 		break;
 	case Add:
 		dst--;
-		code->op = OPADD;
+		switch (reg_type[dst - 1]) {
+		case Int:
+			code->op = OPiADD;
+			break;
+		default:
+			code->op = OPADD;
+			break;
+		}
+		code->dst = dst - 1;
+		code->src = dst;
+		break;
+	case Sub:
+		dst--;
+		switch (reg_type[dst - 1]) {
+		case Int:
+			code->op = OPiSUB;
+			break;
+		default:
+			code->op = OPSUB;
+			break;
+		}
 		code->dst = dst - 1;
 		code->src = dst;
 		break;
@@ -180,6 +202,15 @@ void GPerlCompiler::dumpVMCode(GPerlVirtualMachineCode *code)
 		break;
 	case OPADD:
 		DBG_P("L[%d] : OPADD [%d], [%d]", code->code_num, code->dst, code->src);
+		break;
+	case OPiADD:
+		DBG_P("L[%d] : OPiADD [%d], [%d]", code->code_num, code->dst, code->src);
+		break;
+	case OPSUB:
+		DBG_P("L[%d] : OPSUB [%d], [%d]", code->code_num, code->dst, code->src);
+		break;
+	case OPiSUB:
+		DBG_P("L[%d] : OPiSUB [%d], [%d]", code->code_num, code->dst, code->src);
 		break;
 	case OPRET:
 		DBG_P("L[%d] : OPRET [%d], [%d]", code->code_num, code->dst, code->src);

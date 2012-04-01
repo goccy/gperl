@@ -252,6 +252,9 @@ void GPerlTokenizer::annotateTokens(vector<Token *> *tokens)
 		} else if  (t->data == "+") {
 			t->type = Operator;
 			cur_type = Operator;
+		} else if (t->data == "-") {
+			t->type = Operator;
+			cur_type = Operator;
 		} else if (cur_type == VarDecl && t->data.find("$") != -1) {
 			t->type = LocalVar;
 			vardecl_list.push_back(t->data);

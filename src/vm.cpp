@@ -34,7 +34,8 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 	char shared_buf[128] = {0};//TODO must be variable buffer
 	string outbuf = "";
 	static void *jmp_table[] = {
-		&&L(OPMOV), &&L(OPiMOV), &&L(OPsMOV), &&L(OPADD), &&L(OPRET), &&L(OPTHCODE), &&L(OPNOP),
+		&&L(OPMOV), &&L(OPiMOV), &&L(OPsMOV), &&L(OPADD), &&L(OPiADD),
+		&&L(OPSUB), &&L(OPiSUB), &&L(OPRET), &&L(OPTHCODE), &&L(OPNOP),
 		&&L(OPiWRITE), &&L(OPsWRITE), &&L(OPPRINT), /*&&L(OPSUB), &&L(OPMUL), &&L(OPDIV),
 		&&L(OPCALL), &&L(OPJMP), &&L(OPCMP), &&L(OPPOP), &&L(OPPUSH),
 		&&L(OPRET), &&L(OPJL), &&L(OPJG), &&L(OPSTORE), &&L(OPLOAD),
@@ -64,6 +65,24 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 	CASE(OPADD) {
 		DBG_P("OPADD");
 		reg.idata[pc->dst] += reg.idata[pc->src];
+		pc++;
+		GOTO_NEXTOP();
+	}
+	CASE(OPiADD) {
+		DBG_P("OPiADD");
+		reg.idata[pc->dst] += reg.idata[pc->src];
+		pc++;
+		GOTO_NEXTOP();
+	}
+	CASE(OPSUB) {
+		DBG_P("OPSUB");
+		reg.idata[pc->dst] -= reg.idata[pc->src];
+		pc++;
+		GOTO_NEXTOP();
+	}
+	CASE(OPiSUB) {
+		DBG_P("OPiSUB");
+		reg.idata[pc->dst] -= reg.idata[pc->src];
 		pc++;
 		GOTO_NEXTOP();
 	}
