@@ -35,7 +35,8 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 	string outbuf = "";
 	static void *jmp_table[] = {
 		&&L(OPMOV), &&L(OPiMOV), &&L(OPsMOV), &&L(OPADD), &&L(OPiADD),
-		&&L(OPSUB), &&L(OPiSUB), &&L(OPRET), &&L(OPTHCODE), &&L(OPNOP),
+		&&L(OPSUB), &&L(OPiSUB), &&L(OPMUL), &&L(OPiMUL),
+		&&L(OPRET), &&L(OPTHCODE), &&L(OPNOP),
 		&&L(OPiWRITE), &&L(OPsWRITE), &&L(OPPRINT), /*&&L(OPSUB), &&L(OPMUL), &&L(OPDIV),
 		&&L(OPCALL), &&L(OPJMP), &&L(OPCMP), &&L(OPPOP), &&L(OPPUSH),
 		&&L(OPRET), &&L(OPJL), &&L(OPJG), &&L(OPSTORE), &&L(OPLOAD),
@@ -83,6 +84,18 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 	CASE(OPiSUB) {
 		DBG_P("OPiSUB");
 		reg.idata[pc->dst] -= reg.idata[pc->src];
+		pc++;
+		GOTO_NEXTOP();
+	}
+	CASE(OPMUL) {
+		DBG_P("OPMUL");
+		reg.idata[pc->dst] *= reg.idata[pc->src];
+		pc++;
+		GOTO_NEXTOP();
+	}
+	CASE(OPiMUL) {
+		DBG_P("OPiMUL");
+		reg.idata[pc->dst] *= reg.idata[pc->src];
 		pc++;
 		GOTO_NEXTOP();
 	}

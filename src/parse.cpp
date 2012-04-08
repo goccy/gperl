@@ -46,7 +46,7 @@ void GPerlAST::draw(GraphvizGraph *graph, GPerlCell *c, GraphvizNode *node)
 	GraphvizNode *left;
 	GraphvizNode *right;
 	char buf[32] = {0};
-	if (c->vargs) {//TODO multi vargs => for stmt
+	if (c->vargs) {
 		const char *to_name = c->vargs->rawstr.c_str();
 		snprintf(buf, 32, "%s : [%p]", to_name, to_name);
 		left = createNode(graph, (const char *)buf);
@@ -244,6 +244,9 @@ GPerlAST *GPerlParser::parse(vector<Token *> *tokens)
 			} else if (t->data == "-") {
 				op = new GPerlCell(Sub);
 				op->rawstr = t->data;
+			} else if (t->data == "*") {
+				op = new GPerlCell(Mul);
+				op->rawstr = t->data;
 			}
 			//fprintf(stderr, "op = [%p]\n", op);
 			block->parent = op;
@@ -293,7 +296,7 @@ GPerlAST *GPerlParser::parse(vector<Token *> *tokens)
 			break;
 		case RightParenthesis:
 			fprintf(stderr, "[)]:CONNECT BLOCK <=> BLOCK\n");
-			if (block_num > 0) {
+			if (block_num > 1) {
 				GPerlCell *to = blocks.at(block_num-1);
 				//fprintf(stderr, "to = [%p]\n", to);
 				//fprintf(stderr, "to = [%s]\n", to->rawstr.c_str());
@@ -305,7 +308,7 @@ GPerlAST *GPerlParser::parse(vector<Token *> *tokens)
 				from->right = to;
 				to->parent = from;
 			} else {
-				fprintf(stderr, "ERROR:syntax error!!\n");
+				//fprintf(stderr, "ERROR:syntax error!!\n");
 			}
 			break;
 		case SemiColon: {

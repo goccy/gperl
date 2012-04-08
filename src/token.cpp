@@ -19,12 +19,16 @@ vector<Token *> *GPerlTokenizer::tokenize(char *script)
 	vector<Token*> *tokens = new vector<Token *>();
 	bool isStringStarted = false;
 	bool escapeFlag = false;
+	bool mulOperationFlag = false;
+	size_t script_size = strlen(script) + 1;
+	char num_buffer[2] = {0};
 	while (script[i] != EOL) {
 		fprintf(stderr, "[%c]\n", script[i]);
 		switch (script[i]) {
 		case '\"':
 			if (isStringStarted) {
 				//token[token_idx] = script[i];
+				fprintf(stderr, "token = [%s]\n", token);
 				Token *t = new Token(string(token));
 				t->type = String;
 				tokens->push_back(t);
@@ -62,7 +66,54 @@ vector<Token *> *GPerlTokenizer::tokenize(char *script)
 			token_idx++;
 			escapeFlag = false;
 			break;
-		case ',': case ':': case ';': case '=': case '+': case '-':
+		case '*': {
+			char tmp[2] = {0};
+			if (isStringStarted) {
+				token[token_idx] = script[i];
+				token_idx++;
+				break;
+			}
+			if (token[0] != EOL) {
+				fprintf(stderr, "***** token = [%s]\n", token);
+				if (atoi(token) != 0) {
+					//----previous token is number---
+					//insert LEFT CURLY BRACE
+					DBG_P("token = [(]");
+					tmp[0] = '(';
+					tokens->push_back(new Token(string(tmp)));
+					mulOperationFlag = true;//to insert RIGHT CURLY BRACE
+				}
+				tokens->push_back(new Token(string(token)));
+				memset(token, 0, MAX_TOKEN_SIZE);
+			} else if (!mulOperationFlag && atoi(cstr(tokens->back()->data)) != 0) {
+				//----previous token is number---
+				//previous token is white space
+				//insert LEFT CURLY BRACE
+				DBG_P("token = [(]");
+				tmp[0] = '(';
+				tokens->insert(tokens->end()-1, new Token(string(tmp)));
+				mulOperationFlag = true;//to insert RIGHT CURLY BRACE
+			}
+			fprintf(stderr, "token = [%c]\n", script[i]);
+			tmp[0] = script[i];
+			tokens->push_back(new Token(string(tmp)));
+			token_idx = 0;
+			escapeFlag = false;
+			break;
+		}
+		case '-':
+			if (!isStringStarted && i + 1 < script_size) {
+				num_buffer[0] = script[i + 1];
+				if (atoi(num_buffer) > 0) {
+					//negative number
+					token[token_idx] = script[i];
+					token_idx++;
+					break;
+				}
+				num_buffer[0] = 0;
+			}
+			//through
+		case ',': case ':': case ';': case '=': case '+':
 		case '(': case ')': {
 			if (isStringStarted) {
 				token[token_idx] = script[i];
@@ -74,8 +125,16 @@ vector<Token *> *GPerlTokenizer::tokenize(char *script)
 				tokens->push_back(new Token(string(token)));
 				memset(token, 0, MAX_TOKEN_SIZE);
 			}
-			fprintf(stderr, "token = [%c]\n", script[i]);
 			char tmp[2] = {0};
+			if (mulOperationFlag &&
+				(script[i] == ',' || script[i] == '+' || script[i] == '-' || script[i] == ';')) {
+				//insert RIGHT CURLY BRACE
+				DBG_P("token = [)]");
+				tmp[0] = ')';
+				tokens->push_back(new Token(string(tmp)));
+				mulOperationFlag = false;
+			}
+			fprintf(stderr, "token = [%c]\n", script[i]);
 			tmp[0] = script[i];
 			tokens->push_back(new Token(string(tmp)));
 			token_idx = 0;
@@ -84,13 +143,8 @@ vector<Token *> *GPerlTokenizer::tokenize(char *script)
 		}
 		case '0': case '1': case '2': case '3': case '4': case '5':
 		case '6': case '7': case '8': case '9': {
-			fprintf(stderr, "token = [%c]\n", script[i]);
-			char tmp[2] = {0};
-			tmp[0] = script[i];
-			Token *t = new Token(string(tmp));
-			t->type = Int;
-			tokens->push_back(t);
-			token_idx = 0;
+			token[token_idx] = script[i];
+			token_idx++;
 			escapeFlag = false;
 			break;
 		}
@@ -255,6 +309,9 @@ void GPerlTokenizer::annotateTokens(vector<Token *> *tokens)
 		} else if (t->data == "-") {
 			t->type = Operator;
 			cur_type = Operator;
+		} else if (t->data == "*") {
+			t->type = Operator;
+			cur_type = Operator;
 		} else if (cur_type == VarDecl && t->data.find("$") != -1) {
 			t->type = LocalVar;
 			vardecl_list.push_back(t->data);
@@ -276,6 +333,9 @@ void GPerlTokenizer::annotateTokens(vector<Token *> *tokens)
 		} else if (search(vardecl_list, t->data)) {
 			t->type = Var;
 			cur_type = Var;
+		} else if (t->data == "0" || atoi(cstr(t->data)) != 0) {
+			t->type = Int;
+			cur_type = Int;
 		} else {
 			cur_type = 0;
 		}
