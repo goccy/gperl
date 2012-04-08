@@ -247,6 +247,9 @@ GPerlAST *GPerlParser::parse(vector<Token *> *tokens)
 			} else if (t->data == "*") {
 				op = new GPerlCell(Mul);
 				op->rawstr = t->data;
+			} else if (t->data == "/") {
+				op = new GPerlCell(Div);
+				op->rawstr = t->data;
 			}
 			//fprintf(stderr, "op = [%p]\n", op);
 			block->parent = op;

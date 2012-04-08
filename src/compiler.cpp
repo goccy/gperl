@@ -153,6 +153,19 @@ GPerlVirtualMachineCode *GPerlCompiler::createVMCode(GPerlCell *c)
 		code->dst = dst - 1;
 		code->src = dst;
 		break;
+	case Div:
+		dst--;
+		switch (reg_type[dst - 1]) {
+		case Int:
+			code->op = OPiDIV;
+			break;
+		default:
+			code->op = OPDIV;
+			break;
+		}
+		code->dst = dst - 1;
+		code->src = dst;
+		break;
 	case PrintDecl:
 		code->op = OPPRINT;
 		code->dst = 0;
@@ -230,6 +243,12 @@ void GPerlCompiler::dumpVMCode(GPerlVirtualMachineCode *code)
 		break;
 	case OPiMUL:
 		DBG_P("L[%d] : OPiMUL [%d], [%d]", code->code_num, code->dst, code->src);
+		break;
+	case OPDIV:
+		DBG_P("L[%d] : OPDIV [%d], [%d]", code->code_num, code->dst, code->src);
+		break;
+	case OPiDIV:
+		DBG_P("L[%d] : OPiDIV [%d], [%d]", code->code_num, code->dst, code->src);
 		break;
 	case OPRET:
 		DBG_P("L[%d] : OPRET [%d], [%d]", code->code_num, code->dst, code->src);

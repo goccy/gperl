@@ -19,7 +19,7 @@ vector<Token *> *GPerlTokenizer::tokenize(char *script)
 	vector<Token*> *tokens = new vector<Token *>();
 	bool isStringStarted = false;
 	bool escapeFlag = false;
-	bool mulOperationFlag = false;
+	bool mdOperationFlag = false;/*multi or div operation flag*/
 	size_t script_size = strlen(script) + 1;
 	char num_buffer[2] = {0};
 	while (script[i] != EOL) {
@@ -66,7 +66,7 @@ vector<Token *> *GPerlTokenizer::tokenize(char *script)
 			token_idx++;
 			escapeFlag = false;
 			break;
-		case '*': {
+		case '*': case '/' : {
 			char tmp[2] = {0};
 			if (isStringStarted) {
 				token[token_idx] = script[i];
@@ -81,18 +81,18 @@ vector<Token *> *GPerlTokenizer::tokenize(char *script)
 					DBG_P("token = [(]");
 					tmp[0] = '(';
 					tokens->push_back(new Token(string(tmp)));
-					mulOperationFlag = true;//to insert RIGHT CURLY BRACE
+					mdOperationFlag = true;//to insert RIGHT CURLY BRACE
 				}
 				tokens->push_back(new Token(string(token)));
 				memset(token, 0, MAX_TOKEN_SIZE);
-			} else if (!mulOperationFlag && atoi(cstr(tokens->back()->data)) != 0) {
+			} else if (!mdOperationFlag && atoi(cstr(tokens->back()->data)) != 0) {
 				//----previous token is number---
 				//previous token is white space
 				//insert LEFT CURLY BRACE
 				DBG_P("token = [(]");
 				tmp[0] = '(';
 				tokens->insert(tokens->end()-1, new Token(string(tmp)));
-				mulOperationFlag = true;//to insert RIGHT CURLY BRACE
+				mdOperationFlag = true;//to insert RIGHT CURLY BRACE
 			}
 			fprintf(stderr, "token = [%c]\n", script[i]);
 			tmp[0] = script[i];
@@ -126,13 +126,13 @@ vector<Token *> *GPerlTokenizer::tokenize(char *script)
 				memset(token, 0, MAX_TOKEN_SIZE);
 			}
 			char tmp[2] = {0};
-			if (mulOperationFlag &&
+			if (mdOperationFlag &&
 				(script[i] == ',' || script[i] == '+' || script[i] == '-' || script[i] == ';')) {
 				//insert RIGHT CURLY BRACE
 				DBG_P("token = [)]");
 				tmp[0] = ')';
 				tokens->push_back(new Token(string(tmp)));
-				mulOperationFlag = false;
+				mdOperationFlag = false;
 			}
 			fprintf(stderr, "token = [%c]\n", script[i]);
 			tmp[0] = script[i];
@@ -310,6 +310,9 @@ void GPerlTokenizer::annotateTokens(vector<Token *> *tokens)
 			t->type = Operator;
 			cur_type = Operator;
 		} else if (t->data == "*") {
+			t->type = Operator;
+			cur_type = Operator;
+		} else if (t->data == "/") {
 			t->type = Operator;
 			cur_type = Operator;
 		} else if (cur_type == VarDecl && t->data.find("$") != -1) {
