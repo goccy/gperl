@@ -166,6 +166,76 @@ GPerlVirtualMachineCode *GPerlCompiler::createVMCode(GPerlCell *c)
 		code->dst = dst - 1;
 		code->src = dst;
 		break;
+	case Greater:
+		dst--;
+		switch (reg_type[dst - 1]) {
+		case Int:
+			code->op = OPiJG;
+			break;
+		default:
+			code->op = OPJG;
+			break;
+		}
+		code->jmp = 1;
+		code->dst = dst - 1;
+		code->src = dst;
+		break;
+	case Less:
+		dst--;
+		switch (reg_type[dst - 1]) {
+		case Int:
+			code->op = OPiJL;
+			break;
+		default:
+			code->op = OPJL;
+			break;
+		}
+		code->jmp = 1;
+		code->dst = dst - 1;
+		code->src = dst;
+		break;
+	case GreaterEqual:
+		dst--;
+		switch (reg_type[dst - 1]) {
+		case Int:
+			code->op = OPiJGE;
+			break;
+		default:
+			code->op = OPJGE;
+			break;
+		}
+		code->jmp = 1;
+		code->dst = dst - 1;
+		code->src = dst;
+		break;
+	case LessEqual:
+		dst--;
+		switch (reg_type[dst - 1]) {
+		case Int:
+			code->op = OPiJLE;
+			break;
+		default:
+			code->op = OPJLE;
+			break;
+		}
+		code->jmp = 1;
+		code->dst = dst - 1;
+		code->src = dst;
+		break;
+	case EqualEqual:
+		dst--;
+		switch (reg_type[dst - 1]) {
+		case Int:
+			code->op = OPiJE;
+			break;
+		default:
+			code->op = OPJE;
+			break;
+		}
+		code->jmp = 1;
+		code->dst = dst - 1;
+		code->src = dst;
+		break;
 	case PrintDecl:
 		code->op = OPPRINT;
 		code->dst = 0;
@@ -249,6 +319,36 @@ void GPerlCompiler::dumpVMCode(GPerlVirtualMachineCode *code)
 		break;
 	case OPiDIV:
 		DBG_P("L[%d] : OPiDIV [%d], [%d]", code->code_num, code->dst, code->src);
+		break;
+	case OPJL:
+		DBG_P("L[%d] : OPJL [%d], [%d], [%d]", code->code_num, code->dst, code->src, code->jmp);
+		break;
+	case OPiJL:
+		DBG_P("L[%d] : OPiJL [%d], [%d], [%d]", code->code_num, code->dst, code->src, code->jmp);
+		break;
+	case OPJG:
+		DBG_P("L[%d] : OPJG [%d], [%d], [%d]", code->code_num, code->dst, code->src, code->jmp);
+		break;
+	case OPiJG:
+		DBG_P("L[%d] : OPiJG [%d], [%d], [%d]", code->code_num, code->dst, code->src, code->jmp);
+		break;
+	case OPJGE:
+		DBG_P("L[%d] : OPJGE [%d], [%d], [%d]", code->code_num, code->dst, code->src, code->jmp);
+		break;
+	case OPiJGE:
+		DBG_P("L[%d] : OPiJGE [%d], [%d], [%d]", code->code_num, code->dst, code->src, code->jmp);
+		break;
+	case OPJLE:
+		DBG_P("L[%d] : OPJLE [%d], [%d], [%d]", code->code_num, code->dst, code->src, code->jmp);
+		break;
+	case OPiJLE:
+		DBG_P("L[%d] : OPiJLE [%d], [%d], [%d]", code->code_num, code->dst, code->src, code->jmp);
+		break;
+	case OPJE:
+		DBG_P("L[%d] : OPJE [%d], [%d], [%d]", code->code_num, code->dst, code->src, code->jmp);
+		break;
+	case OPiJE:
+		DBG_P("L[%d] : OPiJE [%d], [%d], [%d]", code->code_num, code->dst, code->src, code->jmp);
 		break;
 	case OPRET:
 		DBG_P("L[%d] : OPRET [%d], [%d]", code->code_num, code->dst, code->src);

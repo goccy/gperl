@@ -13,7 +13,7 @@ GPerlTokenizer::GPerlTokenizer(void)
 
 vector<Token *> *GPerlTokenizer::tokenize(char *script)
 {
-	int i = 0;
+	size_t i = 0;
 	char token[MAX_TOKEN_SIZE] = {0};
 	int token_idx = 0;
 	vector<Token*> *tokens = new vector<Token *>();
@@ -114,6 +114,7 @@ vector<Token *> *GPerlTokenizer::tokenize(char *script)
 			}
 			//through
 		case ',': case ':': case ';': case '=': case '+':
+		case '<': case '>':
 		case '(': case ')': {
 			if (isStringStarted) {
 				token[token_idx] = script[i];
@@ -134,9 +135,18 @@ vector<Token *> *GPerlTokenizer::tokenize(char *script)
 				tokens->push_back(new Token(string(tmp)));
 				mdOperationFlag = false;
 			}
-			fprintf(stderr, "token = [%c]\n", script[i]);
-			tmp[0] = script[i];
-			tokens->push_back(new Token(string(tmp)));
+			if (i + 1 < script_size &&
+				(script[i] == '<' || script[i] == '>' || script[i] == '=') &&
+				script[i + 1] == '=') {
+				fprintf(stderr, "token = [%c=]\n", script[i]);
+				tmp[0] = script[i];
+				tokens->push_back(new Token(string(tmp) + "="));
+				i++;
+			} else {
+				fprintf(stderr, "token = [%c]\n", script[i]);
+				tmp[0] = script[i];
+				tokens->push_back(new Token(string(tmp)));
+			}
 			token_idx = 0;
 			escapeFlag = false;
 			break;
@@ -315,7 +325,22 @@ void GPerlTokenizer::annotateTokens(vector<Token *> *tokens)
 		} else if (t->data == "/") {
 			t->type = Operator;
 			cur_type = Operator;
-		} else if (cur_type == VarDecl && t->data.find("$") != -1) {
+		} else if (t->data == "<") {
+			t->type = Operator;
+			cur_type = Operator;
+		} else if (t->data == ">") {
+			t->type = Operator;
+			cur_type = Operator;
+		} else if (t->data == "<=") {
+			t->type = Operator;
+			cur_type = Operator;
+		} else if (t->data == ">=") {
+			t->type = Operator;
+			cur_type = Operator;
+		} else if (t->data == "==") {
+			t->type = Operator;
+			cur_type = Operator;
+		} else if (cur_type == VarDecl && t->data.find("$") != string::npos) {
 			t->type = LocalVar;
 			vardecl_list.push_back(t->data);
 			cur_type = LocalVar;

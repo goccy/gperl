@@ -36,6 +36,8 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 	static void *jmp_table[] = {
 		&&L(OPMOV), &&L(OPiMOV), &&L(OPsMOV), &&L(OPADD), &&L(OPiADD),
 		&&L(OPSUB), &&L(OPiSUB), &&L(OPMUL), &&L(OPiMUL), &&L(OPDIV), &&L(OPiDIV),
+		&&L(OPJG), &&L(OPiJG), &&L(OPJL), &&L(OPiJL), &&L(OPJGE), &&L(OPiJGE),
+		&&L(OPJLE), &&L(OPiJLE), &&L(OPJE), &&L(OPiJE),
 		&&L(OPRET), &&L(OPTHCODE), &&L(OPNOP),
 		&&L(OPiWRITE), &&L(OPsWRITE), &&L(OPPRINT), /*&&L(OPSUB), &&L(OPMUL), &&L(OPDIV),
 		&&L(OPCALL), &&L(OPJMP), &&L(OPCMP), &&L(OPPOP), &&L(OPPUSH),
@@ -109,6 +111,116 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 		DBG_P("OPiDIV");
 		reg.idata[pc->dst] /= reg.idata[pc->src];
 		pc++;
+		GOTO_NEXTOP();
+	}
+	CASE(OPJG) {
+		DBG_P("OPJG");
+		if (reg.idata[pc->dst] > reg.idata[pc->src]) {
+			reg.idata[pc->dst] = 1;
+			pc++;
+		} else {
+			reg.idata[pc->dst] = 0;
+			pc += pc->jmp;
+		}
+		GOTO_NEXTOP();
+	}
+	CASE(OPiJG) {
+		DBG_P("OPiJG");
+		if (reg.idata[pc->dst] > reg.idata[pc->src]) {
+			reg.idata[pc->dst] = 1;
+			pc++;
+		} else {
+			reg.idata[pc->dst] = 0;
+			pc += pc->jmp;
+		}
+		GOTO_NEXTOP();
+	}
+	CASE(OPJL) {
+		DBG_P("OPJL");
+		if (reg.idata[pc->dst] < reg.idata[pc->src]) {
+			reg.idata[pc->dst] = 1;
+			pc++;
+		} else {
+			reg.idata[pc->dst] = 0;
+			pc += pc->jmp;
+		}
+		GOTO_NEXTOP();
+	}
+	CASE(OPiJL) {
+		DBG_P("OPiJL");
+		if (reg.idata[pc->dst] < reg.idata[pc->src]) {
+			reg.idata[pc->dst] = 1;
+			pc++;
+		} else {
+			reg.idata[pc->dst] = 0;
+			pc += pc->jmp;
+		}
+		GOTO_NEXTOP();
+	}
+	CASE(OPJGE) {
+		DBG_P("OPJGE");
+		if (reg.idata[pc->dst] >= reg.idata[pc->src]) {
+			reg.idata[pc->dst] = 1;
+			pc++;
+		} else {
+			reg.idata[pc->dst] = 0;
+			pc += pc->jmp;
+		}
+		GOTO_NEXTOP();
+	}
+	CASE(OPiJGE) {
+		DBG_P("OPiJGE");
+		if (reg.idata[pc->dst] >= reg.idata[pc->src]) {
+			reg.idata[pc->dst] = 1;
+			pc++;
+		} else {
+			reg.idata[pc->dst] = 0;
+			pc += pc->jmp;
+		}
+		GOTO_NEXTOP();
+	}
+	CASE(OPJLE) {
+		DBG_P("OPJLE");
+		if (reg.idata[pc->dst] <= reg.idata[pc->src]) {
+			reg.idata[pc->dst] = 1;
+			pc++;
+		} else {
+			reg.idata[pc->dst] = 0;
+			pc += pc->jmp;
+		}
+		GOTO_NEXTOP();
+	}
+	CASE(OPiJLE) {
+		DBG_P("OPiJLE");
+		if (reg.idata[pc->dst] <= reg.idata[pc->src]) {
+			reg.idata[pc->dst] = 1;
+			pc++;
+		} else {
+			reg.idata[pc->dst] = 0;
+			pc += pc->jmp;
+		}
+		GOTO_NEXTOP();
+	}
+	CASE(OPJE) {
+		DBG_P("OPJE");
+		if (reg.idata[pc->dst] == reg.idata[pc->src]) {
+			reg.idata[pc->dst] = 1;
+			pc++;
+		} else {
+			reg.idata[pc->dst] = 0;
+			pc += pc->jmp;
+		}
+		GOTO_NEXTOP();
+	}
+	CASE(OPiJE) {
+		DBG_P("OPiJE");
+		if (reg.idata[pc->dst] == reg.idata[pc->src]) {
+			reg.idata[pc->dst] = 1;
+			pc++;
+		} else {
+			reg.idata[pc->dst] = 0;
+			pc += pc->jmp;
+		}
 		GOTO_NEXTOP();
 	}
 	CASE(OPiWRITE) {
