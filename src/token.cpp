@@ -40,7 +40,7 @@ vector<Token *> *GPerlTokenizer::tokenize(char *script)
 			}
 			escapeFlag = false;
 			break;
-		case ' ':
+		case ' ': case '\t':
 			if (isStringStarted) {
 				token[token_idx] = script[i];
 				token_idx++;
@@ -115,7 +115,7 @@ vector<Token *> *GPerlTokenizer::tokenize(char *script)
 			//through
 		case ',': case ':': case ';': case '=': case '+':
 		case '<': case '>':
-		case '(': case ')': {
+		case '(': case ')': case '{': case '}': {
 			if (isStringStarted) {
 				token[token_idx] = script[i];
 				token_idx++;
@@ -224,6 +224,18 @@ void GPerlTokenizer::dumpType(Token *token)
 	case LeftParenthesis:
 		fprintf(stderr, "LeftParenthesis");
 		break;
+	case RightBrace:
+		fprintf(stderr, "RightBrace");
+		break;
+	case LeftBrace:
+		fprintf(stderr, "LeftBrace");
+		break;
+	case IfStmt:
+		fprintf(stderr, "IfStmt");
+		break;
+	case ElseStmt:
+		fprintf(stderr, "ElseStmt");
+		break;
 	case Var:
 		fprintf(stderr, "Var");
 		break;
@@ -272,6 +284,10 @@ const char *GPerlTokenizer::getTypeName(GPerlTypes type)
 		return "VarDecl";
 	case PrintDecl:
 		return "PrintDecl";
+	case IfStmt:
+		return "IfStmt";
+	case ElseStmt:
+		return "ElseStmt";
 	case Comma:
 		return "Comma";
 	case SemiColon:
@@ -280,6 +296,10 @@ const char *GPerlTokenizer::getTypeName(GPerlTypes type)
 		return "RightParenthesis";
 	case LeftParenthesis:
 		return "LeftParenthesis";
+	case RightBrace:
+		return "RightBrace";
+	case LeftBrace:
+		return "LeftBrace";
 	case Var:
 		return "Var";
 	case Int:
@@ -296,7 +316,16 @@ const char *GPerlTokenizer::getTypeName(GPerlTypes type)
 		return "LocalVar";
 	case GlobalVar:
 		return "GlobalVar";
-		break;
+	case Greater:
+		return "Greater";
+	case Less:
+		return "Less";
+	case GreaterEqual:
+		return "GreaterEqual";
+	case LessEqual:
+		return "LessEqual";
+	case EqualEqual:
+		return "EqualEqual";
 	default:
 		break;
 	}
@@ -355,9 +384,19 @@ void GPerlTokenizer::annotateTokens(vector<Token *> *tokens)
 			t->type = LeftParenthesis;
 		} else if (t->data == ")") {
 			t->type = RightParenthesis;
+		} else if (t->data == "{") {
+			t->type = LeftBrace;
+		} else if (t->data == "}") {
+			t->type = RightBrace;
 		} else if (t->data == "print") {
 			t->type = PrintDecl;
 			cur_type = PrintDecl;
+		} else if (t->data == "if") {
+			t->type = IfStmt;
+			cur_type = IfStmt;
+		} else if (t->data == "else") {
+			t->type = ElseStmt;
+			cur_type = ElseStmt;
 		} else if (search(vardecl_list, t->data)) {
 			t->type = Var;
 			cur_type = Var;

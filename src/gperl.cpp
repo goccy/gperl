@@ -24,7 +24,7 @@ GPerl::GPerl(int argc, char **argv)
 	t.dump(tokens);
 	GPerlParser p;
 	DBG_P("==============<PARSE>==============");
-	GPerlAST *ast = p.parse(tokens);
+	GPerlAST *ast = p.parse(tokens, tokens->begin());
 	ast->show();//graph debug with graphviz
 	GPerlCompiler compiler;
 	DBG_P("=============<COMPILE>=============");

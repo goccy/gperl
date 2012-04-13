@@ -39,10 +39,16 @@ typedef enum {
 	Assign,
 	VarDecl,
 	PrintDecl,
+	IfStmt,
+	ElseStmt,
 	Comma,
 	SemiColon,
 	LeftParenthesis,
 	RightParenthesis,
+	LeftBrace,
+	RightBrace,
+	LeftBracket,
+	RightBracket,
 	Var,
 	Int,
 	Float,
@@ -81,6 +87,7 @@ typedef enum {
 	OPiWRITE,
 	OPsWRITE,
 	OPPRINT,
+	OPJMP,
 } GPerlOpCodes;
 
 class GPerl {
@@ -107,12 +114,21 @@ public:
 	bool search(std::vector<std::string> &list, std::string str);
 };
 
+class GPerlAST;
+typedef GPerlAST GPerlScope;
+
 class GPerlCell {
 public:
 	GPerlCell *parent;
-	GPerlCell *left;
-	GPerlCell *center;/* for if stmt */
-	GPerlCell *right;
+	union {
+		GPerlCell *left;
+		GPerlCell *cond;
+	};
+	GPerlScope *true_stmt;/* for if stmt */
+	union {
+		GPerlCell *right;
+		GPerlScope *false_stmt;
+	};
 	GPerlCell *next;/* for next stmt */
 	GPerlCell *vargs; /* for print */
 	GPerlTypes type;
@@ -145,13 +161,15 @@ public:
 	void show(void);
 	void draw(GraphvizGraph *graph, GPerlCell *c, GraphvizNode *node);
 	GraphvizNode *createNode(GraphvizGraph *graph, const char *name);
-	void drawEdge(GraphvizGraph *graph, GraphvizNode *from, GraphvizNode *to);
+	void drawEdge(GraphvizGraph *graph, GraphvizNode *from, GraphvizNode *to, const char *label);
 };
 
 class GPerlParser {
 public:
+	int iterate_count;
+
 	GPerlParser(void);
-	GPerlAST *parse(std::vector<Token *> *tokens);
+	GPerlAST *parse(std::vector<Token *> *tokens, std::vector<Token *>::iterator it);
 };
 
 #include <graphviz/gvc.h>
@@ -230,6 +248,7 @@ public:
 	GPerlVirtualMachineCode *createRET(void);
 	GPerlVirtualMachineCode *createiWRITE(void);
 	GPerlVirtualMachineCode *createsWRITE(void);
+	GPerlVirtualMachineCode *createJMP(int jmp_num);
 	void addVMCode(GPerlVirtualMachineCode *code);
 	void dumpVMCode(GPerlVirtualMachineCode *code);
 	void dumpPureVMCode(GPerlVirtualMachineCode *codes);

@@ -39,7 +39,7 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 		&&L(OPJG), &&L(OPiJG), &&L(OPJL), &&L(OPiJL), &&L(OPJGE), &&L(OPiJGE),
 		&&L(OPJLE), &&L(OPiJLE), &&L(OPJE), &&L(OPiJE),
 		&&L(OPRET), &&L(OPTHCODE), &&L(OPNOP),
-		&&L(OPiWRITE), &&L(OPsWRITE), &&L(OPPRINT), /*&&L(OPSUB), &&L(OPMUL), &&L(OPDIV),
+		&&L(OPiWRITE), &&L(OPsWRITE), &&L(OPPRINT), &&L(OPJMP), /*&&L(OPSUB), &&L(OPMUL), &&L(OPDIV),
 		&&L(OPCALL), &&L(OPJMP), &&L(OPCMP), &&L(OPPOP), &&L(OPPUSH),
 		&&L(OPRET), &&L(OPJL), &&L(OPJG), &&L(OPSTORE), &&L(OPLOAD),
 		&&L(OPiADDC), &&L(OPiSUBC), &&L(OPiJLC), &&L(OPiJGC), &&L(OPFASTCALL),
@@ -241,6 +241,11 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 		fprintf(stderr, "%s", cstr(outbuf));
 		outbuf = "";
 		pc++;
+		GOTO_NEXTOP();
+	}
+	CASE(OPJMP) {
+		DBG_P("OPJMP");
+		pc += pc->jmp;
 		GOTO_NEXTOP();
 	}
 	CASE(OPTHCODE) {

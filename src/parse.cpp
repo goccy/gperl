@@ -30,15 +30,18 @@ GraphvizNode *GPerlAST::createNode(GraphvizGraph *graph, const char *name)
 	node->set("width", "3.0");
 	node->set("height", "2.4");
 	node->set("style","filled");
+	node->set("fontsize", "24");
 	return node;
 }
 
-void GPerlAST::drawEdge(GraphvizGraph *graph, GraphvizNode *from, GraphvizNode *to)
+void GPerlAST::drawEdge(GraphvizGraph *graph, GraphvizNode *from, GraphvizNode *to, const char *label)
 {
 	GraphvizEdge *edge = graph->newEdge(from, to);
 	edge->set("style","filled");
 	edge->set("color","#A9A9A9");
 	edge->set("fillcolor","#A9A9A9");
+	edge->set("label", label);
+	edge->set("fontsize", "24");
 }
 
 void GPerlAST::draw(GraphvizGraph *graph, GPerlCell *c, GraphvizNode *node)
@@ -46,29 +49,78 @@ void GPerlAST::draw(GraphvizGraph *graph, GPerlCell *c, GraphvizNode *node)
 	GraphvizNode *left;
 	GraphvizNode *right;
 	char buf[32] = {0};
+	if (c->type == IfStmt) {
+		GraphvizGraph *true_stmt_graph = graph->makeSubGraph("cluster0");
+		true_stmt_graph->set("fillcolor","#e0ffff");
+		true_stmt_graph->set("style","filled");
+		true_stmt_graph->set("label","true stmt");
+		true_stmt_graph->set("fontsize", "24");
+		GPerlCell *true_stmt = c->true_stmt->root;
+		const char *true_stmt_name = true_stmt->rawstr.c_str();
+		snprintf(buf, 32, "%s : [%p]", true_stmt_name, true_stmt_name);
+		GraphvizNode *true_stmt_node = createNode(graph, (const char *)buf);
+		GraphvizNode *if_node = root_node;
+		drawEdge(graph, if_node, true_stmt_node, "true_stmt");
+		GraphvizNode *prev_node = NULL;
+		for (; true_stmt; true_stmt = true_stmt->next) {
+			const char *root_name = true_stmt->rawstr.c_str();
+			snprintf(buf, 32, "%s : [%p]", root_name, root_name);
+			GraphvizNode *root_node = createNode(true_stmt_graph, (const char *)buf);//root_name);
+			this->root_node = root_node;
+			if (prev_node) {
+				drawEdge(graph, prev_node, root_node, "next");
+			}
+			draw(true_stmt_graph, true_stmt, root_node);
+			prev_node = root_node;
+		}
+		if (c->false_stmt) {
+			prev_node = NULL;
+			GraphvizGraph *false_stmt_graph = graph->makeSubGraph("cluster1");
+			false_stmt_graph->set("fillcolor","#fff0f5");
+			false_stmt_graph->set("style","filled");
+			false_stmt_graph->set("label","false stmt");
+			false_stmt_graph->set("fontsize", "24");
+			GPerlCell *false_stmt = c->false_stmt->root;
+			const char *false_stmt_name = false_stmt->rawstr.c_str();
+			snprintf(buf, 32, "%s : [%p]", false_stmt_name, false_stmt_name);
+			GraphvizNode *false_stmt_node = createNode(graph, (const char *)buf);
+			drawEdge(graph, if_node, false_stmt_node, "false_stmt");
+			for (; false_stmt; false_stmt = false_stmt->next) {
+				const char *root_name = false_stmt->rawstr.c_str();
+				snprintf(buf, 32, "%s : [%p]", root_name, root_name);
+				GraphvizNode *root_node = createNode(false_stmt_graph, (const char *)buf);//root_name);
+				this->root_node = root_node;
+				if (prev_node) {
+					drawEdge(graph, prev_node, root_node, "next");
+				}
+				draw(false_stmt_graph, false_stmt, root_node);
+				prev_node = root_node;
+			}
+		}
+	}
 	if (c->vargs) {
 		const char *to_name = c->vargs->rawstr.c_str();
 		snprintf(buf, 32, "%s : [%p]", to_name, to_name);
 		left = createNode(graph, (const char *)buf);
-		drawEdge(graph, root_node, left);
+		drawEdge(graph, root_node, left, "vargs");
 		draw(graph, c->vargs, left);
 	}
 	if (c->left != NULL) {
 		const char *to_name = c->left->rawstr.c_str();
 		snprintf(buf, 32, "%s : [%p]", to_name, to_name);
 		left = createNode(graph, (const char *)buf);
-		drawEdge(graph, node, left);
+		drawEdge(graph, node, left, "left");
 	}
-	if (c->right != NULL) {
+	if (c->right != NULL && c->right->type != Return/*not Scope*/) {
 		const char *to_name = c->right->rawstr.c_str();
 		snprintf(buf, 32, "%s : [%p]", to_name, to_name);
 		right = createNode(graph, (const char *)buf);
-		drawEdge(graph, node, right);
+		drawEdge(graph, node, right, "right");
 	}
 	if (c->left && c->left->left != NULL) {
 		draw(graph, c->left, left);
 	}
-	if (c->right && c->right->left != NULL) {
+	if (c->right && c->right->type != Return && c->right->left != NULL) {
 		draw(graph, c->right, right);
 	}
 }
@@ -80,13 +132,18 @@ void GPerlAST::show(void)
 	GraphvizGraph *graph = new GraphvizGraph("g", AGDIGRAPH);
 	graph->set("ranksep", "4.0");
 	GPerlCell *stmt = root;
+	GraphvizNode *prev_node = NULL;
 	for (; stmt; stmt = stmt->next) {
 		const char *root_name = stmt->rawstr.c_str();
 		char buf[32] = {0};
 		snprintf(buf, 32, "%s : [%p]", root_name, root_name);
 		GraphvizNode *root_node = createNode(graph, (const char *)buf);//root_name);
 		this->root_node = root_node;
+		if (prev_node) {
+			drawEdge(graph, prev_node, root_node, "next");
+		}
 		draw(graph, stmt, root_node);
+		prev_node = root_node;
 		//fprintf(stderr, "root_name = [%s]\n", root_name);
 		//fprintf(stderr, "root->next = [%p]\n", root->next);
 		//fprintf(stderr, "root = [%p]\n", root);
@@ -103,7 +160,7 @@ GPerlCell::GPerlCell(GPerlTypes type_) : type(type_)
 {
 	data.pdata = NULL;
 	left = NULL;
-	center = NULL;
+	true_stmt = NULL;
 	right = NULL;
 	next = NULL;
 	vargs = NULL;
@@ -111,18 +168,19 @@ GPerlCell::GPerlCell(GPerlTypes type_) : type(type_)
 
 GPerlParser::GPerlParser(void)
 {
-
+	iterate_count = 0;
 }
 
 
-GPerlAST *GPerlParser::parse(vector<Token *> *tokens)
+GPerlAST *GPerlParser::parse(vector<Token *> *tokens, vector<Token *>::iterator it)
 {
 	GPerlAST *ast = new GPerlAST();
 	GPerlCell *root = new GPerlCell(Return);
 	vector<GPerlCell * > blocks;
-	vector<Token *>::iterator it = tokens->begin();
 	bool isVarDeclFlag = false;
 	bool leftParenthesisFlag = false;
+	bool ifStmtFlag = false;
+	bool elseStmtFlag = false;
 	int i = 0;
 	int block_num = 0;
 	while (it != tokens->end()) {
@@ -294,8 +352,69 @@ GPerlAST *GPerlParser::parse(vector<Token *> *tokens)
 			GPerlCell *p = new GPerlCell(PrintDecl);
 			p->rawstr = t->data;
 			root = p;
-			//blocks.push_back(p);
-			//block_num++;
+			break;
+		}
+		case IfStmt: {
+			DBG_P("IF:ROOT = IFCELL");
+			GPerlCell *p = new GPerlCell(IfStmt);
+			p->rawstr = t->data;
+			root = p;
+			ast->add(root);
+			ifStmtFlag = true;
+			break;
+		}
+		case ElseStmt: {
+			DBG_P("ELSE: elseStmtFlag => ON");
+			elseStmtFlag = true;
+			break;
+		}
+		case LeftBrace: {
+			DBG_P("LEFT BRACE:");
+			if (ifStmtFlag) {
+				DBG_P("IFStmtFlag: ON");
+				GPerlCell *cond = blocks.at(block_num-1);
+				blocks.pop_back();
+				block_num--;
+				root->cond = cond;
+				cond->parent = root;
+				it++;
+				i++;
+				iterate_count = 0;
+				DBG_P("-----------recursive------------");
+				GPerlScope *scope = parse(tokens, it);
+				DBG_P("iterate_count = [%d]", iterate_count);
+				it += iterate_count;
+				root->true_stmt = scope;
+				ifStmtFlag = false;
+				DBG_P("ROOT->TRUE_STMT = SCOPE");
+			} else if (elseStmtFlag) {
+				DBG_P("ElseStmtFlag: ON");
+				it++;
+				i++;
+				iterate_count = 0;
+				DBG_P("-----------recursive------------");
+				GPerlScope *scope = parse(tokens, it);
+				DBG_P("iterate_count = [%d]", iterate_count);
+				it += iterate_count;
+				root->false_stmt = scope;
+				elseStmtFlag = false;
+				DBG_P("ROOT->FALSE_STMT = SCOPE");
+			}
+			break;
+		}
+		case RightBrace: {
+			DBG_P("RIGHT BRACE:");
+			/*
+			if (ifStmtFlag) {
+				DBG_P("IFStmtFlag: ON");
+				return ast;
+			} else if (elseStmtFlag) {
+				DBG_P("ElseStmtFlag: ON");
+				return ast;
+			}
+			*/
+			DBG_P("--------------------------------");
+			return ast;
 			break;
 		}
 		case Comma: {
@@ -364,6 +483,7 @@ GPerlAST *GPerlParser::parse(vector<Token *> *tokens)
 		}
 		it++;
 		i++;
+		iterate_count++;
 	}
 	fprintf(stderr, "ast size = [%d]\n", ast->size);
 	fprintf(stderr, "=====================================\n");

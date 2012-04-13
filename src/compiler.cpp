@@ -70,13 +70,41 @@ void GPerlCompiler::compile_(GPerlCell *path, bool isRecursive)
 			code = createVMCode(branch);
 			addVMCode(code);
 			dumpVMCode(code);
-		} else {
+		} else if (branch->type != Return) {
 			compile_(branch, true);
 		}
 		code = createVMCode(parent);
 		addVMCode(code);
 		dumpVMCode(code);
 		path = parent;
+	}
+	//GPerlTokenizer t;
+	//DBG_P("%s", t.getTypeName(path->type));
+	if (path->type == IfStmt) {
+		dst = 0;//reset dst number
+		GPerlCell *true_stmt = path->true_stmt->root;
+		DBG_P("============TRUE STMT=============");
+		for (; true_stmt; true_stmt = true_stmt->next) {
+			GPerlCell *path = true_stmt;
+			compile_(path, true);
+			dst = 0;//reset dst number
+		}
+		int cur_code_num = code_num;
+		//fprintf(stderr, "cur_code_num = [%d]\n", cur_code_num);
+		GPerlVirtualMachineCode *jmp = createJMP(1);
+		addVMCode(jmp);
+		dumpVMCode(jmp);
+		dst = 0;//reset dst number
+		DBG_P("============FALSE STMT=============");
+		if (path->false_stmt) {
+			GPerlCell *false_stmt = path->false_stmt->root;
+			for (; false_stmt; false_stmt = false_stmt->next) {
+				GPerlCell *path = false_stmt;
+				compile_(path, true);
+				dst = 0;//reset dst number
+			}
+		}
+		jmp->jmp = code_num - cur_code_num;
 	}
 }
 
@@ -241,6 +269,11 @@ GPerlVirtualMachineCode *GPerlCompiler::createVMCode(GPerlCell *c)
 		code->dst = 0;
 		code->src = 0;
 		break;
+	case IfStmt:
+		code->op = OPNOP;
+		code->dst = 0;
+		code->src = 0;
+		break;
 	default:
 		break;
 	}
@@ -280,6 +313,16 @@ GPerlVirtualMachineCode *GPerlCompiler::createsWRITE(void)
 	GPerlVirtualMachineCode *code = new GPerlVirtualMachineCode();
 	code->code_num = code_num;
 	code->op = OPsWRITE;
+	code_num++;
+	return code;
+}
+
+GPerlVirtualMachineCode *GPerlCompiler::createJMP(int jmp_num)
+{
+	GPerlVirtualMachineCode *code = new GPerlVirtualMachineCode();
+	code->code_num = code_num;
+	code->op = OPJMP;
+	code->jmp = jmp_num;
 	code_num++;
 	return code;
 }
@@ -361,6 +404,15 @@ void GPerlCompiler::dumpVMCode(GPerlVirtualMachineCode *code)
 		break;
 	case OPPRINT:
 		DBG_P("L[%d] : OPPRINT [%d], [%d]", code->code_num, code->dst, code->src);
+		break;
+	case OPsWRITE:
+		DBG_P("L[%d] : OPsWRITE [%d], [%d]", code->code_num, code->dst, code->src);
+		break;
+	case OPiWRITE:
+		DBG_P("L[%d] : OPiWRITE [%d], [%d]", code->code_num, code->dst, code->src);
+		break;
+	case OPJMP:
+		DBG_P("L[%d] : OPJMP [%d], [%d], [%d]", code->code_num, code->dst, code->src, code->jmp);
 		break;
 	default:
 		break;
