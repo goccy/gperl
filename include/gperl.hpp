@@ -152,6 +152,7 @@ class GraphvizEdge;
 class GPerlAST {
 public:
 	int size;
+	int cluster_num;
 	GPerlCell *root;
 	GPerlCell *cur;
 	GraphvizNode *root_node;

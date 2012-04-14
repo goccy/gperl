@@ -2,7 +2,7 @@
 
 using namespace std;
 
-GPerlAST::GPerlAST(void)
+GPerlAST::GPerlAST(void) : cluster_num(0)
 {
 	root = NULL;
 	cur = NULL;
@@ -50,10 +50,13 @@ void GPerlAST::draw(GraphvizGraph *graph, GPerlCell *c, GraphvizNode *node)
 	GraphvizNode *right;
 	char buf[32] = {0};
 	if (c->type == IfStmt) {
-		GraphvizGraph *true_stmt_graph = graph->makeSubGraph("cluster0");
+		snprintf(buf, 32, "cluster%d", cluster_num);
+		GraphvizGraph *true_stmt_graph = graph->makeSubGraph(buf);
+		cluster_num++;
 		true_stmt_graph->set("fillcolor","#e0ffff");
 		true_stmt_graph->set("style","filled");
-		true_stmt_graph->set("label","true stmt");
+		snprintf(buf, 32, "true stmt: [%p]", c->true_stmt);
+		true_stmt_graph->set("label", buf);
 		true_stmt_graph->set("fontsize", "24");
 		GPerlCell *true_stmt = c->true_stmt->root;
 		const char *true_stmt_name = true_stmt->rawstr.c_str();
@@ -75,10 +78,13 @@ void GPerlAST::draw(GraphvizGraph *graph, GPerlCell *c, GraphvizNode *node)
 		}
 		if (c->false_stmt) {
 			prev_node = NULL;
-			GraphvizGraph *false_stmt_graph = graph->makeSubGraph("cluster1");
+			snprintf(buf, 32, "cluster%d", cluster_num);
+			GraphvizGraph *false_stmt_graph = graph->makeSubGraph(buf);
+			cluster_num++;
 			false_stmt_graph->set("fillcolor","#fff0f5");
 			false_stmt_graph->set("style","filled");
-			false_stmt_graph->set("label","false stmt");
+			snprintf(buf, 32, "false stmt: [%p]", c->false_stmt);
+			false_stmt_graph->set("label", buf);
 			false_stmt_graph->set("fontsize", "24");
 			GPerlCell *false_stmt = c->false_stmt->root;
 			const char *false_stmt_name = false_stmt->rawstr.c_str();
