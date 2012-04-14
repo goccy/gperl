@@ -2,13 +2,15 @@
 
 using namespace std;
 
-GPerlCompiler::GPerlCompiler(void)
+GPerlCompiler::GPerlCompiler(void) : dst(0), src(0), code_num(0), variable_index(0)
 {
-	dst = 0;
-	src = 0;
-	code_num = 0;
+	declared_vname = NULL;
 	for (int i = 0; i < MAX_REG_SIZE; i++) {
 		reg_type[i] = Undefined;
+	}
+	for (int i = 0; i < MAX_VARIABLE_NUM; i++) {
+		variable_names[i] = NULL;
+		variable_types[i] = Undefined;
 	}
 	codes = new vector<GPerlVirtualMachineCode *>();
 }
@@ -278,11 +280,87 @@ GPerlVirtualMachineCode *GPerlCompiler::createVMCode(GPerlCell *c)
 		code->dst = 0;
 		code->src = 0;
 		break;
+	case LocalVarDecl: case VarDecl: {
+		code->op = OPSET;
+		code->dst = variable_index;
+		code->src = 0;
+		const char *name = cstr(c->vname);
+		code->name = name;
+		setToVariableNames(name);
+		declared_vname = name;
+		break;
+	}
+	case LocalVar: case Var: {
+		const char *name = cstr(c->vname);
+		int idx = getVariableIndex(name);
+		switch (variable_types[idx]) {
+		case Int:
+			code->op = OPOiMOV;
+			reg_type[dst] = Int;
+			break;
+		default:
+			code->op = OPOMOV;
+			reg_type[dst] = Object;
+			break;
+		}
+		code->dst = dst;
+		code->src = idx;
+		code->name = name;
+		dst++;
+		break;
+	}
+	case Assign: {
+		code->op = OPLET;
+		int idx = getVariableIndex(declared_vname);
+		code->dst = idx;
+		code->src = 0;
+		code->name = declared_vname;
+		switch (reg_type[0]) {
+		case Int:
+			variable_types[idx] = Int;
+			break;
+		case Float:
+			variable_types[idx] = Float;
+			break;
+		case String:
+			variable_types[idx] = String;
+			break;
+		default:
+			break;
+		}
+		declared_vname = NULL;
+		break;
+	}
 	default:
 		break;
 	}
 	code_num++;
 	return code;
+}
+
+void GPerlCompiler::setToVariableNames(const char *name)
+{
+	variable_names[variable_index] = name;
+	variable_index++;
+}
+
+int GPerlCompiler::getVariableIndex(const char *name)
+{
+	int ret = -1;
+	size_t name_size = strlen(name);
+	for (int i = 0; i < variable_index; i++) {
+		size_t v_size = strlen(variable_names[i]);
+		if (v_size == name_size &&
+			!strncmp(variable_names[i], name, name_size)) {
+			ret = i;
+			break;
+		}
+	}
+	if (ret == -1) {
+		fprintf(stderr, "COMPILE ERROR: cannot find variable name[%s]\n", name);
+		exit(1);
+	}
+	return ret;
 }
 
 GPerlVirtualMachineCode *GPerlCompiler::createTHCODE(void)
@@ -342,6 +420,12 @@ void GPerlCompiler::dumpVMCode(GPerlVirtualMachineCode *code)
 		break;
 	case OPsMOV:
 		DBG_P("L[%d] : OPsMOV [%d], [%s]", code->code_num, code->dst, code->name);
+		break;
+	case OPOMOV:
+		DBG_P("L[%d] : OPOMOV [%d], [%d], [%s]", code->code_num, code->dst, code->src, code->name);
+		break;
+	case OPOiMOV:
+		DBG_P("L[%d] : OPOiMOV [%d], [%d], [%s]", code->code_num, code->dst, code->src, code->name);
 		break;
 	case OPADD:
 		DBG_P("L[%d] : OPADD [%d], [%d]", code->code_num, code->dst, code->src);
@@ -417,6 +501,12 @@ void GPerlCompiler::dumpVMCode(GPerlVirtualMachineCode *code)
 		break;
 	case OPJMP:
 		DBG_P("L[%d] : OPJMP [%d], [%d], [%d]", code->code_num, code->dst, code->src, code->jmp);
+		break;
+	case OPLET:
+		DBG_P("L[%d] : OPLET [%s]:[%d], [%d]", code->code_num, code->name, code->dst, code->src);
+		break;
+	case OPSET:
+		DBG_P("L[%d] : OPSET [%d], [%s]", code->code_num, code->dst, code->name);
 		break;
 	default:
 		break;

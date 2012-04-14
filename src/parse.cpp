@@ -198,7 +198,7 @@ GPerlAST *GPerlParser::parse(vector<Token *> *tokens, vector<Token *>::iterator 
 		case LocalVar:
 			if (isVarDeclFlag) {
 				fprintf(stderr, "LOCALVAR[%s]:NEW BLOCK => BLOCKS\n", t->data.c_str());
-				GPerlCell *block = new GPerlCell(LocalVar);
+				GPerlCell *block = new GPerlCell(LocalVarDecl);
 				block->vname = t->data;
 				block->rawstr = t->data;
 				blocks.push_back(block);

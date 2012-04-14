@@ -37,6 +37,7 @@ typedef enum {
 	TypeRef,
 	LabelRef,
 	Assign,
+	LocalVarDecl,
 	VarDecl,
 	PrintDecl,
 	IfStmt,
@@ -63,6 +64,8 @@ typedef enum {
 	OPMOV,
 	OPiMOV,
 	OPsMOV,
+	OPOMOV,
+	OPOiMOV,
 	OPADD,
 	OPiADD,
 	OPSUB,
@@ -88,6 +91,8 @@ typedef enum {
 	OPsWRITE,
 	OPPRINT,
 	OPJMP,
+	OPLET,
+	OPSET,
 } GPerlOpCodes;
 
 class GPerl {
@@ -231,6 +236,7 @@ typedef struct _GPerlVirtualMachineCode {
 } GPerlVirtualMachineCode;
 
 #define MAX_REG_SIZE 32
+#define MAX_VARIABLE_NUM 128
 
 class GPerlCompiler {
 public:
@@ -239,11 +245,17 @@ public:
 	int code_num;
 	GPerlTypes reg_type[MAX_REG_SIZE];
 	std::vector<GPerlVirtualMachineCode *> *codes;
+	const char *variable_names[MAX_VARIABLE_NUM];
+	int variable_types[MAX_VARIABLE_NUM];
+	const char *declared_vname;
+	int variable_index;
 
 	GPerlCompiler(void);
 	GPerlVirtualMachineCode *compile(GPerlAST *ast);
 	GPerlVirtualMachineCode *getPureCodes(void);
 	void compile_(GPerlCell *path, bool isRecursive);
+	void setToVariableNames(const char *name);
+	int getVariableIndex(const char *name);
 	GPerlVirtualMachineCode *createVMCode(GPerlCell *c);
 	GPerlVirtualMachineCode *createTHCODE(void);
 	GPerlVirtualMachineCode *createRET(void);
@@ -255,9 +267,24 @@ public:
 	void dumpPureVMCode(GPerlVirtualMachineCode *codes);
 };
 
+typedef struct _GPerlObject {
+	union {
+		int idata;
+		float fdata;
+		bool bdata;
+		char *sdata;
+		void *pdata; /* other Object */
+	} data;
+	const char *name;
+} GPerlObject;
+
 class GPerlVirtualMachine {
 public:
 	GPerlVirtualMachine();
+	void setToVariableMemory(const char *name, int idx);
+	GPerlObject *getFromVariableMemory(int idx);
 	void createDirectThreadingCode(GPerlVirtualMachineCode *codes, void **jmp_tbl);
 	int run(GPerlVirtualMachineCode *codes);
 };
+
+extern GPerlObject *variable_memory[MAX_VARIABLE_NUM];
