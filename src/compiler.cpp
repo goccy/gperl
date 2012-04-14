@@ -83,15 +83,19 @@ void GPerlCompiler::compile_(GPerlCell *path, bool isRecursive)
 	if (path->type == IfStmt) {
 		dst = 0;//reset dst number
 		GPerlCell *true_stmt = path->true_stmt->root;
+		GPerlVirtualMachineCode *jmp = codes->at(code_num - 2);
+		DBG_P("jmp = [%d]", jmp->op);
+		int cond_code_num = code_num;
 		DBG_P("============TRUE STMT=============");
 		for (; true_stmt; true_stmt = true_stmt->next) {
 			GPerlCell *path = true_stmt;
 			compile_(path, true);
 			dst = 0;//reset dst number
 		}
+		jmp->jmp = code_num - cond_code_num + 3/*OPNOP + OPJMP + 1*/;
 		int cur_code_num = code_num;
 		//fprintf(stderr, "cur_code_num = [%d]\n", cur_code_num);
-		GPerlVirtualMachineCode *jmp = createJMP(1);
+		jmp = createJMP(1);
 		addVMCode(jmp);
 		dumpVMCode(jmp);
 		dst = 0;//reset dst number
