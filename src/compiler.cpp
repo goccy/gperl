@@ -315,6 +315,7 @@ GPerlVirtualMachineCode *GPerlCompiler::createVMCode(GPerlCell *c)
 		code->dst = idx;
 		code->src = 0;
 		code->name = declared_vname;
+		/* ======= for Type Inference ======= */
 		switch (reg_type[0]) {
 		case Int:
 			variable_types[idx] = Int;
@@ -328,6 +329,7 @@ GPerlVirtualMachineCode *GPerlCompiler::createVMCode(GPerlCell *c)
 		default:
 			break;
 		}
+		/* ================================== */
 		declared_vname = NULL;
 		break;
 	}

@@ -20,7 +20,7 @@ void GPerlVirtualMachine::setToVariableMemory(const char *name, int idx)
 	variable_memory[idx] = o;
 }
 
-GPerlObject *GPerlVirtualMachine::getFromVariableMemory(int idx)
+inline GPerlObject *GPerlVirtualMachine::getFromVariableMemory(int idx)
 {
 	return variable_memory[idx];
 }
@@ -55,11 +55,11 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 		&&L(OPRET), &&L(OPTHCODE), &&L(OPNOP),
 		&&L(OPiWRITE), &&L(OPsWRITE), &&L(OPPRINT), &&L(OPJMP), &&L(OPLET),
 		&&L(OPSET),
-		/*&&L(OPSUB), &&L(OPMUL), &&L(OPDIV),
-		&&L(OPCALL), &&L(OPJMP), &&L(OPCMP), &&L(OPPOP), &&L(OPPUSH),
-		&&L(OPRET), &&L(OPJL), &&L(OPJG), &&L(OPSTORE), &&L(OPLOAD),
-		&&L(OPiADDC), &&L(OPiSUBC), &&L(OPiJLC), &&L(OPiJGC), &&L(OPFASTCALL),
-		&&L(OPiPUSHC), &&L(OPCOPY), &&L(OPTHCODE), &&L(OPNOP),*/
+		/*
+		  &&L(OPCALL), &&L(OPCMP), &&L(OPPOP), &&L(OPPUSH),
+		  &&L(OPSTORE), &&L(OPLOAD),
+		  &&L(OPiADDC), &&L(OPiSUBC), &&L(OPiJLC), &&L(OPiJGC), &&L(OPFASTCALL),
+		  &&L(OPiPUSHC), &&L(OPCOPY), &&L(OPTHCODE), &&L(OPNOP),*/
 	};
 	DISPATCH_START();
 
@@ -83,7 +83,6 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 	}
 	CASE(OPOMOV) {
 		DBG_P("OPOMOV");
-		//reg.sdata[pc->dst] = (char *)pc->name;
 		pc++;
 		GOTO_NEXTOP();
 	}

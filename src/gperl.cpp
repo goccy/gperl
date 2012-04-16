@@ -25,7 +25,9 @@ GPerl::GPerl(int argc, char **argv)
 	GPerlParser p;
 	DBG_P("==============<PARSE>==============");
 	GPerlAST *ast = p.parse(tokens, tokens->begin());
+#ifdef USING_GRAPH_DEBUG
 	ast->show();//graph debug with graphviz
+#endif
 	GPerlCompiler compiler;
 	DBG_P("=============<COMPILE>=============");
 	GPerlVirtualMachineCode *codes = compiler.compile(ast);

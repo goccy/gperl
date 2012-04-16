@@ -149,10 +149,12 @@ public:
 	GPerlCell(GPerlTypes type_);
 };
 
+#ifdef USING_GRAPH_DEBUG
 class GraphvizContext;
 class GraphvizGraph;
 class GraphvizNode;
 class GraphvizEdge;
+#endif
 
 class GPerlAST {
 public:
@@ -160,14 +162,20 @@ public:
 	int cluster_num;
 	GPerlCell *root;
 	GPerlCell *cur;
+#ifdef USING_GRAPH_DEBUG
 	GraphvizNode *root_node;
+#else
+	void *root_node;
+#endif
 
 	GPerlAST(void);
 	void add(GPerlCell *root);
+#ifdef USING_GRAPH_DEBUG
 	void show(void);
 	void draw(GraphvizGraph *graph, GPerlCell *c, GraphvizNode *node);
 	GraphvizNode *createNode(GraphvizGraph *graph, const char *name);
 	void drawEdge(GraphvizGraph *graph, GraphvizNode *from, GraphvizNode *to, const char *label);
+#endif
 };
 
 class GPerlParser {
@@ -178,6 +186,7 @@ public:
 	GPerlAST *parse(std::vector<Token *> *tokens, std::vector<Token *>::iterator it);
 };
 
+#ifdef USING_GRAPH_DEBUG
 #include <graphviz/gvc.h>
 #include <graphviz/graph.h>
 
@@ -221,6 +230,7 @@ public:
 	void copyAttributeTo(void *oldobj, void *newobj);
 	void free(GraphvizGraph *g);
 };
+#endif
 
 typedef struct _GPerlVirtualMachineCode {
 	GPerlOpCodes op; /* operation code */

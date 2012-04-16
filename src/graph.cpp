@@ -1,3 +1,4 @@
+#ifdef USING_GRAPH_DEBUG
 #include <gperl.hpp>
 
 GraphvizContext::GraphvizContext(void)
@@ -126,3 +127,5 @@ void GraphvizEdge::copyAttributeTo(void *oldobj, void *newobj)
 {
 	agcopyattr(oldobj, newobj);
 }
+
+#endif

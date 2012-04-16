@@ -22,6 +22,7 @@ void GPerlAST::add(GPerlCell *root_)
 	size++;
 }
 
+#ifdef USING_GRAPH_DEBUG
 GraphvizNode *GPerlAST::createNode(GraphvizGraph *graph, const char *name)
 {
 	GraphvizNode *node = graph->newNode(name);
@@ -161,6 +162,7 @@ void GPerlAST::show(void)
 	delete graph;
 	delete ctx;
 }
+#endif
 
 GPerlCell::GPerlCell(GPerlTypes type_) : type(type_)
 {
