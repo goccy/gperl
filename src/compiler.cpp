@@ -270,6 +270,20 @@ GPerlVirtualMachineCode *GPerlCompiler::createVMCode(GPerlCell *c)
 		code->dst = dst - 1;
 		code->src = dst;
 		break;
+	case NotEqual:
+		dst--;
+		switch (reg_type[dst - 1]) {
+		case Int:
+			code->op = OPiJNE;
+			break;
+		default:
+			code->op = OPJNE;
+			break;
+		}
+		code->jmp = 1;
+		code->dst = dst - 1;
+		code->src = dst;
+		break;
 	case PrintDecl:
 		code->op = OPPRINT;
 		code->dst = 0;
@@ -482,6 +496,12 @@ void GPerlCompiler::dumpVMCode(GPerlVirtualMachineCode *code)
 		break;
 	case OPiJE:
 		DBG_P("L[%d] : OPiJE [%d], [%d], [%d]", code->code_num, code->dst, code->src, code->jmp);
+		break;
+	case OPJNE:
+		DBG_P("L[%d] : OPJNE [%d], [%d], [%d]", code->code_num, code->dst, code->src, code->jmp);
+		break;
+	case OPiJNE:
+		DBG_P("L[%d] : OPiJNE [%d], [%d], [%d]", code->code_num, code->dst, code->src, code->jmp);
 		break;
 	case OPRET:
 		DBG_P("L[%d] : OPRET [%d], [%d]", code->code_num, code->dst, code->src);

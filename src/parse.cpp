@@ -170,6 +170,7 @@ GPerlCell::GPerlCell(GPerlTypes type_) : type(type_)
 	left = NULL;
 	true_stmt = NULL;
 	right = NULL;
+	parent = NULL;
 	next = NULL;
 	vargs = NULL;
 }
@@ -340,6 +341,9 @@ GPerlAST *GPerlParser::parse(vector<Token *> *tokens, vector<Token *>::iterator 
 				op->rawstr = t->data;
 			} else if (t->data == "==") {
 				op = new GPerlCell(EqualEqual);
+				op->rawstr = t->data;
+			} else if (t->data == "!=") {
+				op = new GPerlCell(NotEqual);
 				op->rawstr = t->data;
 			}
 			//fprintf(stderr, "op = [%p]\n", op);

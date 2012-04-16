@@ -151,6 +151,32 @@ vector<Token *> *GPerlTokenizer::tokenize(char *script)
 			escapeFlag = false;
 			break;
 		}
+		case '!': {
+			if (isStringStarted) {
+				token[token_idx] = script[i];
+				token_idx++;
+				break;
+			}
+			if (token[0] != EOL) {
+				fprintf(stderr, "token = [%s]\n", token);
+				tokens->push_back(new Token(string(token)));
+				memset(token, 0, MAX_TOKEN_SIZE);
+			}
+			char tmp[2] = {0};
+			if (i + 1 < script_size && script[i + 1] == '=') {
+				fprintf(stderr, "token = [%c=]\n", script[i]);
+				tmp[0] = script[i];
+				tokens->push_back(new Token(string(tmp) + "="));
+				i++;
+			} else {
+				fprintf(stderr, "token = [%c]\n", script[i]);
+				tmp[0] = script[i];
+				tokens->push_back(new Token(string(tmp)));
+			}
+			token_idx = 0;
+			escapeFlag = false;
+			break;
+		}
 		case '0': case '1': case '2': case '3': case '4': case '5':
 		case '6': case '7': case '8': case '9': {
 			token[token_idx] = script[i];
@@ -326,6 +352,8 @@ const char *GPerlTokenizer::getTypeName(GPerlTypes type)
 		return "LessEqual";
 	case EqualEqual:
 		return "EqualEqual";
+	case NotEqual:
+		return "NotEqual";
 	default:
 		break;
 	}
@@ -367,6 +395,9 @@ void GPerlTokenizer::annotateTokens(vector<Token *> *tokens)
 			t->type = Operator;
 			cur_type = Operator;
 		} else if (t->data == "==") {
+			t->type = Operator;
+			cur_type = Operator;
+		} else if (t->data == "!=") {
 			t->type = Operator;
 			cur_type = Operator;
 		} else if (cur_type == VarDecl && t->data.find("$") != string::npos) {

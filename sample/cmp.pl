@@ -7,4 +7,5 @@ print 2 == 2, "\n";
 print 3 < 2, "\n";
 print 3 <= 2, "\n";
 print 3 == 2, "\n";
+print 3 != 2, "\n";
 
