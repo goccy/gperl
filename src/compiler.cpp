@@ -280,7 +280,7 @@ GPerlVirtualMachineCode *GPerlCompiler::createVMCode(GPerlCell *c)
 		code->dst = 0;
 		code->src = 0;
 		break;
-	case LocalVarDecl: case VarDecl: {
+	case LocalVarDecl: case VarDecl: case GlobalVarDecl: {
 		code->op = OPSET;
 		code->dst = variable_index;
 		code->src = 0;

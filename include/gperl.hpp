@@ -38,6 +38,7 @@ typedef enum {
 	LabelRef,
 	Assign,
 	LocalVarDecl,
+	GlobalVarDecl,
 	VarDecl,
 	PrintDecl,
 	IfStmt,

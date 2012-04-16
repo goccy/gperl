@@ -400,6 +400,10 @@ void GPerlTokenizer::annotateTokens(vector<Token *> *tokens)
 		} else if (search(vardecl_list, t->data)) {
 			t->type = Var;
 			cur_type = Var;
+		} else if (t->data.find("$") != string::npos) {
+			t->type = GlobalVar;
+			vardecl_list.push_back(t->data);
+			cur_type = GlobalVar;
 		} else if (t->data == "0" || atoi(cstr(t->data)) != 0) {
 			t->type = Int;
 			cur_type = Int;

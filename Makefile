@@ -1,6 +1,5 @@
 CC = g++ -m64
 CFLAGS = -O0 -g3 -Wall -W -I./include/ -I/opt/local/include -DDEBUG_MODE -DUSING_GRAPH_DEBUG
-#CFLAGS = -O2 -Wall -W -DUSING_SELECTIVE_INLINING -fomit-frame-pointer -I./include/ -I$(READLINE_DIR)/include/
 LDLIBS = `pkg-config libgvc --libs`
 target = gperl
 

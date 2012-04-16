@@ -210,6 +210,16 @@ GPerlAST *GPerlParser::parse(vector<Token *> *tokens, vector<Token *>::iterator 
 				fprintf(stderr, "ERROR:syntax error!!\n");
 			}
 			break;
+		case GlobalVar: {
+			fprintf(stderr, "GLOBALVAR[%s]:NEW BLOCK => BLOCKS\n", t->data.c_str());
+			GPerlCell *block = new GPerlCell(GlobalVarDecl);
+			block->vname = t->data;
+			block->rawstr = t->data;
+			blocks.push_back(block);
+			block_num++;
+			isVarDeclFlag = false;
+			break;
+		}
 		case Var:
 			if (block_num > 0 && blocks.at(block_num-1)->type != Assign) {
 				GPerlCell *block = blocks.at(block_num-1);
