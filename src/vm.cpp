@@ -1,7 +1,8 @@
 #include <gperl.hpp>
 
 using namespace std;
-GPerlObject *variable_memory[MAX_VARIABLE_NUM];
+static GPerlObject *variable_memory[MAX_VARIABLE_NUM];
+static GPerlVirtualMachineCode *func_memory[MAX_FUNC_NUM];
 
 GPerlVirtualMachine::GPerlVirtualMachine(void)
 {
@@ -20,16 +21,29 @@ void GPerlVirtualMachine::setToVariableMemory(const char *name, int idx)
 	variable_memory[idx] = o;
 }
 
+void GPerlVirtualMachine::setToFuncMemory(GPerlVirtualMachineCode *func, int idx)
+{
+	func_memory[idx] = func;
+}
+
 inline GPerlObject *GPerlVirtualMachine::getFromVariableMemory(int idx)
 {
 	return variable_memory[idx];
 }
 
+inline GPerlVirtualMachineCode *GPerlVirtualMachine::getFromFuncMemory(int idx)
+{
+	return func_memory[idx];
+}
+
 void GPerlVirtualMachine::createDirectThreadingCode(GPerlVirtualMachineCode *codes, void **jmp_tbl)
 {
-	codes->op = OPNOP;
+	if (codes->op == OPTHCODE) codes->op = OPNOP;
 	GPerlVirtualMachineCode *pc = codes;
 	for (; pc->op != OPRET; pc++) {
+		if (pc->op == OPFUNCSET) {
+			createDirectThreadingCode(pc->func, jmp_tbl);
+		}
 		pc->opnext = jmp_tbl[pc->op];
 	}
 	pc->opnext = jmp_tbl[pc->op];
@@ -54,7 +68,7 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 		&&L(OPJLE), &&L(OPiJLE), &&L(OPJE), &&L(OPiJE), &&L(OPJNE), &&L(OPiJNE),
 		&&L(OPRET), &&L(OPTHCODE), &&L(OPNOP),
 		&&L(OPiWRITE), &&L(OPsWRITE), &&L(OPPRINT), &&L(OPJMP), &&L(OPLET),
-		&&L(OPSET),
+		&&L(OPSET), &&L(OPFUNCSET), &&L(OPCALL),
 		/*
 		  &&L(OPCALL), &&L(OPCMP), &&L(OPPOP), &&L(OPPUSH),
 		  &&L(OPSTORE), &&L(OPLOAD),
@@ -307,6 +321,19 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 	CASE(OPSET) {
 		DBG_P("OPSET");
 		setToVariableMemory(pc->name, pc->dst);
+		pc++;
+		GOTO_NEXTOP();
+	}
+	CASE(OPFUNCSET) {
+		DBG_P("OPFUNCSET");
+		setToFuncMemory(pc->func, pc->dst);
+		pc++;
+		GOTO_NEXTOP();
+	}
+	CASE(OPCALL) {
+		DBG_P("OPCALL");
+		GPerlVirtualMachineCode *code = getFromFuncMemory(pc->src);
+		run(code);
 		pc++;
 		GOTO_NEXTOP();
 	}

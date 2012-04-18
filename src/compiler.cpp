@@ -2,7 +2,8 @@
 
 using namespace std;
 
-GPerlCompiler::GPerlCompiler(void) : dst(0), src(0), code_num(0), variable_index(0)
+GPerlCompiler::GPerlCompiler(void) : dst(0), src(0), code_num(0),
+									 variable_index(0), func_index(0)
 {
 	declared_vname = NULL;
 	for (int i = 0; i < MAX_REG_SIZE; i++) {
@@ -13,6 +14,7 @@ GPerlCompiler::GPerlCompiler(void) : dst(0), src(0), code_num(0), variable_index
 		variable_types[i] = Undefined;
 	}
 	codes = new vector<GPerlVirtualMachineCode *>();
+	func_code = NULL;
 }
 
 GPerlVirtualMachineCode *GPerlCompiler::compile(GPerlAST *ast)
@@ -28,7 +30,7 @@ GPerlVirtualMachineCode *GPerlCompiler::compile(GPerlAST *ast)
 	}
 	GPerlVirtualMachineCode *ret = createRET();
 	addVMCode(ret);
-	return getPureCodes();
+	return getPureCodes(codes);
 }
 
 void GPerlCompiler::addVMCode(GPerlVirtualMachineCode *code)
@@ -111,10 +113,44 @@ void GPerlCompiler::compile_(GPerlCell *path, bool isRecursive)
 			}
 		}
 		jmp->jmp = code_num - cur_code_num;
+	} else if (path->type == Function) {
+		dst = 0;//reset dst number
+		vector<GPerlVirtualMachineCode *> tmp;
+		vector<GPerlVirtualMachineCode *> *func_code = new vector<GPerlVirtualMachineCode *>();
+		//escape current codes => tmp
+		int size = codes->size();
+		for (int i = 0; i < size; i++) {
+			tmp.push_back(codes->at(i));
+		}
+		codes->clear();
+		//add func code to codes
+		GPerlCell *body_stmt = path->body->root;
+		for (; body_stmt; body_stmt = body_stmt->next) {
+			GPerlCell *path = body_stmt;
+			compile_(path, true);
+			dst = 0;//reset dst number
+		}
+		GPerlVirtualMachineCode *ret = createRET();
+		addVMCode(ret);
+		//copy codes to func_code
+		size = codes->size();
+		for (int i = 0; i < size; i++) {
+			func_code->push_back(codes->at(i));
+		}
+		codes->clear();
+		//revert codes from tmp
+		size = tmp.size();
+		for (int i = 0; i < size; i++) {
+			codes->push_back(tmp.at(i));
+		}
+		GPerlVirtualMachineCode *f = getPureCodes(func_code);
+		code = codes->back();
+		code->func = f;
+		DBG_P("========= FUNCTION DECL END ==========");
 	}
 }
 
-GPerlVirtualMachineCode *GPerlCompiler::getPureCodes(void)
+GPerlVirtualMachineCode *GPerlCompiler::getPureCodes(vector<GPerlVirtualMachineCode *> *codes)
 {
 	int code_n = codes->size();
 	GPerlVirtualMachineCode pure_codes_[code_n + 1];
@@ -323,6 +359,15 @@ GPerlVirtualMachineCode *GPerlCompiler::createVMCode(GPerlCell *c)
 		dst++;
 		break;
 	}
+	case Call: {
+		const char *name = cstr(c->fname);
+		int idx = getFuncIndex(name);
+		code->op = OPCALL;
+		code->dst = 0;
+		code->src = idx;
+		code->name = name;
+		break;
+	}
 	case Assign: {
 		code->op = OPLET;
 		int idx = getVariableIndex(declared_vname);
@@ -347,6 +392,16 @@ GPerlVirtualMachineCode *GPerlCompiler::createVMCode(GPerlCell *c)
 		declared_vname = NULL;
 		break;
 	}
+	case Function: {
+		code->op = OPFUNCSET;
+		code->dst = func_index;
+		code->src = 0;
+		const char *name = cstr(c->fname);
+		code->name = name;
+		setToFunctionNames(name);
+		declared_fname = name;
+		break;
+	}
 	default:
 		break;
 	}
@@ -358,6 +413,12 @@ void GPerlCompiler::setToVariableNames(const char *name)
 {
 	variable_names[variable_index] = name;
 	variable_index++;
+}
+
+void GPerlCompiler::setToFunctionNames(const char *name)
+{
+	func_names[func_index] = name;
+	func_index++;
 }
 
 int GPerlCompiler::getVariableIndex(const char *name)
@@ -374,6 +435,25 @@ int GPerlCompiler::getVariableIndex(const char *name)
 	}
 	if (ret == -1) {
 		fprintf(stderr, "COMPILE ERROR: cannot find variable name[%s]\n", name);
+		exit(1);
+	}
+	return ret;
+}
+
+int GPerlCompiler::getFuncIndex(const char *name)
+{
+	int ret = -1;
+	size_t name_size = strlen(name);
+	for (int i = 0; i < func_index; i++) {
+		size_t f_size = strlen(func_names[i]);
+		if (f_size == name_size &&
+			!strncmp(func_names[i], name, name_size)) {
+			ret = i;
+			break;
+		}
+	}
+	if (ret == -1) {
+		fprintf(stderr, "COMPILE ERROR: cannot find func name[%s]\n", name);
 		exit(1);
 	}
 	return ret;
@@ -529,6 +609,12 @@ void GPerlCompiler::dumpVMCode(GPerlVirtualMachineCode *code)
 		break;
 	case OPSET:
 		DBG_P("L[%d] : OPSET [%d], [%s]", code->code_num, code->dst, code->name);
+		break;
+	case OPFUNCSET:
+		DBG_P("L[%d] : OPFUNCSET [%d], [%s]", code->code_num, code->dst, code->name);
+		break;
+	case OPCALL:
+		DBG_P("L[%d] : OPCALL [%d], [%s]", code->code_num, code->dst, code->name);
 		break;
 	default:
 		break;

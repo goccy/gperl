@@ -286,6 +286,12 @@ void GPerlTokenizer::dumpType(Token *token)
 	case GlobalVar:
 		fprintf(stderr, "GlobalVar");
 		break;
+	case Function:
+		fprintf(stderr, "Function");
+		break;
+	case Call:
+		fprintf(stderr, "Call");
+		break;
 	default:
 		break;
 	}
@@ -354,6 +360,10 @@ const char *GPerlTokenizer::getTypeName(GPerlTypes type)
 		return "EqualEqual";
 	case NotEqual:
 		return "NotEqual";
+	case Function:
+		return "Function";
+	case Call:
+		return "Call";
 	default:
 		break;
 	}
@@ -364,6 +374,7 @@ void GPerlTokenizer::annotateTokens(vector<Token *> *tokens)
 {
 	vector<Token *>::iterator it = tokens->begin();
 	vector<string> vardecl_list;
+	vector<string> funcdecl_list;
 	int cur_type = 0;
 	while (it != tokens->end()) {
 		Token *t = (Token *)*it;
@@ -428,6 +439,9 @@ void GPerlTokenizer::annotateTokens(vector<Token *> *tokens)
 		} else if (t->data == "else") {
 			t->type = ElseStmt;
 			cur_type = ElseStmt;
+		} else if (t->data == "sub") {
+			t->type = FunctionDecl;
+			cur_type = FunctionDecl;
 		} else if (search(vardecl_list, t->data)) {
 			t->type = Var;
 			cur_type = Var;
@@ -438,7 +452,15 @@ void GPerlTokenizer::annotateTokens(vector<Token *> *tokens)
 		} else if (t->data == "0" || atoi(cstr(t->data)) != 0) {
 			t->type = Int;
 			cur_type = Int;
+		} else if (cur_type == FunctionDecl) {
+			t->type = Function;
+			cur_type = Function;
+			funcdecl_list.push_back(t->data);
+		} else if (search(funcdecl_list, t->data)) {
+			t->type = Call;
+			cur_type = Call;
 		} else {
+			//string
 			cur_type = 0;
 		}
 		it++;

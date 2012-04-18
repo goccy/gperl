@@ -60,6 +60,8 @@ typedef enum {
 	Operator,
 	LocalVar,
 	GlobalVar,
+	Function,
+	Call,
 } GPerlTypes;
 
 typedef enum {
@@ -97,6 +99,8 @@ typedef enum {
 	OPJMP,
 	OPLET,
 	OPSET,
+	OPFUNCSET,
+	OPCALL,
 } GPerlOpCodes;
 
 class GPerl {
@@ -133,7 +137,10 @@ public:
 		GPerlCell *left;
 		GPerlCell *cond;
 	};
-	GPerlScope *true_stmt;/* for if stmt */
+	union {
+		GPerlScope *true_stmt;/* for if stmt */
+		GPerlScope *body;/* for function block */
+	};
 	union {
 		GPerlCell *right;
 		GPerlScope *false_stmt;
@@ -142,6 +149,7 @@ public:
 	GPerlCell *vargs; /* for print */
 	GPerlTypes type;
 	std::string vname;/* variable name */
+	std::string fname;/* function name */
 	std::string rawstr;
 	union {
 		int idata;
@@ -246,11 +254,13 @@ typedef struct _GPerlVirtualMachineCode {
 		int jmp;   /* jmp register number */
 	};
 	const char *name; /* variable or function name */
+	struct _GPerlVirtualMachineCode *func;
 	void *opnext; /* for direct threading */
 } GPerlVirtualMachineCode;
 
 #define MAX_REG_SIZE 32
 #define MAX_VARIABLE_NUM 128
+#define MAX_FUNC_NUM 128
 
 class GPerlCompiler {
 public:
@@ -259,17 +269,23 @@ public:
 	int code_num;
 	GPerlTypes reg_type[MAX_REG_SIZE];
 	std::vector<GPerlVirtualMachineCode *> *codes;
+	std::vector<GPerlVirtualMachineCode *> *func_code;
 	const char *variable_names[MAX_VARIABLE_NUM];
+	const char *func_names[MAX_FUNC_NUM];
 	int variable_types[MAX_VARIABLE_NUM];
 	const char *declared_vname;
+	const char *declared_fname;
 	int variable_index;
+	int func_index;
 
 	GPerlCompiler(void);
 	GPerlVirtualMachineCode *compile(GPerlAST *ast);
-	GPerlVirtualMachineCode *getPureCodes(void);
+	GPerlVirtualMachineCode *getPureCodes(std::vector<GPerlVirtualMachineCode *> *c);
 	void compile_(GPerlCell *path, bool isRecursive);
 	void setToVariableNames(const char *name);
+	void setToFunctionNames(const char *name);
 	int getVariableIndex(const char *name);
+	int getFuncIndex(const char *name);
 	GPerlVirtualMachineCode *createVMCode(GPerlCell *c);
 	GPerlVirtualMachineCode *createTHCODE(void);
 	GPerlVirtualMachineCode *createRET(void);
@@ -296,9 +312,9 @@ class GPerlVirtualMachine {
 public:
 	GPerlVirtualMachine();
 	void setToVariableMemory(const char *name, int idx);
+	void setToFuncMemory(GPerlVirtualMachineCode *func, int idx);
 	GPerlObject *getFromVariableMemory(int idx);
+	GPerlVirtualMachineCode *getFromFuncMemory(int idx);
 	void createDirectThreadingCode(GPerlVirtualMachineCode *codes, void **jmp_tbl);
 	int run(GPerlVirtualMachineCode *codes);
 };
-
-extern GPerlObject *variable_memory[MAX_VARIABLE_NUM];
