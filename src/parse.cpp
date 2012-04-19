@@ -342,6 +342,21 @@ GPerlAST *GPerlParser::parse(vector<Token *> *tokens, vector<Token *>::iterator 
 				block_num++;
 			}
 			break;
+		case Shift:
+			if (block_num > 0 && blocks.at(block_num-1)->type == Assign) {
+				GPerlCell *assign = blocks.at(block_num-1);
+				if (assign->right == NULL) {
+					DBG_P("Shift:LAST BLOCK->right");
+					GPerlCell *shift = new GPerlCell(Shift);
+					shift->rawstr = t->data;
+					assign->right = shift;
+				} else {
+					fprintf(stderr, "ERROR:[parse error]!!\n");
+				}
+			} else {
+				fprintf(stderr, "Warning: unused keyword shift\n");
+			}
+			break;
 		case Operator: {
 			fprintf(stderr, "OPERATOR[%s]:LAST BLOCK->PARENT\n", t->data.c_str());
 			GPerlCell *block = blocks.at(block_num-1);

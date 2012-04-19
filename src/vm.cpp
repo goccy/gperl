@@ -68,7 +68,7 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 		&&L(OPJLE), &&L(OPiJLE), &&L(OPJE), &&L(OPiJE), &&L(OPJNE), &&L(OPiJNE),
 		&&L(OPRET), &&L(OPTHCODE), &&L(OPNOP),
 		&&L(OPiWRITE), &&L(OPsWRITE), &&L(OPPRINT), &&L(OPJMP), &&L(OPLET),
-		&&L(OPSET), &&L(OPFUNCSET), &&L(OPCALL),
+		&&L(OPSET), &&L(OPFUNCSET), &&L(OPCALL), &&L(OPSHIFT),
 		/*
 		  &&L(OPCALL), &&L(OPCMP), &&L(OPPOP), &&L(OPPUSH),
 		  &&L(OPSTORE), &&L(OPLOAD),
@@ -334,6 +334,11 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 		DBG_P("OPCALL");
 		GPerlVirtualMachineCode *code = getFromFuncMemory(pc->src);
 		run(code);
+		pc++;
+		GOTO_NEXTOP();
+	}
+	CASE(OPSHIFT) {
+		DBG_P("OPSHIFT");
 		pc++;
 		GOTO_NEXTOP();
 	}

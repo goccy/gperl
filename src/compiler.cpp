@@ -368,6 +368,10 @@ GPerlVirtualMachineCode *GPerlCompiler::createVMCode(GPerlCell *c)
 		code->name = name;
 		break;
 	}
+	case Shift:
+		code->op = OPSHIFT;
+		code->dst = 0;
+		break;
 	case Assign: {
 		code->op = OPLET;
 		int idx = getVariableIndex(declared_vname);
@@ -615,6 +619,9 @@ void GPerlCompiler::dumpVMCode(GPerlVirtualMachineCode *code)
 		break;
 	case OPCALL:
 		DBG_P("L[%d] : OPCALL [%d], [%s]", code->code_num, code->dst, code->name);
+		break;
+	case OPSHIFT:
+		DBG_P("L[%d] : OPSHIFT [%d], [%s]", code->code_num, code->dst, code->name);
 		break;
 	default:
 		break;

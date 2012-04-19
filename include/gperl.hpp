@@ -63,6 +63,7 @@ typedef enum {
 	GlobalVar,
 	Function,
 	Call,
+	Shift,
 } GPerlTypes;
 
 typedef enum {
@@ -102,6 +103,7 @@ typedef enum {
 	OPSET,
 	OPFUNCSET,
 	OPCALL,
+	OPSHIFT,
 } GPerlOpCodes;
 
 class GPerl {

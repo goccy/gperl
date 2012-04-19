@@ -292,6 +292,9 @@ void GPerlTokenizer::dumpType(Token *token)
 	case Call:
 		fprintf(stderr, "Call");
 		break;
+	case Shift:
+		fprintf(stderr, "Shift");
+		break;
 	default:
 		break;
 	}
@@ -364,6 +367,8 @@ const char *GPerlTokenizer::getTypeName(GPerlTypes type)
 		return "Function";
 	case Call:
 		return "Call";
+	case Shift:
+		return "Shift";
 	default:
 		break;
 	}
@@ -442,6 +447,9 @@ void GPerlTokenizer::annotateTokens(vector<Token *> *tokens)
 		} else if (t->data == "sub") {
 			t->type = FunctionDecl;
 			cur_type = FunctionDecl;
+		} else if (t->data == "shift") {
+			t->type = Shift;
+			cur_type = Shift;
 		} else if (search(vardecl_list, t->data)) {
 			t->type = Var;
 			cur_type = Var;
