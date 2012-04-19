@@ -3,7 +3,8 @@
 using namespace std;
 
 GPerlCompiler::GPerlCompiler(void) : dst(0), src(0), code_num(0),
-									 variable_index(0), func_index(0)
+									 variable_index(0), func_index(0),
+									 args_count(0)
 {
 	declared_vname = NULL;
 	for (int i = 0; i < MAX_REG_SIZE; i++) {
@@ -45,20 +46,37 @@ void GPerlCompiler::compile_(GPerlCell *path, bool isRecursive)
 	for (;p->vargs && isRecursive; p = p->vargs) {
 		//path : PrintDecl
 		compile_(p->vargs, false);
-		//add WRITE CODE for Print Stmt
-		switch (reg_type[0]) {
-		case Int:
-			code = createiWRITE();
-			addVMCode(code);
-			dumpVMCode(code);
-			break;
-		case String:
-			code = createsWRITE();
-			addVMCode(code);
-			dumpVMCode(code);
-			break;
-		default:
-			break;
+		if (path->type == PrintDecl) {
+			//add WRITE CODE for Print Stmt
+			switch (reg_type[0]) {
+			case Int:
+				code = createiWRITE();
+				addVMCode(code);
+				dumpVMCode(code);
+				break;
+			case String:
+				code = createsWRITE();
+				addVMCode(code);
+				dumpVMCode(code);
+				break;
+			default:
+				break;
+			}
+		} else if (path->type == Call) {
+			switch (reg_type[0]) {
+			case Int:
+				code = createiPUSH();
+				addVMCode(code);
+				dumpVMCode(code);
+				break;
+			case String:
+				code = createsPUSH();
+				addVMCode(code);
+				dumpVMCode(code);
+				break;
+			default:
+				break;
+			}
 		}
 		dst = 0;
 	}
@@ -115,6 +133,7 @@ void GPerlCompiler::compile_(GPerlCell *path, bool isRecursive)
 		jmp->jmp = code_num - cur_code_num;
 	} else if (path->type == Function) {
 		dst = 0;//reset dst number
+		args_count = 0;
 		vector<GPerlVirtualMachineCode *> tmp;
 		vector<GPerlVirtualMachineCode *> *func_code = new vector<GPerlVirtualMachineCode *>();
 		//escape current codes => tmp
@@ -371,6 +390,8 @@ GPerlVirtualMachineCode *GPerlCompiler::createVMCode(GPerlCell *c)
 	case Shift:
 		code->op = OPSHIFT;
 		code->dst = 0;
+		code->src = args_count;
+		args_count++;
 		break;
 	case Assign: {
 		code->op = OPLET;
@@ -499,6 +520,24 @@ GPerlVirtualMachineCode *GPerlCompiler::createsWRITE(void)
 	return code;
 }
 
+GPerlVirtualMachineCode *GPerlCompiler::createiPUSH(void)
+{
+	GPerlVirtualMachineCode *code = new GPerlVirtualMachineCode();
+	code->code_num = code_num;
+	code->op = OPiPUSH;
+	code_num++;
+	return code;
+}
+
+GPerlVirtualMachineCode *GPerlCompiler::createsPUSH(void)
+{
+	GPerlVirtualMachineCode *code = new GPerlVirtualMachineCode();
+	code->code_num = code_num;
+	code->op = OPsPUSH;
+	code_num++;
+	return code;
+}
+
 GPerlVirtualMachineCode *GPerlCompiler::createJMP(int jmp_num)
 {
 	GPerlVirtualMachineCode *code = new GPerlVirtualMachineCode();
@@ -611,6 +650,9 @@ void GPerlCompiler::dumpVMCode(GPerlVirtualMachineCode *code)
 	case OPLET:
 		DBG_P("L[%d] : OPLET [%s]:[%d], [%d]", code->code_num, code->name, code->dst, code->src);
 		break;
+	case OPSHIFT:
+		DBG_P("L[%d] : OPSHIFT [%d], [%d]", code->code_num, code->dst, code->src);
+		break;
 	case OPSET:
 		DBG_P("L[%d] : OPSET [%d], [%s]", code->code_num, code->dst, code->name);
 		break;
@@ -620,8 +662,11 @@ void GPerlCompiler::dumpVMCode(GPerlVirtualMachineCode *code)
 	case OPCALL:
 		DBG_P("L[%d] : OPCALL [%d], [%s]", code->code_num, code->dst, code->name);
 		break;
-	case OPSHIFT:
-		DBG_P("L[%d] : OPSHIFT [%d], [%s]", code->code_num, code->dst, code->name);
+	case OPiPUSH:
+		DBG_P("L[%d] : OPiPUSH [%d], [%d]", code->code_num, code->dst, code->src);
+		break;
+	case OPsPUSH:
+		DBG_P("L[%d] : OPsPUSH [%d], [%s]", code->code_num, code->dst, code->name);
 		break;
 	default:
 		break;

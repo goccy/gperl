@@ -295,6 +295,9 @@ void GPerlTokenizer::dumpType(Token *token)
 	case Shift:
 		fprintf(stderr, "Shift");
 		break;
+	case Argument:
+		fprintf(stderr, "Argument");
+		break;
 	default:
 		break;
 	}
@@ -369,6 +372,8 @@ const char *GPerlTokenizer::getTypeName(GPerlTypes type)
 		return "Call";
 	case Shift:
 		return "Shift";
+	case Argument:
+		return "Argument";
 	default:
 		break;
 	}
@@ -425,6 +430,7 @@ void GPerlTokenizer::annotateTokens(vector<Token *> *tokens)
 			cur_type = Assign;
 		} else if (t->data == ";") {
 			t->type = SemiColon;
+			cur_type = SemiColon;
 		} else if (t->data == ",") {
 			t->type = Comma;
 		} else if (t->data == "(") {

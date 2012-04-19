@@ -427,8 +427,6 @@ GPerlAST *GPerlParser::parse(vector<Token *> *tokens, vector<Token *>::iterator 
 			GPerlCell *p = new GPerlCell(Call);
 			p->rawstr = t->data;
 			p->fname = t->data;
-			//blocks.push_back(p);
-			//block_num++;
 			root = p;
 			break;
 		}
@@ -524,8 +522,8 @@ GPerlAST *GPerlParser::parse(vector<Token *> *tokens, vector<Token *>::iterator 
 			leftParenthesisFlag = true;
 			break;
 		case RightParenthesis:
-			fprintf(stderr, "[)]:CONNECT BLOCK <=> BLOCK\n");
 			if (block_num > 1) {
+				fprintf(stderr, "[)]:CONNECT BLOCK <=> BLOCK\n");
 				GPerlCell *to = blocks.at(block_num-1);
 				//fprintf(stderr, "to = [%p]\n", to);
 				//fprintf(stderr, "to = [%s]\n", to->rawstr.c_str());
@@ -546,7 +544,7 @@ GPerlAST *GPerlParser::parse(vector<Token *> *tokens, vector<Token *>::iterator 
 			fprintf(stderr, "BLOCKS SIZE = [%d]\n", size);
 			if (size == 1) {
 				GPerlCell *stmt = blocks.at(0);
-				if (root->type == PrintDecl) {
+				if (root->type == PrintDecl || root->type == Call) {
 					GPerlCell *v = root;
 					for (; v->vargs; v = v->vargs) {}
 					v->vargs = stmt;

@@ -1,12 +1,14 @@
 #include <gperl.hpp>
 
 using namespace std;
-static GPerlObject *variable_memory[MAX_VARIABLE_NUM];
-static GPerlVirtualMachineCode *func_memory[MAX_FUNC_NUM];
 
 GPerlVirtualMachine::GPerlVirtualMachine(void)
 {
-
+	//Set DEFAULT Object
+	for (int i = 0; i < MAX_ARGSTACK_SIZE; i++) {
+		GPerlObject *o = new GPerlObject();
+		argstack[i] = o;
+	}
 }
 
 #define L(op) L_##op
@@ -68,7 +70,7 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 		&&L(OPJLE), &&L(OPiJLE), &&L(OPJE), &&L(OPiJE), &&L(OPJNE), &&L(OPiJNE),
 		&&L(OPRET), &&L(OPTHCODE), &&L(OPNOP),
 		&&L(OPiWRITE), &&L(OPsWRITE), &&L(OPPRINT), &&L(OPJMP), &&L(OPLET),
-		&&L(OPSET), &&L(OPFUNCSET), &&L(OPCALL), &&L(OPSHIFT),
+		&&L(OPSET), &&L(OPFUNCSET), &&L(OPCALL), &&L(OPSHIFT), &&L(OPiPUSH), &&L(OPsPUSH),
 		/*
 		  &&L(OPCALL), &&L(OPCMP), &&L(OPPOP), &&L(OPPUSH),
 		  &&L(OPSTORE), &&L(OPLOAD),
@@ -339,6 +341,18 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 	}
 	CASE(OPSHIFT) {
 		DBG_P("OPSHIFT");
+		reg.pdata[0] = argstack[pc->src]->data.pdata;
+		pc++;
+		GOTO_NEXTOP();
+	}
+	CASE(OPiPUSH) {
+		DBG_P("OPiPUSH");
+		argstack[pc->src]->data.idata = reg.idata[0];
+		pc++;
+		GOTO_NEXTOP();
+	}
+	CASE(OPsPUSH) {
+		DBG_P("OPsPUSH");
 		pc++;
 		GOTO_NEXTOP();
 	}

@@ -64,6 +64,7 @@ typedef enum {
 	Function,
 	Call,
 	Shift,
+	Argument,
 } GPerlTypes;
 
 typedef enum {
@@ -104,6 +105,8 @@ typedef enum {
 	OPFUNCSET,
 	OPCALL,
 	OPSHIFT,
+	OPiPUSH,
+	OPsPUSH,
 } GPerlOpCodes;
 
 class GPerl {
@@ -280,6 +283,7 @@ public:
 	const char *declared_fname;
 	int variable_index;
 	int func_index;
+	int args_count;/* for shift */
 
 	GPerlCompiler(void);
 	GPerlVirtualMachineCode *compile(GPerlAST *ast);
@@ -294,6 +298,8 @@ public:
 	GPerlVirtualMachineCode *createRET(void);
 	GPerlVirtualMachineCode *createiWRITE(void);
 	GPerlVirtualMachineCode *createsWRITE(void);
+	GPerlVirtualMachineCode *createiPUSH(void);
+	GPerlVirtualMachineCode *createsPUSH(void);
 	GPerlVirtualMachineCode *createJMP(int jmp_num);
 	void addVMCode(GPerlVirtualMachineCode *code);
 	void dumpVMCode(GPerlVirtualMachineCode *code);
@@ -311,8 +317,21 @@ typedef struct _GPerlObject {
 	const char *name;
 } GPerlObject;
 
+#define MAX_ARGSTACK_SIZE 8
 class GPerlVirtualMachine {
 public:
+	GPerlObject *variable_memory[MAX_VARIABLE_NUM];
+	GPerlVirtualMachineCode *func_memory[MAX_FUNC_NUM];
+	GPerlObject *argstack[MAX_ARGSTACK_SIZE];
+	/*
+	union {
+		int idata[MAX_ARGSTACK_SIZE];
+		float fdata[MAX_ARGSTACK_SIZE];
+		char *sdata[MAX_ARGSTACK_SIZE];
+		void *pdata[MAX_ARGSTACK_SIZE];
+	} argstack;
+	*/
+
 	GPerlVirtualMachine();
 	void setToVariableMemory(const char *name, int idx);
 	void setToFuncMemory(GPerlVirtualMachineCode *func, int idx);
