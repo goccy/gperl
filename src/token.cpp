@@ -467,7 +467,7 @@ void GPerlTokenizer::annotateTokens(vector<Token *> *tokens)
 	}
 }
 
-bool GPerlTokenizer::search(vector<string> &list, string target)
+bool GPerlTokenizer::search(vector<string> list, string target)
 {
 	bool ret = false;
 	vector<string>::iterator it = find(list.begin(), list.end(), target);

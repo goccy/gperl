@@ -3,6 +3,7 @@
 #include <iostream>
 #include <vector>
 #include <string>
+#include <algorithm>
 
 #define EOL '\0'
 #define MAX_LINE_SIZE 128
@@ -124,7 +125,7 @@ public:
 	void dump(std::vector<Token *> *tokens);
 	void dumpType(Token *token);
 	const char *getTypeName(GPerlTypes type);
-	bool search(std::vector<std::string> &list, std::string str);
+	bool search(std::vector<std::string> list, std::string str);
 };
 
 class GPerlAST;

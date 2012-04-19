@@ -1,5 +1,5 @@
-CC = g++ -m64
-CFLAGS = -O0 -g3 -Wall -W -I./include/ -I/opt/local/include -DDEBUG_MODE -DUSING_GRAPH_DEBUG
+CC = g++
+CFLAGS = -O0 -g3 -Wall -W -I./include/ -DDEBUG_MODE -DUSING_GRAPH_DEBUG
 LDLIBS = `pkg-config libgvc --libs`
 target = gperl
 
