@@ -208,6 +208,7 @@ GPerlCell::GPerlCell(GPerlTypes type_) : type(type_)
 GPerlParser::GPerlParser(void)
 {
 	iterate_count = 0;
+	func_iterate_count = 0;
 }
 
 
@@ -221,6 +222,7 @@ GPerlAST *GPerlParser::parse(vector<Token *> *tokens, vector<Token *>::iterator 
 	bool ifStmtFlag = false;
 	bool elseStmtFlag = false;
 	bool funcFlag = false;
+	//bool returnFlag = false;
 	int i = 0;
 	int block_num = 0;
 	while (it != tokens->end()) {
@@ -291,6 +293,7 @@ GPerlAST *GPerlParser::parse(vector<Token *> *tokens, vector<Token *>::iterator 
 					num->data.idata = atoi(t->data.c_str());
 					num->rawstr = t->data;
 					block->left = num;
+					num->parent = block;
 				} else if (block->right == NULL) {
 					fprintf(stderr, "INT[%s]:LAST BLOCK->right\n", t->data.c_str());
 					GPerlCell *num = new GPerlCell(Int);
@@ -449,6 +452,15 @@ GPerlAST *GPerlParser::parse(vector<Token *> *tokens, vector<Token *>::iterator 
 			funcFlag = true;
 			break;
 		}
+		case Return: {
+			DBG_P("RETURN: ");
+			GPerlCell *ret = new GPerlCell(Return);
+			ret->rawstr = t->data;
+			blocks.push_back(ret);
+			block_num++;
+			//returnFlag = true;
+			break;
+		}
 		case ElseStmt: {
 			DBG_P("ELSE: elseStmtFlag => ON");
 			elseStmtFlag = true;
@@ -461,11 +473,14 @@ GPerlAST *GPerlParser::parse(vector<Token *> *tokens, vector<Token *>::iterator 
 				it++;
 				i++;
 				iterate_count = 0;
+				func_iterate_count = 0;
 				DBG_P("----------------recursive-------------------");
 				GPerlScope *body = parse(tokens, it);
 				DBG_P("-----------return from recursive------------");
-				DBG_P("iterate_count = [%d]", iterate_count);
-				it += iterate_count;
+				func_iterate_count += iterate_count;
+				DBG_P("func_iterate_count = [%d]", func_iterate_count);
+				it += func_iterate_count;
+				i += func_iterate_count;
 				root->body = body;
 				funcFlag = false;
 				DBG_P("ROOT->BODY = BODY");
@@ -478,11 +493,13 @@ GPerlAST *GPerlParser::parse(vector<Token *> *tokens, vector<Token *>::iterator 
 				cond->parent = root;
 				it++;
 				i++;
+				func_iterate_count += iterate_count + 1;
 				iterate_count = 0;
 				DBG_P("-----------recursive------------");
 				GPerlScope *scope = parse(tokens, it);
 				DBG_P("iterate_count = [%d]", iterate_count);
 				it += iterate_count;
+				func_iterate_count += iterate_count;
 				root->true_stmt = scope;
 				ifStmtFlag = false;
 				DBG_P("ROOT->TRUE_STMT = SCOPE");
@@ -495,6 +512,7 @@ GPerlAST *GPerlParser::parse(vector<Token *> *tokens, vector<Token *>::iterator 
 				GPerlScope *scope = parse(tokens, it);
 				DBG_P("iterate_count = [%d]", iterate_count);
 				it += iterate_count;
+				func_iterate_count += iterate_count;
 				root->false_stmt = scope;
 				elseStmtFlag = false;
 				DBG_P("ROOT->FALSE_STMT = SCOPE");

@@ -298,6 +298,9 @@ void GPerlTokenizer::dumpType(Token *token)
 	case Argument:
 		fprintf(stderr, "Argument");
 		break;
+	case Return:
+		fprintf(stderr, "Return");
+		break;
 	default:
 		break;
 	}
@@ -374,6 +377,8 @@ const char *GPerlTokenizer::getTypeName(GPerlTypes type)
 		return "Shift";
 	case Argument:
 		return "Argument";
+	case Return:
+		return "Return";
 	default:
 		break;
 	}
@@ -456,6 +461,9 @@ void GPerlTokenizer::annotateTokens(vector<Token *> *tokens)
 		} else if (t->data == "shift") {
 			t->type = Shift;
 			cur_type = Shift;
+		} else if (t->data == "return") {
+			t->type = Return;
+			cur_type = Return;
 		} else if (search(vardecl_list, t->data)) {
 			t->type = Var;
 			cur_type = Var;

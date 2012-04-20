@@ -68,6 +68,7 @@ typedef enum {
 } GPerlTypes;
 
 typedef enum {
+	OPUNDEF,
 	OPMOV,
 	OPiMOV,
 	OPsMOV,
@@ -98,6 +99,7 @@ typedef enum {
 	OPNOP,
 	OPiWRITE,
 	OPsWRITE,
+	OPoWRITE,
 	OPPRINT,
 	OPJMP,
 	OPLET,
@@ -199,6 +201,7 @@ public:
 class GPerlParser {
 public:
 	int iterate_count;
+	int func_iterate_count;
 
 	GPerlParser(void);
 	GPerlAST *parse(std::vector<Token *> *tokens, std::vector<Token *>::iterator it);
@@ -296,8 +299,10 @@ public:
 	GPerlVirtualMachineCode *createVMCode(GPerlCell *c);
 	GPerlVirtualMachineCode *createTHCODE(void);
 	GPerlVirtualMachineCode *createRET(void);
+	GPerlVirtualMachineCode *createUNDEF(void);
 	GPerlVirtualMachineCode *createiWRITE(void);
 	GPerlVirtualMachineCode *createsWRITE(void);
+	GPerlVirtualMachineCode *createoWRITE(void);
 	GPerlVirtualMachineCode *createiPUSH(void);
 	GPerlVirtualMachineCode *createsPUSH(void);
 	GPerlVirtualMachineCode *createJMP(int jmp_num);

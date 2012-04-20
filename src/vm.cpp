@@ -42,7 +42,7 @@ void GPerlVirtualMachine::createDirectThreadingCode(GPerlVirtualMachineCode *cod
 {
 	if (codes->op == OPTHCODE) codes->op = OPNOP;
 	GPerlVirtualMachineCode *pc = codes;
-	for (; pc->op != OPRET; pc++) {
+	for (; pc->op != OPUNDEF; pc++) {
 		if (pc->op == OPFUNCSET) {
 			createDirectThreadingCode(pc->func, jmp_tbl);
 		}
@@ -63,22 +63,32 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 	char shared_buf[128] = {0};//TODO must be variable buffer
 	string outbuf = "";
 	static void *jmp_table[] = {
-		&&L(OPMOV), &&L(OPiMOV), &&L(OPsMOV), &&L(OPOMOV), &&L(OPOiMOV),
+		&&L(OPUNDEF),
+		&&L(OPMOV), &&L(OPiMOV), &&L(OPsMOV),
+		&&L(OPOMOV), &&L(OPOiMOV),
 		&&L(OPADD), &&L(OPiADD),
-		&&L(OPSUB), &&L(OPiSUB), &&L(OPMUL), &&L(OPiMUL), &&L(OPDIV), &&L(OPiDIV),
-		&&L(OPJG), &&L(OPiJG), &&L(OPJL), &&L(OPiJL), &&L(OPJGE), &&L(OPiJGE),
-		&&L(OPJLE), &&L(OPiJLE), &&L(OPJE), &&L(OPiJE), &&L(OPJNE), &&L(OPiJNE),
+		&&L(OPSUB), &&L(OPiSUB),
+		&&L(OPMUL), &&L(OPiMUL),
+		&&L(OPDIV), &&L(OPiDIV),
+		&&L(OPJG), &&L(OPiJG),
+		&&L(OPJL), &&L(OPiJL),
+		&&L(OPJGE), &&L(OPiJGE),
+		&&L(OPJLE), &&L(OPiJLE),
+		&&L(OPJE), &&L(OPiJE),
+		&&L(OPJNE), &&L(OPiJNE),
 		&&L(OPRET), &&L(OPTHCODE), &&L(OPNOP),
-		&&L(OPiWRITE), &&L(OPsWRITE), &&L(OPPRINT), &&L(OPJMP), &&L(OPLET),
-		&&L(OPSET), &&L(OPFUNCSET), &&L(OPCALL), &&L(OPSHIFT), &&L(OPiPUSH), &&L(OPsPUSH),
-		/*
-		  &&L(OPCALL), &&L(OPCMP), &&L(OPPOP), &&L(OPPUSH),
-		  &&L(OPSTORE), &&L(OPLOAD),
-		  &&L(OPiADDC), &&L(OPiSUBC), &&L(OPiJLC), &&L(OPiJGC), &&L(OPFASTCALL),
-		  &&L(OPiPUSHC), &&L(OPCOPY), &&L(OPTHCODE), &&L(OPNOP),*/
+		&&L(OPiWRITE), &&L(OPsWRITE), &&L(OPoWRITE),
+		&&L(OPPRINT), &&L(OPJMP), &&L(OPLET),
+		&&L(OPSET), &&L(OPFUNCSET),
+		&&L(OPCALL), &&L(OPSHIFT),
+		&&L(OPiPUSH), &&L(OPsPUSH),
 	};
 	DISPATCH_START();
 
+	CASE(OPUNDEF) {
+		DBG_P("OPUNDEF");
+		//no reach this case
+	}
 	CASE(OPMOV) {
 		DBG_P("OPMOV");
 		reg.idata[pc->dst] = pc->src;
@@ -99,6 +109,7 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 	}
 	CASE(OPOMOV) {
 		DBG_P("OPOMOV");
+		reg.pdata[pc->dst] = getFromVariableMemory(pc->src)->data.pdata;
 		pc++;
 		GOTO_NEXTOP();
 	}
@@ -298,6 +309,14 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 	CASE(OPsWRITE) {
 		DBG_P("OPsWRITE");
 		outbuf += reg.sdata[0];
+		pc++;
+		GOTO_NEXTOP();
+	}
+	CASE(OPoWRITE) {
+		DBG_P("OPoWRITE");
+		//TODO: need typecheck
+		sprintf(shared_buf, "%p", reg.pdata[0]);
+		outbuf += string(shared_buf);
 		pc++;
 		GOTO_NEXTOP();
 	}

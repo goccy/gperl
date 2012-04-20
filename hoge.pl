@@ -1,11 +1,11 @@
-sub f {
-	$a = 2;
-	$b = $a + 3 + 4;
-	my $c = $a;
+sub fib {
 	my $n = shift;
-	print $n + 1, "\n";
-	print $a, "\n";
-	print $b, "\n";
+	if ($n < 3) {
+		return 1;
+	} else {
+		return 2;
+	}
 }
 
-f(3);
+fib(2);
+fib(3);

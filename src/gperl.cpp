@@ -26,13 +26,16 @@ GPerl::GPerl(int argc, char **argv)
 	DBG_P("==============<PARSE>==============");
 	GPerlAST *ast = p.parse(tokens, tokens->begin());
 #ifdef USING_GRAPH_DEBUG
-	ast->show();//graph debug with graphviz
+	//ast->show();//graph debug with graphviz
 #endif
 	GPerlCompiler compiler;
 	DBG_P("=============<COMPILE>=============");
 	GPerlVirtualMachineCode *codes = compiler.compile(ast);
+	DBG_P("-----------<DUMP VMCODE>-----------");
 	compiler.dumpPureVMCode(codes);
+	DBG_P("-----------------------------------");
 	GPerlVirtualMachine vm;
+	DBG_P("=============<RUNTIME>=============");
 	vm.run(codes);//create threading code
 	vm.run(codes);//execute code
 	fclose(fp);
