@@ -222,6 +222,7 @@ GPerlAST *GPerlParser::parse(vector<Token *> *tokens, vector<Token *>::iterator 
 	bool ifStmtFlag = false;
 	bool elseStmtFlag = false;
 	bool funcFlag = false;
+	bool callFlag = false;
 	//bool returnFlag = false;
 	int i = 0;
 	int block_num = 0;
@@ -229,9 +230,12 @@ GPerlAST *GPerlParser::parse(vector<Token *> *tokens, vector<Token *>::iterator 
 		Token *t = (Token *)*it;
 		switch (t->type) {
 		case VarDecl:
+			DBG_P("L:");
+			DBG_P("VarDecl");
 			isVarDeclFlag = true;
 			break;
 		case LocalVar:
+			DBG_P("L:");
 			if (isVarDeclFlag) {
 				fprintf(stderr, "LOCALVAR[%s]:NEW BLOCK => BLOCKS\n", t->data.c_str());
 				GPerlCell *block = new GPerlCell(LocalVarDecl);
@@ -245,6 +249,7 @@ GPerlAST *GPerlParser::parse(vector<Token *> *tokens, vector<Token *>::iterator 
 			}
 			break;
 		case GlobalVar: {
+			DBG_P("L:");
 			fprintf(stderr, "GLOBALVAR[%s]:NEW BLOCK => BLOCKS\n", t->data.c_str());
 			GPerlCell *block = new GPerlCell(GlobalVarDecl);
 			block->vname = t->data;
@@ -255,9 +260,17 @@ GPerlAST *GPerlParser::parse(vector<Token *> *tokens, vector<Token *>::iterator 
 			break;
 		}
 		case Var:
+			DBG_P("L:");
 			if (block_num > 0 && blocks.at(block_num-1)->type != Assign) {
 				GPerlCell *block = blocks.at(block_num-1);
-				if (block->left == NULL) {
+				if (block->type == Call) {
+					fprintf(stderr, "VAR[%s]:NEW BLOCK->BLOCKS\n", t->data.c_str());
+					GPerlCell *block = new GPerlCell(Var);
+					block->vname = t->data;
+					block->rawstr = t->data;
+					blocks.push_back(block);
+					block_num++;
+				} else if (block->left == NULL) {
 					fprintf(stderr, "VAR[%s]:LAST BLOCK->left\n", t->data.c_str());
 					GPerlCell *var = new GPerlCell(Var);
 					var->vname = t->data;
@@ -283,8 +296,9 @@ GPerlAST *GPerlParser::parse(vector<Token *> *tokens, vector<Token *>::iterator 
 			}
 			break;
 		case Int:
-			if (block_num > 0 && blocks.at(block_num-1)->type != Assign &&
-				!leftParenthesisFlag) {
+			DBG_P("L:");
+			if (block_num > 0 && blocks.at(block_num-1)->type != Assign
+				) {//!leftParenthesisFlag) {
 				GPerlCell *block = blocks.at(block_num-1);
 				//fprintf(stderr, "BLOCK:[%d]\n", block->type);
 				if (block->left == NULL) {
@@ -317,6 +331,7 @@ GPerlAST *GPerlParser::parse(vector<Token *> *tokens, vector<Token *>::iterator 
 			}
 			break;
 		case String:
+			DBG_P("L:");
 			if (block_num > 0 && blocks.at(block_num-1)->type != Assign) {
 				GPerlCell *block = blocks.at(block_num-1);
 				//fprintf(stderr, "BLOCK:[%d]\n", block->type);
@@ -346,6 +361,7 @@ GPerlAST *GPerlParser::parse(vector<Token *> *tokens, vector<Token *>::iterator 
 			}
 			break;
 		case Shift:
+			DBG_P("L:");
 			if (block_num > 0 && blocks.at(block_num-1)->type == Assign) {
 				GPerlCell *assign = blocks.at(block_num-1);
 				if (assign->right == NULL) {
@@ -361,6 +377,7 @@ GPerlAST *GPerlParser::parse(vector<Token *> *tokens, vector<Token *>::iterator 
 			}
 			break;
 		case Operator: {
+			DBG_P("L:");
 			fprintf(stderr, "OPERATOR[%s]:LAST BLOCK->PARENT\n", t->data.c_str());
 			GPerlCell *block = blocks.at(block_num-1);
 			GPerlCell *op;
@@ -403,6 +420,7 @@ GPerlAST *GPerlParser::parse(vector<Token *> *tokens, vector<Token *>::iterator 
 			break;
 		}
 		case Assign: {
+			DBG_P("L:");
 			fprintf(stderr, "ASSIGN:LAST BLOCK->PARENT\n");
 			GPerlCell *block;
 			if (block_num > 0) {
@@ -419,6 +437,7 @@ GPerlAST *GPerlParser::parse(vector<Token *> *tokens, vector<Token *>::iterator 
 			break;
 		}
 		case PrintDecl: {
+			DBG_P("L:");
 			fprintf(stderr, "PRINT:NEW BLOCK->BLOCKS\n");
 			GPerlCell *p = new GPerlCell(PrintDecl);
 			p->rawstr = t->data;
@@ -426,14 +445,18 @@ GPerlAST *GPerlParser::parse(vector<Token *> *tokens, vector<Token *>::iterator 
 			break;
 		}
 		case Call: {
+			DBG_P("L:");
 			DBG_P("CALL:NEW BLOCK->BLOCKS");
 			GPerlCell *p = new GPerlCell(Call);
 			p->rawstr = t->data;
 			p->fname = t->data;
-			root = p;
+			blocks.push_back(p);
+			block_num++;
+			callFlag = true;
 			break;
 		}
 		case IfStmt: {
+			DBG_P("L:");
 			DBG_P("IF:ROOT = IFCELL");
 			GPerlCell *p = new GPerlCell(IfStmt);
 			p->rawstr = t->data;
@@ -443,6 +466,7 @@ GPerlAST *GPerlParser::parse(vector<Token *> *tokens, vector<Token *>::iterator 
 			break;
 		}
 		case Function: {
+			DBG_P("L:");
 			DBG_P("FUNCTION: ");
 			GPerlCell *p = new GPerlCell(Function);
 			p->rawstr = t->data;
@@ -453,37 +477,41 @@ GPerlAST *GPerlParser::parse(vector<Token *> *tokens, vector<Token *>::iterator 
 			break;
 		}
 		case Return: {
+			DBG_P("L:");
 			DBG_P("RETURN: ");
 			GPerlCell *ret = new GPerlCell(Return);
 			ret->rawstr = t->data;
 			blocks.push_back(ret);
 			block_num++;
-			//returnFlag = true;
 			break;
 		}
 		case ElseStmt: {
+			DBG_P("L:");
 			DBG_P("ELSE: elseStmtFlag => ON");
 			elseStmtFlag = true;
 			break;
 		}
 		case LeftBrace: {
+			DBG_P("L:");
 			DBG_P("LEFT BRACE:");
 			if (funcFlag) {
 				DBG_P("FuncFlag: ON");
 				it++;
 				i++;
-				iterate_count = 0;
-				func_iterate_count = 0;
-				DBG_P("----------------recursive-------------------");
+				func_iterate_count = iterate_count;
+				DBG_P("----------------function-------------------");
 				GPerlScope *body = parse(tokens, it);
-				DBG_P("-----------return from recursive------------");
-				func_iterate_count += iterate_count;
+				DBG_P("-----------return from function------------");
 				DBG_P("func_iterate_count = [%d]", func_iterate_count);
-				it += func_iterate_count;
+				it += func_iterate_count+1;
 				i += func_iterate_count;
 				root->body = body;
 				funcFlag = false;
 				DBG_P("ROOT->BODY = BODY");
+				it--;
+				i--;
+				iterate_count--;
+				func_iterate_count--;
 			} else if (ifStmtFlag) {
 				DBG_P("IFStmtFlag: ON");
 				GPerlCell *cond = blocks.at(block_num-1);
@@ -493,39 +521,57 @@ GPerlAST *GPerlParser::parse(vector<Token *> *tokens, vector<Token *>::iterator 
 				cond->parent = root;
 				it++;
 				i++;
+				DBG_P("iterate_count = [%d]", iterate_count+1);
 				func_iterate_count += iterate_count + 1;
 				iterate_count = 0;
-				DBG_P("-----------recursive------------");
+				DBG_P("-----------ifstmt------------");
 				GPerlScope *scope = parse(tokens, it);
 				DBG_P("iterate_count = [%d]", iterate_count);
 				it += iterate_count;
+				i += iterate_count;
 				func_iterate_count += iterate_count;
 				root->true_stmt = scope;
 				ifStmtFlag = false;
+				DBG_P("func_iterate_count = [%d]", func_iterate_count);
 				DBG_P("ROOT->TRUE_STMT = SCOPE");
+				it--;
+				i--;
+				iterate_count--;
+				func_iterate_count--;
 			} else if (elseStmtFlag) {
 				DBG_P("ElseStmtFlag: ON");
 				it++;
 				i++;
 				iterate_count = 0;
-				DBG_P("-----------recursive------------");
+				DBG_P("-----------elsestmt------------");
 				GPerlScope *scope = parse(tokens, it);
 				DBG_P("iterate_count = [%d]", iterate_count);
 				it += iterate_count;
+				i += iterate_count;
 				func_iterate_count += iterate_count;
+				DBG_P("func_iterate_count = [%d]", func_iterate_count);
 				root->false_stmt = scope;
 				elseStmtFlag = false;
 				DBG_P("ROOT->FALSE_STMT = SCOPE");
+				it--;
+				i--;
+				iterate_count--;
+				func_iterate_count--;
 			}
 			break;
 		}
 		case RightBrace: {
+			DBG_P("L:");
 			DBG_P("RIGHT BRACE:");
 			DBG_P("--------------------------------");
+			it++;
+			i++;
+			iterate_count++;
 			return ast;
 			break;
 		}
 		case Comma: {
+			DBG_P("L:");
 			fprintf(stderr, "COMMA:VARGS->BLOCKS & CLEAR BLOCKS\n");
 			GPerlCell *stmt = blocks.at(0);
 			GPerlCell *v = root;
@@ -536,11 +582,21 @@ GPerlAST *GPerlParser::parse(vector<Token *> *tokens, vector<Token *>::iterator 
 			break;
 		}
 		case LeftParenthesis:
+			DBG_P("L:");
 			fprintf(stderr, "[(]:ON LeftParenthesis Flag\n");
 			leftParenthesisFlag = true;
 			break;
 		case RightParenthesis:
-			if (block_num > 1) {
+			DBG_P("L:");
+			DBG_P("RightParenthesis");
+			if (callFlag) {
+				GPerlCell *stmt = blocks.at(block_num-1);
+				GPerlCell *func = blocks.at(block_num-2);
+				func->vargs = stmt;//TODO:multiple argument
+				blocks.pop_back();
+				block_num--;
+				callFlag = false;
+			} else if (block_num > 1) {
 				fprintf(stderr, "[)]:CONNECT BLOCK <=> BLOCK\n");
 				GPerlCell *to = blocks.at(block_num-1);
 				//fprintf(stderr, "to = [%p]\n", to);
@@ -552,11 +608,10 @@ GPerlAST *GPerlParser::parse(vector<Token *> *tokens, vector<Token *>::iterator 
 				//fprintf(stderr, "from = [%s]\n", from->rawstr.c_str());
 				from->right = to;
 				to->parent = from;
-			} else {
-				//fprintf(stderr, "ERROR:syntax error!!\n");
 			}
 			break;
 		case SemiColon: {
+			DBG_P("L:");
 			fprintf(stderr, "SEMICOLON:END AST\n");
 			int size = blocks.size();
 			fprintf(stderr, "BLOCKS SIZE = [%d]\n", size);
@@ -587,6 +642,7 @@ GPerlAST *GPerlParser::parse(vector<Token *> *tokens, vector<Token *>::iterator 
 			break;
 		}
 		default:
+			DBG_P("L:default");
 			break;
 		}
 		it++;

@@ -93,6 +93,23 @@ void GPerlCompiler::compile_(GPerlCell *path, bool isRecursive)
 		dst = 0;
 	}
 	for (; path->left; path = path->left) {}
+	if (path->type == Call) {
+		compile_(path->vargs, false);
+	}
+	switch (reg_type[0]) {
+	case Int:
+		code = createiPUSH();
+		addVMCode(code);
+		dumpVMCode(code);
+		break;
+	case String:
+		code = createsPUSH();
+		addVMCode(code);
+		dumpVMCode(code);
+		break;
+	default:
+		break;
+	}
 	code = createVMCode(path);
 	addVMCode(code);
 	dumpVMCode(code);
@@ -101,7 +118,23 @@ void GPerlCompiler::compile_(GPerlCell *path, bool isRecursive)
 		GPerlCell *branch = parent->right;
 		if (branch) {
 			if (branch == path) return;
-			if (branch->left == NULL && branch->right == NULL) {
+			if (branch->type == Call) {
+				compile_(branch->vargs, false);
+				switch (reg_type[0]) {
+				case Int:
+					code = createiPUSH();
+					addVMCode(code);
+					dumpVMCode(code);
+					break;
+				case String:
+					code = createsPUSH();
+					addVMCode(code);
+					dumpVMCode(code);
+					break;
+				default:
+					break;
+				}
+			} else if (branch->left == NULL && branch->right == NULL) {
 				code = createVMCode(branch);
 				addVMCode(code);
 				dumpVMCode(code);
