@@ -134,6 +134,9 @@ void GPerlCompiler::compile_(GPerlCell *path, bool isRecursive)
 				default:
 					break;
 				}
+				code = createVMCode(branch);
+				addVMCode(code);
+				dumpVMCode(code);
 			} else if (branch->left == NULL && branch->right == NULL) {
 				code = createVMCode(branch);
 				addVMCode(code);
