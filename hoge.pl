@@ -6,7 +6,7 @@ sub fib {
 		return 1;
 	} else {
 		print "false\n";
-		return 2;
+		return 4;
 	}
 }
 

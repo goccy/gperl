@@ -96,19 +96,21 @@ void GPerlCompiler::compile_(GPerlCell *path, bool isRecursive)
 	if (path->type == Call) {
 		compile_(path->vargs, false);
 	}
-	switch (reg_type[0]) {
-	case Int:
-		code = createiPUSH();
-		addVMCode(code);
-		dumpVMCode(code);
-		break;
-	case String:
-		code = createsPUSH();
-		addVMCode(code);
-		dumpVMCode(code);
-		break;
-	default:
-		break;
+	if (path->type == Call) {
+		switch (reg_type[0]) {
+		case Int:
+			code = createiPUSH();
+			addVMCode(code);
+			dumpVMCode(code);
+			break;
+		case String:
+			code = createsPUSH();
+			addVMCode(code);
+			dumpVMCode(code);
+			break;
+		default:
+			break;
+		}
 	}
 	code = createVMCode(path);
 	addVMCode(code);
@@ -342,7 +344,7 @@ GPerlVirtualMachineCode *GPerlCompiler::createVMCode(GPerlCell *c)
 		const char *name = cstr(c->fname);
 		int idx = getFuncIndex(name);
 		code->op = OPCALL;
-		code->dst = 0;
+		code->dst = dst-1;
 		code->src = idx;
 		code->name = name;
 		break;
@@ -508,6 +510,8 @@ GPerlVirtualMachineCode *GPerlCompiler::createiPUSH(void)
 	GPerlVirtualMachineCode *code = new GPerlVirtualMachineCode();
 	code->code_num = code_num;
 	code->op = OPiPUSH;
+	code->src = 0;
+	code->dst = dst-1;
 	code_num++;
 	return code;
 }
@@ -533,7 +537,7 @@ GPerlVirtualMachineCode *GPerlCompiler::createJMP(int jmp_num)
 
 void GPerlCompiler::dumpVMCode(GPerlVirtualMachineCode *code)
 {
-	DBG_PL("L[%d] : %s [src:%d], [dst:%d], [jmp:%d], [name:%s]",
+	DBG_PL("L[%d] : %s [dst:%d], [src:%d], [jmp:%d], [name:%s]",
 		   code->code_num, OpName(code->op), code->dst, code->src,
 		   code->jmp, code->name);
 }
