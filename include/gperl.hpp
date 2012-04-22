@@ -26,50 +26,6 @@
 #endif
 
 typedef enum {
-	OPUNDEF,
-	OPMOV,
-	OPiMOV,
-	OPsMOV,
-	OPOMOV,
-	OPOiMOV,
-	OPADD,
-	OPiADD,
-	OPSUB,
-	OPiSUB,
-	OPMUL,
-	OPiMUL,
-	OPDIV,
-	OPiDIV,
-	OPJG,
-	OPiJG,
-	OPJL,
-	OPiJL,
-	OPJGE,
-	OPiJGE,
-	OPJLE,
-	OPiJLE,
-	OPJE,
-	OPiJE,
-	OPJNE,
-	OPiJNE,
-	OPRET,
-	OPTHCODE,
-	OPNOP,
-	OPiWRITE,
-	OPsWRITE,
-	OPoWRITE,
-	OPPRINT,
-	OPJMP,
-	OPLET,
-	OPSET,
-	OPFUNCSET,
-	OPCALL,
-	OPSHIFT,
-	OPiPUSH,
-	OPsPUSH,
-} GPerlOpCodes;
-
-typedef enum {
 	Return,
 	Add,
 	Sub,
@@ -121,10 +77,61 @@ typedef struct _GPerlTokenType {
 	const char *str;
 } GPerlTokenType;
 
+typedef enum {
+	OPUNDEF,
+	OPMOV,
+	OPiMOV,
+	OPsMOV,
+	OPOMOV,
+	OPOiMOV,
+	OPADD,
+	OPiADD,
+	OPSUB,
+	OPiSUB,
+	OPMUL,
+	OPiMUL,
+	OPDIV,
+	OPiDIV,
+	OPJG,
+	OPiJG,
+	OPJL,
+	OPiJL,
+	OPJGE,
+	OPiJGE,
+	OPJLE,
+	OPiJLE,
+	OPJE,
+	OPiJE,
+	OPJNE,
+	OPiJNE,
+	OPRET,
+	OPTHCODE,
+	OPNOP,
+	OPiWRITE,
+	OPsWRITE,
+	OPoWRITE,
+	OPPRINT,
+	OPJMP,
+	OPLET,
+	OPSET,
+	OPFUNCSET,
+	OPCALL,
+	OPSHIFT,
+	OPiPUSH,
+	OPsPUSH,
+} GPerlOpCodes;
+
+typedef struct _GPerlOpDef {
+	GPerlOpCodes code;
+	const char *name;
+} GPerlOpDef;
+
 #define DECL(T, S) {T, #T, S}
 extern GPerlTokenType decl_token_types[];
+extern GPerlOpDef decl_opdef[];
 #define TypeName(type) decl_token_types[type].name
 #define RawName(type) decl_token_types[type].str
+#define OpName(op) decl_opdef[op].name
 
 class GPerl {
 public:
