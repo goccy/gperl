@@ -15,57 +15,15 @@
 #ifdef DEBUG_MODE
 #define DBG_P(fmt, ...) {\
 	fprintf(stderr, fmt, ## __VA_ARGS__);	\
+	}
+#define DBG_PL(fmt, ...) {\
+	fprintf(stderr, fmt, ## __VA_ARGS__);	\
 	fprintf(stderr, "\n");						\
 	}
 #else
 #define DBG_P(fmt, ...) {}
+#define DBG_PL(fmt, ...) {}
 #endif
-
-typedef enum {
-	Undefined = -1,
-	Return,
-	Add,
-	Sub,
-	Mul,
-	Div,
-	Greater,
-	Less,
-	GreaterEqual,
-	LessEqual,
-	EqualEqual,
-	NotEqual,
-	FunctionDecl,
-	FieldDecl,
-	TypeRef,
-	LabelRef,
-	Assign,
-	LocalVarDecl,
-	GlobalVarDecl,
-	VarDecl,
-	PrintDecl,
-	IfStmt,
-	ElseStmt,
-	Comma,
-	SemiColon,
-	LeftParenthesis,
-	RightParenthesis,
-	LeftBrace,
-	RightBrace,
-	LeftBracket,
-	RightBracket,
-	Var,
-	Int,
-	Float,
-	String,
-	Object,
-	Operator,
-	LocalVar,
-	GlobalVar,
-	Function,
-	Call,
-	Shift,
-	Argument,
-} GPerlTypes;
 
 typedef enum {
 	OPUNDEF,
@@ -111,6 +69,63 @@ typedef enum {
 	OPsPUSH,
 } GPerlOpCodes;
 
+typedef enum {
+	Return,
+	Add,
+	Sub,
+	Mul,
+	Div,
+	Greater,
+	Less,
+	GreaterEqual,
+	LessEqual,
+	EqualEqual,
+	NotEqual,
+	VarDecl,
+	FunctionDecl,
+	Assign,
+	PrintDecl,
+	IfStmt,
+	ElseStmt,
+	Comma,
+	SemiColon,
+	LeftParenthesis,
+	RightParenthesis,
+	LeftBrace,
+	RightBrace,
+	LeftBracket,
+	RightBracket,
+	Shift,
+	FieldDecl,
+	TypeRef,
+	LabelRef,
+	LocalVarDecl,
+	GlobalVarDecl,
+	Var,
+	Int,
+	Float,
+	String,
+	Object,
+	Operator,
+	LocalVar,
+	GlobalVar,
+	Function,
+	Call,
+	Argument,
+	Undefined,
+} GPerlT;
+
+typedef struct _GPerlTokenType {
+	GPerlT type;
+	const char *name;
+	const char *str;
+} GPerlTokenType;
+
+#define DECL(T, S) {T, #T, S}
+extern GPerlTokenType decl_token_types[];
+#define TypeName(type) decl_token_types[type].name
+#define RawName(type) decl_token_types[type].str
+
 class GPerl {
 public:
 	GPerl(int argc, char **argv);
@@ -119,7 +134,7 @@ public:
 class Token {
 public:
 	std::string data;
-	int type;
+	GPerlT type;
 	int idx;
 	Token(std::string data_, int idx_ = 0);
 };
@@ -131,7 +146,8 @@ public:
 	void annotateTokens(std::vector<Token *> *tokens);
 	void dump(std::vector<Token *> *tokens);
 	void dumpType(Token *token);
-	const char *getTypeName(GPerlTypes type);
+	GPerlT getType(const char *name);
+	const char *getTypeName(GPerlT type);
 	bool search(std::vector<std::string> list, std::string str);
 };
 
@@ -155,7 +171,7 @@ public:
 	};
 	GPerlCell *next;/* for next stmt */
 	GPerlCell *vargs; /* for print */
-	GPerlTypes type;
+	GPerlT type;
 	std::string vname;/* variable name */
 	std::string fname;/* function name */
 	std::string rawstr;
@@ -166,7 +182,8 @@ public:
 		char *sdata;
 		void *pdata; /* other Object */
 	} data;
-	GPerlCell(GPerlTypes type_);
+	GPerlCell(GPerlT type_);
+	GPerlCell(GPerlT type_, std::string name);
 };
 
 #ifdef USING_GRAPH_DEBUG
@@ -276,7 +293,7 @@ public:
 	int dst;
 	int src;
 	int code_num;
-	GPerlTypes reg_type[MAX_REG_SIZE];
+	GPerlT reg_type[MAX_REG_SIZE];
 	std::vector<GPerlVirtualMachineCode *> *codes;
 	std::vector<GPerlVirtualMachineCode *> *func_code;
 	const char *variable_names[MAX_VARIABLE_NUM];

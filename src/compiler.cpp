@@ -26,7 +26,7 @@ GPerlVirtualMachineCode *GPerlCompiler::compile(GPerlAST *ast)
 	for (; root; root = root->next) {
 		GPerlCell *path = root;
 		compile_(path, true);
-		DBG_P("============================");
+		DBG_PL("============================");
 		dst = 0;//reset dst number
 	}
 	GPerlVirtualMachineCode *ret = createRET();
@@ -157,9 +157,9 @@ void GPerlCompiler::compile_(GPerlCell *path, bool isRecursive)
 		GPerlCell *true_stmt = path->true_stmt->root;
 		//DBG_P("code_num = [%d], codes->size() = [%d]", code_num, codes->size());
 		GPerlVirtualMachineCode *jmp = codes->at(code_num - 2);
-		DBG_P("jmp = [%d]", jmp->op);
+		//DBG_PL("jmp = [%d]", jmp->op);
 		int cond_code_num = code_num;
-		DBG_P("============TRUE STMT=============");
+		DBG_PL("-------------TRUE STMT--------------");
 		for (; true_stmt; true_stmt = true_stmt->next) {
 			GPerlCell *path = true_stmt;
 			compile_(path, true);
@@ -172,7 +172,7 @@ void GPerlCompiler::compile_(GPerlCell *path, bool isRecursive)
 		addVMCode(jmp);
 		dumpVMCode(jmp);
 		dst = 0;//reset dst number
-		DBG_P("============FALSE STMT=============");
+		DBG_PL("-------------FALSE STMT-------------");
 		if (path->false_stmt) {
 			GPerlCell *false_stmt = path->false_stmt->root;
 			for (; false_stmt; false_stmt = false_stmt->next) {
@@ -217,7 +217,7 @@ void GPerlCompiler::compile_(GPerlCell *path, bool isRecursive)
 		GPerlVirtualMachineCode *f = getPureCodes(func_code);
 		code = codes->back();
 		code->func = f;
-		DBG_P("========= FUNCTION DECL END ==========");
+		DBG_PL("========= FUNCTION DECL END ==========");
 	}
 }
 
@@ -627,127 +627,127 @@ void GPerlCompiler::dumpVMCode(GPerlVirtualMachineCode *code)
 {
 	switch (code->op) {
 	case OPUNDEF:
-		DBG_P("L[%d] : OPUNDEF [%d], [%d]", code->code_num, code->dst, code->src);
+		DBG_PL("L[%d] : OPUNDEF [%d], [%d]", code->code_num, code->dst, code->src);
 		break;
 	case OPMOV:
-		DBG_P("L[%d] : OPMOV [%d], [%d]", code->code_num, code->dst, code->src);
+		DBG_PL("L[%d] : OPMOV [%d], [%d]", code->code_num, code->dst, code->src);
 		break;
 	case OPiMOV:
-		DBG_P("L[%d] : OPiMOV [%d], [%d]", code->code_num, code->dst, code->src);
+		DBG_PL("L[%d] : OPiMOV [%d], [%d]", code->code_num, code->dst, code->src);
 		break;
 	case OPsMOV:
-		DBG_P("L[%d] : OPsMOV [%d], [%s]", code->code_num, code->dst, code->name);
+		DBG_PL("L[%d] : OPsMOV [%d], [%s]", code->code_num, code->dst, code->name);
 		break;
 	case OPOMOV:
-		DBG_P("L[%d] : OPOMOV [%d], [%d], [%s]", code->code_num, code->dst, code->src, code->name);
+		DBG_PL("L[%d] : OPOMOV [%d], [%d], [%s]", code->code_num, code->dst, code->src, code->name);
 		break;
 	case OPOiMOV:
-		DBG_P("L[%d] : OPOiMOV [%d], [%d], [%s]", code->code_num, code->dst, code->src, code->name);
+		DBG_PL("L[%d] : OPOiMOV [%d], [%d], [%s]", code->code_num, code->dst, code->src, code->name);
 		break;
 	case OPADD:
-		DBG_P("L[%d] : OPADD [%d], [%d]", code->code_num, code->dst, code->src);
+		DBG_PL("L[%d] : OPADD [%d], [%d]", code->code_num, code->dst, code->src);
 		break;
 	case OPiADD:
-		DBG_P("L[%d] : OPiADD [%d], [%d]", code->code_num, code->dst, code->src);
+		DBG_PL("L[%d] : OPiADD [%d], [%d]", code->code_num, code->dst, code->src);
 		break;
 	case OPSUB:
-		DBG_P("L[%d] : OPSUB [%d], [%d]", code->code_num, code->dst, code->src);
+		DBG_PL("L[%d] : OPSUB [%d], [%d]", code->code_num, code->dst, code->src);
 		break;
 	case OPiSUB:
-		DBG_P("L[%d] : OPiSUB [%d], [%d]", code->code_num, code->dst, code->src);
+		DBG_PL("L[%d] : OPiSUB [%d], [%d]", code->code_num, code->dst, code->src);
 		break;
 	case OPMUL:
-		DBG_P("L[%d] : OPMUL [%d], [%d]", code->code_num, code->dst, code->src);
+		DBG_PL("L[%d] : OPMUL [%d], [%d]", code->code_num, code->dst, code->src);
 		break;
 	case OPiMUL:
-		DBG_P("L[%d] : OPiMUL [%d], [%d]", code->code_num, code->dst, code->src);
+		DBG_PL("L[%d] : OPiMUL [%d], [%d]", code->code_num, code->dst, code->src);
 		break;
 	case OPDIV:
-		DBG_P("L[%d] : OPDIV [%d], [%d]", code->code_num, code->dst, code->src);
+		DBG_PL("L[%d] : OPDIV [%d], [%d]", code->code_num, code->dst, code->src);
 		break;
 	case OPiDIV:
-		DBG_P("L[%d] : OPiDIV [%d], [%d]", code->code_num, code->dst, code->src);
+		DBG_PL("L[%d] : OPiDIV [%d], [%d]", code->code_num, code->dst, code->src);
 		break;
 	case OPJL:
-		DBG_P("L[%d] : OPJL [%d], [%d], [%d]", code->code_num, code->dst, code->src, code->jmp);
+		DBG_PL("L[%d] : OPJL [%d], [%d], [%d]", code->code_num, code->dst, code->src, code->jmp);
 		break;
 	case OPiJL:
-		DBG_P("L[%d] : OPiJL [%d], [%d], [%d]", code->code_num, code->dst, code->src, code->jmp);
+		DBG_PL("L[%d] : OPiJL [%d], [%d], [%d]", code->code_num, code->dst, code->src, code->jmp);
 		break;
 	case OPJG:
-		DBG_P("L[%d] : OPJG [%d], [%d], [%d]", code->code_num, code->dst, code->src, code->jmp);
+		DBG_PL("L[%d] : OPJG [%d], [%d], [%d]", code->code_num, code->dst, code->src, code->jmp);
 		break;
 	case OPiJG:
-		DBG_P("L[%d] : OPiJG [%d], [%d], [%d]", code->code_num, code->dst, code->src, code->jmp);
+		DBG_PL("L[%d] : OPiJG [%d], [%d], [%d]", code->code_num, code->dst, code->src, code->jmp);
 		break;
 	case OPJGE:
-		DBG_P("L[%d] : OPJGE [%d], [%d], [%d]", code->code_num, code->dst, code->src, code->jmp);
+		DBG_PL("L[%d] : OPJGE [%d], [%d], [%d]", code->code_num, code->dst, code->src, code->jmp);
 		break;
 	case OPiJGE:
-		DBG_P("L[%d] : OPiJGE [%d], [%d], [%d]", code->code_num, code->dst, code->src, code->jmp);
+		DBG_PL("L[%d] : OPiJGE [%d], [%d], [%d]", code->code_num, code->dst, code->src, code->jmp);
 		break;
 	case OPJLE:
-		DBG_P("L[%d] : OPJLE [%d], [%d], [%d]", code->code_num, code->dst, code->src, code->jmp);
+		DBG_PL("L[%d] : OPJLE [%d], [%d], [%d]", code->code_num, code->dst, code->src, code->jmp);
 		break;
 	case OPiJLE:
-		DBG_P("L[%d] : OPiJLE [%d], [%d], [%d]", code->code_num, code->dst, code->src, code->jmp);
+		DBG_PL("L[%d] : OPiJLE [%d], [%d], [%d]", code->code_num, code->dst, code->src, code->jmp);
 		break;
 	case OPJE:
-		DBG_P("L[%d] : OPJE [%d], [%d], [%d]", code->code_num, code->dst, code->src, code->jmp);
+		DBG_PL("L[%d] : OPJE [%d], [%d], [%d]", code->code_num, code->dst, code->src, code->jmp);
 		break;
 	case OPiJE:
-		DBG_P("L[%d] : OPiJE [%d], [%d], [%d]", code->code_num, code->dst, code->src, code->jmp);
+		DBG_PL("L[%d] : OPiJE [%d], [%d], [%d]", code->code_num, code->dst, code->src, code->jmp);
 		break;
 	case OPJNE:
-		DBG_P("L[%d] : OPJNE [%d], [%d], [%d]", code->code_num, code->dst, code->src, code->jmp);
+		DBG_PL("L[%d] : OPJNE [%d], [%d], [%d]", code->code_num, code->dst, code->src, code->jmp);
 		break;
 	case OPiJNE:
-		DBG_P("L[%d] : OPiJNE [%d], [%d], [%d]", code->code_num, code->dst, code->src, code->jmp);
+		DBG_PL("L[%d] : OPiJNE [%d], [%d], [%d]", code->code_num, code->dst, code->src, code->jmp);
 		break;
 	case OPRET:
-		DBG_P("L[%d] : OPRET [%d], [%d]", code->code_num, code->dst, code->src);
+		DBG_PL("L[%d] : OPRET [%d], [%d]", code->code_num, code->dst, code->src);
 		break;
 	case OPTHCODE:
-		DBG_P("L[%d] : OPTHCODE [%d], [%d]", code->code_num, code->dst, code->src);
+		DBG_PL("L[%d] : OPTHCODE [%d], [%d]", code->code_num, code->dst, code->src);
 		break;
 	case OPNOP:
-		DBG_P("L[%d] : OPNOP [%d], [%d]", code->code_num, code->dst, code->src);
+		DBG_PL("L[%d] : OPNOP [%d], [%d]", code->code_num, code->dst, code->src);
 		break;
 	case OPPRINT:
-		DBG_P("L[%d] : OPPRINT [%d], [%d]", code->code_num, code->dst, code->src);
+		DBG_PL("L[%d] : OPPRINT [%d], [%d]", code->code_num, code->dst, code->src);
 		break;
 	case OPsWRITE:
-		DBG_P("L[%d] : OPsWRITE [%d], [%d]", code->code_num, code->dst, code->src);
+		DBG_PL("L[%d] : OPsWRITE [%d], [%d]", code->code_num, code->dst, code->src);
 		break;
 	case OPiWRITE:
-		DBG_P("L[%d] : OPiWRITE [%d], [%d]", code->code_num, code->dst, code->src);
+		DBG_PL("L[%d] : OPiWRITE [%d], [%d]", code->code_num, code->dst, code->src);
 		break;
 	case OPoWRITE:
-		DBG_P("L[%d] : OPoWRITE [%d], [%d]", code->code_num, code->dst, code->src);
+		DBG_PL("L[%d] : OPoWRITE [%d], [%d]", code->code_num, code->dst, code->src);
 		break;
 	case OPJMP:
-		DBG_P("L[%d] : OPJMP [%d], [%d], [%d]", code->code_num, code->dst, code->src, code->jmp);
+		DBG_PL("L[%d] : OPJMP [%d], [%d], [%d]", code->code_num, code->dst, code->src, code->jmp);
 		break;
 	case OPLET:
-		DBG_P("L[%d] : OPLET [%s]:[%d], [%d]", code->code_num, code->name, code->dst, code->src);
+		DBG_PL("L[%d] : OPLET [%s]:[%d], [%d]", code->code_num, code->name, code->dst, code->src);
 		break;
 	case OPSHIFT:
-		DBG_P("L[%d] : OPSHIFT [%d], [%d]", code->code_num, code->dst, code->src);
+		DBG_PL("L[%d] : OPSHIFT [%d], [%d]", code->code_num, code->dst, code->src);
 		break;
 	case OPSET:
-		DBG_P("L[%d] : OPSET [%d], [%s]", code->code_num, code->dst, code->name);
+		DBG_PL("L[%d] : OPSET [%d], [%s]", code->code_num, code->dst, code->name);
 		break;
 	case OPFUNCSET:
-		DBG_P("L[%d] : OPFUNCSET [%d], [%s]", code->code_num, code->dst, code->name);
+		DBG_PL("L[%d] : OPFUNCSET [%d], [%s]", code->code_num, code->dst, code->name);
 		break;
 	case OPCALL:
-		DBG_P("L[%d] : OPCALL [%d], [%s]", code->code_num, code->dst, code->name);
+		DBG_PL("L[%d] : OPCALL [%d], [%s]", code->code_num, code->dst, code->name);
 		break;
 	case OPiPUSH:
-		DBG_P("L[%d] : OPiPUSH [%d], [%d]", code->code_num, code->dst, code->src);
+		DBG_PL("L[%d] : OPiPUSH [%d], [%d]", code->code_num, code->dst, code->src);
 		break;
 	case OPsPUSH:
-		DBG_P("L[%d] : OPsPUSH [%d], [%s]", code->code_num, code->dst, code->name);
+		DBG_PL("L[%d] : OPsPUSH [%d], [%s]", code->code_num, code->dst, code->name);
 		break;
 	default:
 		break;

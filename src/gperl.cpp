@@ -12,7 +12,7 @@ GPerl::GPerl(int argc, char **argv)
 	char *script = script_;
 	FILE *fp = fopen(filename, "r");
 	while (fgets(line, MAX_LINE_SIZE, fp) != NULL) {
-		fprintf(stderr, "line = [%s]\n", line);
+		//DBG_PL("line = [%s]", line);
 		int line_size = strlen(line);
 		snprintf(tmp, line_size + 1, "%s\n", line);
 		tmp += line_size;
@@ -20,22 +20,22 @@ GPerl::GPerl(int argc, char **argv)
 	GPerlTokenizer t;
 	std::vector<Token *> *tokens = t.tokenize(script);
 	t.annotateTokens(tokens);
-	DBG_P("=============<TOKENIZE>============");
+	DBG_PL("=============<TOKENIZE>============");
 	t.dump(tokens);
 	GPerlParser p;
-	DBG_P("==============<PARSE>==============");
+	DBG_PL("==============<PARSE>==============");
 	GPerlAST *ast = p.parse(tokens, tokens->begin());
 #ifdef USING_GRAPH_DEBUG
 	//ast->show();//graph debug with graphviz
 #endif
 	GPerlCompiler compiler;
-	DBG_P("=============<COMPILE>=============");
+	DBG_PL("=============<COMPILE>=============");
 	GPerlVirtualMachineCode *codes = compiler.compile(ast);
-	DBG_P("-----------<DUMP VMCODE>-----------");
+	DBG_PL("-----------<DUMP VMCODE>-----------");
 	compiler.dumpPureVMCode(codes);
-	DBG_P("-----------------------------------");
+	DBG_PL("-----------------------------------");
 	GPerlVirtualMachine vm;
-	DBG_P("=============<RUNTIME>=============");
+	DBG_PL("=============<RUNTIME>=============");
 	vm.run(codes);//create threading code
 	vm.run(codes);//execute code
 	fclose(fp);
