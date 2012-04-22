@@ -41,6 +41,11 @@ void GPerlCompiler::addVMCode(GPerlVirtualMachineCode *code)
 	codes->push_back(code);
 }
 
+void GPerlCompiler::popVMCode()
+{
+	codes->pop_back();
+}
+
 void GPerlCompiler::compile_(GPerlCell *path, bool isRecursive)
 {
 	GPerlVirtualMachineCode *code;
@@ -192,6 +197,7 @@ void GPerlCompiler::compile_(GPerlCell *path, bool isRecursive)
 			}
 		}
 		jmp->jmp = code_num - cur_code_num;
+		DBG_PL("------------------------------------");
 	} else if (path->type == Function) {
 		dst = 0;//reset dst number
 		args_count = 0;
@@ -220,16 +226,19 @@ void GPerlCompiler::compile_(GPerlCell *path, bool isRecursive)
 		for (int i = 0; i < size; i++) {
 			func_code->push_back(codes->at(i));
 		}
+		GPerlVirtualMachineCode *f = getPureCodes(func_code);
+		DBG_PL("========= DUMP FUNC CODE ==========");
+		dumpPureVMCode(f);
+		DBG_PL("===================================");
 		codes->clear();
 		//revert codes from tmp
 		size = tmp.size();
 		for (int i = 0; i < size; i++) {
 			codes->push_back(tmp.at(i));
 		}
-		GPerlVirtualMachineCode *f = getPureCodes(func_code);
 		code = codes->back();
 		code->func = f;
-		DBG_PL("========= FUNCTION DECL END ==========");
+		//DBG_PL("========= FUNCTION DECL END ==========");
 	}
 }
 
@@ -249,22 +258,37 @@ GPerlVirtualMachineCode *GPerlCompiler::getPureCodes(vector<GPerlVirtualMachineC
 }
 
 #define INT(O) OPi ## O
+#define INTC(O) OPi ## O ## C
 #define STRING(O) OPs ## O
 
 #define SET_OPCODE(T) {							\
 		dst--;									\
+		code->src = dst;						\
 		switch (reg_type[dst - 1]) {			\
 		case Int:								\
 			code->op = INT(T);					\
+			break;								\
+		case Object:							\
+			switch (reg_type[dst]) {			\
+			case Int:							\
+				code->op = INTC(T);				\
+				code->src = codes->back()->src;	\
+				popVMCode();					\
+				code_num--;						\
+				code->code_num = code_num;		\
+				break;							\
+			default:							\
+				code->op = OP ## T;				\
+				break;							\
+			}									\
 			break;								\
 		default:								\
 			code->op = OP ## T;					\
 			break;								\
 		}										\
 		code->dst = dst - 1;					\
-		code->src = dst;						\
 		code->jmp = 1;							\
-	}											\
+	}
 
 GPerlVirtualMachineCode *GPerlCompiler::createVMCode(GPerlCell *c)
 {

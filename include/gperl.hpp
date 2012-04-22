@@ -86,24 +86,34 @@ typedef enum {
 	OPOiMOV,
 	OPADD,
 	OPiADD,
+	OPiADDC,
 	OPSUB,
 	OPiSUB,
+	OPiSUBC,
 	OPMUL,
 	OPiMUL,
+	OPiMULC,
 	OPDIV,
 	OPiDIV,
+	OPiDIVC,
 	OPJG,
 	OPiJG,
+	OPiJGC,
 	OPJL,
 	OPiJL,
+	OPiJLC,
 	OPJGE,
 	OPiJGE,
+	OPiJGEC,
 	OPJLE,
 	OPiJLE,
+	OPiJLEC,
 	OPJE,
 	OPiJE,
+	OPiJEC,
 	OPJNE,
 	OPiJNE,
+	OPiJNEC,
 	OPRET,
 	OPTHCODE,
 	OPNOP,
@@ -331,6 +341,7 @@ public:
 	GPerlVirtualMachineCode *createsPUSH(void);
 	GPerlVirtualMachineCode *createJMP(int jmp_num);
 	void addVMCode(GPerlVirtualMachineCode *code);
+	void popVMCode(void);
 	void dumpVMCode(GPerlVirtualMachineCode *code);
 	void dumpPureVMCode(GPerlVirtualMachineCode *codes);
 };
