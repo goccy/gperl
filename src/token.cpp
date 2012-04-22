@@ -203,6 +203,7 @@ void GPerlTokenizer::dump(vector<Token *> *tokens)
 	vector<Token *>::iterator it = tokens->begin();
 	while (it != tokens->end()) {
 		Token *t = (Token *)*it;
+		(void)t;
 		DBG_PL("[%s] TYPE:%s", cstr(t->data), getTypeName(t->type));
 		it++;
 	}
@@ -210,6 +211,7 @@ void GPerlTokenizer::dump(vector<Token *> *tokens)
 
 void GPerlTokenizer::dumpType(Token *token)
 {
+	(void)token;
 	DBG_P("%s", TypeName(token->type));
 }
 

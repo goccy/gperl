@@ -347,19 +347,18 @@ typedef struct _GPerlObject {
 } GPerlObject;
 
 #define MAX_ARGSTACK_SIZE 8
+#define MAX_CALLSTACK_SIZE 128
+
+typedef struct _GPerlEnv {
+	GPerlObject **argstack;
+	//localvariable
+} GPerlEnv;
+
 class GPerlVirtualMachine {
 public:
 	GPerlObject *variable_memory[MAX_VARIABLE_NUM];
 	GPerlVirtualMachineCode *func_memory[MAX_FUNC_NUM];
-	GPerlObject *argstack[MAX_ARGSTACK_SIZE];
-	/*
-	union {
-		int idata[MAX_ARGSTACK_SIZE];
-		float fdata[MAX_ARGSTACK_SIZE];
-		char *sdata[MAX_ARGSTACK_SIZE];
-		void *pdata[MAX_ARGSTACK_SIZE];
-	} argstack;
-	*/
+	GPerlEnv *callstack;
 
 	GPerlVirtualMachine();
 	void setToVariableMemory(const char *name, int idx);

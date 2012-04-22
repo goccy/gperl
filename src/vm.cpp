@@ -5,10 +5,18 @@ using namespace std;
 GPerlVirtualMachine::GPerlVirtualMachine(void)
 {
 	//Set DEFAULT Object
-	for (int i = 0; i < MAX_ARGSTACK_SIZE; i++) {
-		GPerlObject *o = new GPerlObject();
-		argstack[i] = o;
+	GPerlEnv env_[MAX_CALLSTACK_SIZE];
+	for (int i = 0; i < MAX_CALLSTACK_SIZE; i++) {
+		GPerlObject **argstack = (GPerlObject **)malloc(sizeof(GPerlObject) * MAX_ARGSTACK_SIZE);
+		env_[i].argstack = argstack;
+		for (int j = 0; j < MAX_ARGSTACK_SIZE; j++) {
+			GPerlObject *o = new GPerlObject();
+			env_[i].argstack[j] = o;
+		}
 	}
+	int size = MAX_CALLSTACK_SIZE * sizeof(GPerlEnv);
+	callstack = (GPerlEnv *)malloc(size);
+	memcpy(callstack, env_, size);
 }
 
 #define L(op) L_##op
@@ -83,6 +91,7 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 		&&L(OPCALL), &&L(OPSHIFT),
 		&&L(OPiPUSH), &&L(OPsPUSH),
 	};
+	//asm("int3");
 	DISPATCH_START();
 
 	CASE(OPUNDEF) {
@@ -109,13 +118,16 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 	}
 	CASE(OPOMOV) {
 		DBG_PL("OPOMOV");
-		reg.pdata[pc->dst] = getFromVariableMemory(pc->src)->data.pdata;
+		DBG_PL("reg[%d] = [%d]", pc->dst, getFromVariableMemory(pc->src)->data.idata);
+		//reg.idata[pc->dst] = getFromVariableMemory(pc->src)->data.idata;
+		//reg.pdata[pc->dst] = getFromVariableMemory(pc->src)->data.pdata;
+		reg.idata[pc->dst] = callstack->argstack[pc->src]->data.idata;
 		pc++;
 		GOTO_NEXTOP();
 	}
 	CASE(OPOiMOV) {
 		DBG_PL("OPOiMOV");
-		DBG_PL("idata = [%d]", getFromVariableMemory(pc->src)->data.idata);
+		DBG_PL("reg[%d] = [%d]", pc->dst, getFromVariableMemory(pc->src)->data.idata);
 		reg.idata[pc->dst] = getFromVariableMemory(pc->src)->data.idata;
 		pc++;
 		GOTO_NEXTOP();
@@ -134,6 +146,8 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 	}
 	CASE(OPSUB) {
 		DBG_PL("OPSUB");
+		DBG_PL("reg[%d]:%d -= reg[%d]:%d", pc->dst, reg.idata[pc->dst],
+			   pc->src, reg.idata[pc->src]);
 		reg.idata[pc->dst] -= reg.idata[pc->src];
 		pc++;
 		GOTO_NEXTOP();
@@ -268,7 +282,6 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 		GOTO_NEXTOP();
 	}
 	CASE(OPiJE) {
-
 		if (reg.idata[pc->dst] == reg.idata[pc->src]) {
 			reg.idata[pc->dst] = 1;
 			pc++;
@@ -336,7 +349,8 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 	CASE(OPLET) {
 		DBG_PL("OPLET");
 		GPerlObject *o = getFromVariableMemory(pc->dst);
-		o->data.pdata = reg.pdata[0];
+		o->data.idata = reg.idata[0];
+		//o->data.pdata = reg.pdata[0];
 		pc++;
 		GOTO_NEXTOP();
 	}
@@ -356,20 +370,27 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 		DBG_PL("OPCALL");
 		GPerlVirtualMachineCode *code = getFromFuncMemory(pc->src);
 		int res = run(code);
+        callstack--;
+		//asm("int3");
 		reg.idata[pc->dst] = res;
+		DBG_PL("res = [%d]", res);
+		DBG_PL("reg[%d] = [%d]", pc->dst, reg.idata[pc->dst], res);
 		pc++;
 		GOTO_NEXTOP();
 	}
 	CASE(OPSHIFT) {
 		DBG_PL("OPSHIFT");
-		reg.pdata[0] = argstack[pc->src]->data.pdata;
+		reg.idata[0] = callstack->argstack[pc->src]->data.idata;
+		DBG_PL("reg[%d]%d = argstack[%d]", 0, reg.idata[0], pc->src);
+		//reg.pdata[0] = callstack->argstack[pc->src]->data.pdata;
 		pc++;
 		GOTO_NEXTOP();
 	}
 	CASE(OPiPUSH) {
 		DBG_PL("OPiPUSH");
-		DBG_PL("idata = [%d]", reg.idata[0]);
-		argstack[pc->src]->data.idata = reg.idata[pc->dst];
+		callstack++;//TODO : multiple arg
+		callstack->argstack[pc->src]->data.idata = reg.idata[pc->dst];
+		DBG_PL("argstack[%d] = reg[%d]:%d", pc->src, pc->dst, reg.idata[pc->dst]);
 		pc++;
 		GOTO_NEXTOP();
 	}

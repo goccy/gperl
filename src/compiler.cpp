@@ -95,8 +95,6 @@ void GPerlCompiler::compile_(GPerlCell *path, bool isRecursive)
 	for (; path->left; path = path->left) {}
 	if (path->type == Call) {
 		compile_(path->vargs, false);
-	}
-	if (path->type == Call) {
 		switch (reg_type[0]) {
 		case Int:
 			code = createiPUSH();
@@ -105,6 +103,11 @@ void GPerlCompiler::compile_(GPerlCell *path, bool isRecursive)
 			break;
 		case String:
 			code = createsPUSH();
+			addVMCode(code);
+			dumpVMCode(code);
+			break;
+		case Object:
+			code = createiPUSH();//TODO
 			addVMCode(code);
 			dumpVMCode(code);
 			break;
@@ -130,6 +133,11 @@ void GPerlCompiler::compile_(GPerlCell *path, bool isRecursive)
 					break;
 				case String:
 					code = createsPUSH();
+					addVMCode(code);
+					dumpVMCode(code);
+					break;
+				case Object:
+					code = createiPUSH();//TODO
 					addVMCode(code);
 					dumpVMCode(code);
 					break;
@@ -205,6 +213,8 @@ void GPerlCompiler::compile_(GPerlCell *path, bool isRecursive)
 		}
 		GPerlVirtualMachineCode *ret = createRET();
 		addVMCode(ret);
+		GPerlVirtualMachineCode *undef = createUNDEF();//for threaded code
+		addVMCode(undef);
 		//copy codes to func_code
 		size = codes->size();
 		for (int i = 0; i < size; i++) {
@@ -223,15 +233,16 @@ void GPerlCompiler::compile_(GPerlCell *path, bool isRecursive)
 	}
 }
 
+static GPerlVirtualMachineCode pure_codes_[32];
 GPerlVirtualMachineCode *GPerlCompiler::getPureCodes(vector<GPerlVirtualMachineCode *> *codes)
 {
 	int code_n = codes->size();
-	GPerlVirtualMachineCode pure_codes_[code_n + 1];
+	//GPerlVirtualMachineCode pure_codes_[code_n + 1];//for O2 option
 	memset(pure_codes_ + code_n + 1, 0, sizeof(GPerlVirtualMachineCode));
 	for (int i = 0; i < code_n; i++) {
 		pure_codes_[i] = *codes->at(i);
 	}
-	int code_size = code_n * sizeof(GPerlVirtualMachineCode);
+	volatile int code_size = code_n * sizeof(GPerlVirtualMachineCode);
 	GPerlVirtualMachineCode *pure_codes = (GPerlVirtualMachineCode *)malloc(code_size);
 	memcpy(pure_codes, pure_codes_, code_size);
 	return pure_codes;
@@ -537,6 +548,7 @@ GPerlVirtualMachineCode *GPerlCompiler::createJMP(int jmp_num)
 
 void GPerlCompiler::dumpVMCode(GPerlVirtualMachineCode *code)
 {
+	(void)code;
 	DBG_PL("L[%d] : %s [dst:%d], [src:%d], [jmp:%d], [name:%s]",
 		   code->code_num, OpName(code->op), code->dst, code->src,
 		   code->jmp, code->name);

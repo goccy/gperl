@@ -302,6 +302,7 @@ GPerlAST *GPerlParser::parse(vector<Token *> *tokens, vector<Token *>::iterator 
 			GPerlT type = t->type;
 			if (block_num > 0 && lastBlock()->type != Assign) {
 				GPerlCell *block = lastBlock();
+				DBG_PL("%s", TypeName(block->type));
 				if (block->type == Call) {
 					DBG_PL("%s[%s]:NEW BLOCK->BLOCKS", TypeName(type), cstr(t->data));
 					PUSH_toBLOCK(new GPerlCell(type, t->data));
@@ -355,7 +356,7 @@ GPerlAST *GPerlParser::parse(vector<Token *> *tokens, vector<Token *>::iterator 
 		case Assign: {
 			DBG_PL("L[%d] : ", iterate_count);
 			DBG_PL("ASSIGN:LAST BLOCK->PARENT");
-			GPerlCell *block;
+			GPerlCell *block = NULL;
 			if (block_num > 0) {
 				block = lastBlock();
 				POP_fromBLOCK();
@@ -366,6 +367,7 @@ GPerlAST *GPerlParser::parse(vector<Token *> *tokens, vector<Token *>::iterator 
 			block->parent = assign;
 			assign->left = block;
 			PUSH_toBLOCK(assign);
+			root = assign;
 			break;
 		}
 		case PrintDecl: {
@@ -399,8 +401,9 @@ GPerlAST *GPerlParser::parse(vector<Token *> *tokens, vector<Token *>::iterator 
 		}
 		case Return: {
 			DBG_PL("L[%d] : ", iterate_count);
-			DBG_PL("RETURN: ");
-			PUSH_toBLOCK(new GPerlCell(Return, t->data));
+			root = new GPerlCell(Return, t->data);
+			//DBG_PL("RETURN: NEW BLOCK->BLOCKS");
+			//PUSH_toBLOCK(new GPerlCell(Return, t->data));
 			break;
 		}
 		case ElseStmt: {
@@ -513,6 +516,9 @@ GPerlAST *GPerlParser::parse(vector<Token *> *tokens, vector<Token *>::iterator 
 					GPerlCell *v = root;
 					for (; v->vargs; v = v->vargs) {}
 					v->vargs = stmt;
+				} else if (root->type == Return) {
+					root->left = stmt;
+					stmt->parent = root;
 				} else {
 					root = stmt;
 				}
@@ -522,7 +528,12 @@ GPerlAST *GPerlParser::parse(vector<Token *> *tokens, vector<Token *>::iterator 
 				GPerlCell *right = blocks.at(1);
 				left->right = right;
 				right->parent = left;
-				root = left;
+				if (root->type == Return) {
+					root->left = left;
+					left->parent = root;
+				} else {
+					root = left;
+				}
 			}
 			ast->add(root);
 			CLEAR_BLOCK();
