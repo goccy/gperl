@@ -59,6 +59,7 @@ void GPerlVirtualMachine::createDirectThreadingCode(GPerlVirtualMachineCode *cod
 	pc->opnext = jmp_tbl[pc->op];
 }
 
+static GPerlVirtualMachineCode *top;
 int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 {
 	GPerlVirtualMachineCode *pc = codes;
@@ -88,7 +89,7 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 		&&L(OPiWRITE), &&L(OPsWRITE), &&L(OPoWRITE),
 		&&L(OPPRINT), &&L(OPJMP), &&L(OPLET),
 		&&L(OPSET), &&L(OPFUNCSET),
-		&&L(OPCALL), &&L(OPSHIFT),
+		&&L(OPCALL), &&L(OPSELFCALL), &&L(OPSHIFT),
 		&&L(OPiPUSH), &&L(OPsPUSH),
 	};
 	//asm("int3");
@@ -264,10 +265,10 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 	CASE(OPiJLC) {
 		DBG_PL("OPiJLC");
 		if (reg.idata[pc->dst] < pc->src) {
-			reg.idata[pc->dst] = 1;
+			//reg.idata[pc->dst] = 1;
 			pc++;
 		} else {
-			reg.idata[pc->dst] = 0;
+			//reg.idata[pc->dst] = 0;
 			pc += pc->jmp;
 		}
 		GOTO_NEXTOP();
@@ -439,15 +440,15 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 	}
 	CASE(OPLET) {
 		DBG_PL("OPLET");
-		//GPerlObject *o = getFromVariableMemory(pc->dst);
-		//o->data.idata = reg.idata[0];
+		GPerlObject *o = getFromVariableMemory(pc->dst);
+		o->data.idata = reg.idata[0];
 		//o->data.pdata = reg.pdata[0];
 		pc++;
 		GOTO_NEXTOP();
 	}
 	CASE(OPSET) {
 		DBG_PL("OPSET");
-		//setToVariableMemory(pc->name, pc->dst);
+		setToVariableMemory(pc->name, pc->dst);
 		pc++;
 		GOTO_NEXTOP();
 	}
@@ -459,7 +460,9 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 	}
 	CASE(OPCALL) {
 		DBG_PL("OPCALL");
-		GPerlVirtualMachineCode *code = getFromFuncMemory(pc->src);
+		//GPerlVirtualMachineCode *code = getFromFuncMemory(pc->src);
+		GPerlVirtualMachineCode *code = func_memory[pc->src];
+		top = code;
 		int res = run(code);
         callstack--;
 		reg.idata[pc->dst] = res;
@@ -468,9 +471,16 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 		pc++;
 		GOTO_NEXTOP();
 	}
+	CASE(OPSELFCALL) {
+		DBG_PL("OPSELFCALL");
+		reg.idata[pc->dst] = run(top);
+        callstack--;
+		pc++;
+		GOTO_NEXTOP();
+	}
 	CASE(OPSHIFT) {
 		DBG_PL("OPSHIFT");
-		//reg.idata[0] = callstack->argstack[pc->src]->data.idata;
+		reg.idata[0] = callstack->argstack[pc->src]->data.idata;
 		//DBG_PL("reg[%d]%d = argstack[%d]", 0, reg.idata[0], pc->src);
 		//reg.pdata[0] = callstack->argstack[pc->src]->data.pdata;
 		pc++;

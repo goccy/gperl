@@ -180,7 +180,7 @@ void GPerlCompiler::compile_(GPerlCell *path, bool isRecursive)
 			compile_(path, true);
 			dst = 0;//reset dst number
 		}
-		jmp->jmp = code_num - cond_code_num + 3/*OPNOP + OPJMP + 1*/;
+		jmp->jmp = code_num - cond_code_num + 2/*OPNOP + OPJMP + 1*/;
 		int cur_code_num = code_num;
 		//fprintf(stderr, "cur_code_num = [%d]\n", cur_code_num);
 		jmp = createJMP(1);
@@ -226,6 +226,7 @@ void GPerlCompiler::compile_(GPerlCell *path, bool isRecursive)
 		for (int i = 0; i < size; i++) {
 			func_code->push_back(codes->at(i));
 		}
+		optimizeFuncCode(func_code, path->fname);
 		GPerlVirtualMachineCode *f = getPureCodes(func_code);
 		DBG_PL("========= DUMP FUNC CODE ==========");
 		dumpPureVMCode(f);
@@ -239,6 +240,34 @@ void GPerlCompiler::compile_(GPerlCell *path, bool isRecursive)
 		code = codes->back();
 		code->func = f;
 		//DBG_PL("========= FUNCTION DECL END ==========");
+	}
+}
+
+void GPerlCompiler::optimizeFuncCode(vector<GPerlVirtualMachineCode *> *f, string fname)
+{
+	vector<GPerlVirtualMachineCode *>::iterator it = f->begin();
+	while (it != f->end()) {
+		GPerlVirtualMachineCode *c = *it;
+		if (c->op == OPCALL && fname == c->name) {
+			c->op = OPSELFCALL;
+		} else if (c->op == OPNOP) {
+			f->erase(it);
+			code_num--;
+			it--;
+		}  else if (c->op == OPSET) {
+			f->erase(it);
+			code_num--;
+			it--;
+		} else if (c->op == OPSHIFT) {
+			f->erase(it);
+			code_num--;
+			it--;
+		} else if (c->op == OPLET) {
+			f->erase(it);
+			code_num--;
+			it--;
+		}
+		it++;
 	}
 }
 

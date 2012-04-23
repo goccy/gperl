@@ -126,6 +126,7 @@ typedef enum {
 	OPSET,
 	OPFUNCSET,
 	OPCALL,
+	OPSELFCALL,
 	OPSHIFT,
 	OPiPUSH,
 	OPsPUSH,
@@ -324,6 +325,7 @@ public:
 
 	GPerlCompiler(void);
 	GPerlVirtualMachineCode *compile(GPerlAST *ast);
+	void optimizeFuncCode(std::vector<GPerlVirtualMachineCode *> *f, std::string fname);
 	GPerlVirtualMachineCode *getPureCodes(std::vector<GPerlVirtualMachineCode *> *c);
 	void compile_(GPerlCell *path, bool isRecursive);
 	void setToVariableNames(const char *name);
