@@ -227,6 +227,7 @@ void GPerlCompiler::compile_(GPerlCell *path, bool isRecursive)
 			func_code->push_back(codes->at(i));
 		}
 		optimizeFuncCode(func_code, path->fname);
+		finalCompile(func_code);
 		GPerlVirtualMachineCode *f = getPureCodes(func_code);
 		DBG_PL("========= DUMP FUNC CODE ==========");
 		dumpPureVMCode(f);
@@ -246,6 +247,8 @@ void GPerlCompiler::compile_(GPerlCell *path, bool isRecursive)
 void GPerlCompiler::optimizeFuncCode(vector<GPerlVirtualMachineCode *> *f, string fname)
 {
 	vector<GPerlVirtualMachineCode *>::iterator it = f->begin();
+	int reg_n = 0;
+	bool isOMOVCall = false;
 	while (it != f->end()) {
 		GPerlVirtualMachineCode *c = *it;
 		if (c->op == OPCALL && fname == c->name) {
@@ -254,7 +257,7 @@ void GPerlCompiler::optimizeFuncCode(vector<GPerlVirtualMachineCode *> *f, strin
 			f->erase(it);
 			code_num--;
 			it--;
-		}  else if (c->op == OPSET) {
+		} else if (c->op == OPSET) {
 			f->erase(it);
 			code_num--;
 			it--;
@@ -266,6 +269,133 @@ void GPerlCompiler::optimizeFuncCode(vector<GPerlVirtualMachineCode *> *f, strin
 			f->erase(it);
 			code_num--;
 			it--;
+		} else if (c->op == OPOMOV) {
+			reg_n = c->dst;
+			if (isOMOVCall) {
+				//TODO
+				//f->erase(it);
+				//code_num--;
+				//it--;
+				isOMOVCall = false;
+			} else {
+				isOMOVCall = true;
+			}
+		}
+		it++;
+	}
+}
+
+#define CONCAT(c0, c1, c2) OP##c0##c1##c2
+#define CONCAT2(c0, c1) OP##c0##c1
+
+#define DST(n) c->dst == n
+#define SRC(n) c->src == n
+
+#define OPCREATE_TYPE1(O) {						\
+		if (DST(0) && SRC(1)) {					\
+			c->op = CONCAT(A, B, O);			\
+		} else if (DST(0) && SRC(2)) {			\
+			c->op = CONCAT(A, C, O);			\
+		} else if (DST(0) && SRC(3)) {			\
+			c->op = CONCAT(A, D, O);			\
+		} else if (DST(1) && SRC(2)) {			\
+			c->op = CONCAT(B, C, O);			\
+		} else if (DST(1) && SRC(3)) {			\
+			c->op = CONCAT(B, D, O);			\
+		} else if (DST(2) && SRC(3)) {			\
+			c->op = CONCAT(C, D, O);			\
+		}										\
+	}
+
+#define OPCREATE_TYPE2(O) {						\
+		if (DST(0)) {							\
+			c->op = CONCAT2(A, O);				\
+		} else if (DST(1)) {					\
+			c->op = CONCAT2(B, O);				\
+		} else if (DST(2)) {					\
+			c->op = CONCAT2(C, O);				\
+		} else if (DST(3)) {					\
+			c->op = CONCAT2(D, O);				\
+		}										\
+	}
+
+#define OPCREATE_TYPE3(O) {						\
+		if (SRC(0)) {							\
+			c->op = CONCAT2(A, O);				\
+		} else if (SRC(1)) {					\
+			c->op = CONCAT2(B, O);				\
+		} else if (SRC(2)) {					\
+			c->op = CONCAT2(C, O);				\
+		} else if (SRC(3)) {					\
+			c->op = CONCAT2(D, O);				\
+		}										\
+	}
+
+void GPerlCompiler::finalCompile(vector<GPerlVirtualMachineCode *> *code)
+{
+	DBG_P("********* finalCompile ***********");
+	vector<GPerlVirtualMachineCode *>::iterator it = code->begin();
+	while (it != code->end()) {
+		GPerlVirtualMachineCode *c = *it;
+		switch (c->op) {
+		/*========= TYPE1 =========*/
+		case OPADD:
+			OPCREATE_TYPE1(ADD);
+			break;
+			/*
+		case OPiADD:
+			OPCREATE_TYPE1(iADD);
+			break;
+		case OPSUB:
+			OPCREATE_TYPE1(SUB);
+			break;
+		case OPiSUB:
+			OPCREATE_TYPE1(iSUB);
+			break;
+		*/
+		/*========= TYPE2 =========*/
+/*
+		case OPiADDC:
+			OPCREATE_TYPE2(iADDC);
+			break;
+*/
+		case OPiSUBC:
+			OPCREATE_TYPE2(iSUBC);
+			break;
+		case OPiJLC:
+			OPCREATE_TYPE2(iJLC);
+			break;
+/*
+		case OPiJGC:
+			OPCREATE_TYPE2(iJGC);
+			break;
+		case OPPUSH:
+			OPCREATE_TYPE2(PUSH);
+			break;
+*/
+		case OPiPUSH:
+			OPCREATE_TYPE2(iPUSH);
+			break;
+/*
+		case OPMOV:
+			OPCREATE_TYPE2(MOV);
+			break;
+*/
+		case OPiMOV:
+			OPCREATE_TYPE2(iMOV);
+			break;
+		case OPOMOV:
+			OPCREATE_TYPE2(OMOV);
+			break;
+		case OPSELFCALL:
+			OPCREATE_TYPE2(SELFCALL);
+			break;
+		/*========= TYPE3 =========*/
+		case OPRET:
+			OPCREATE_TYPE3(RET);
+			break;
+		default:
+			break;
 		}
 		it++;
 	}

@@ -130,6 +130,48 @@ typedef enum {
 	OPSHIFT,
 	OPiPUSH,
 	OPsPUSH,
+	/*------------final inst----------------*/
+	OPABADD,
+	OPACADD,
+	OPADADD,
+	OPBCADD,
+	OPBDADD,
+	OPCDADD,
+
+	OPAiSUBC,
+	OPBiSUBC,
+	OPCiSUBC,
+	OPDiSUBC,
+
+	OPAiJLC,
+	OPBiJLC,
+	OPCiJLC,
+	OPDiJLC,
+
+	OPAiPUSH,
+	OPBiPUSH,
+	OPCiPUSH,
+	OPDiPUSH,
+
+	OPAiMOV,
+	OPBiMOV,
+	OPCiMOV,
+	OPDiMOV,
+
+	OPAOMOV,
+	OPBOMOV,
+	OPCOMOV,
+	OPDOMOV,
+
+	OPASELFCALL,
+	OPBSELFCALL,
+	OPCSELFCALL,
+	OPDSELFCALL,
+
+	OPARET,
+	OPBRET,
+	OPCRET,
+	OPDRET
 } GPerlOpCodes;
 
 typedef struct _GPerlOpDef {
@@ -325,6 +367,7 @@ public:
 
 	GPerlCompiler(void);
 	GPerlVirtualMachineCode *compile(GPerlAST *ast);
+	void finalCompile(std::vector<GPerlVirtualMachineCode *> *f);
 	void optimizeFuncCode(std::vector<GPerlVirtualMachineCode *> *f, std::string fname);
 	GPerlVirtualMachineCode *getPureCodes(std::vector<GPerlVirtualMachineCode *> *c);
 	void compile_(GPerlCell *path, bool isRecursive);
@@ -355,7 +398,7 @@ typedef struct _GPerlObject {
 		bool bdata;
 		char *sdata;
 		void *pdata; /* other Object */
-	} data;
+	};
 	const char *name;
 } GPerlObject;
 

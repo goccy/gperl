@@ -68,9 +68,9 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 		float fdata[MAX_REG_SIZE];
 		char *sdata[MAX_REG_SIZE];
 		void *pdata[MAX_REG_SIZE];
-	} reg;
-	char shared_buf[128] = {0};//TODO must be variable buffer
-	string outbuf = "";
+	};// reg;
+	static char shared_buf[128] = {0};//TODO must be variable buffer
+	static string outbuf = "";
 	static void *jmp_table[] = {
 		&&L(OPUNDEF),
 		&&L(OPMOV), &&L(OPiMOV), &&L(OPsMOV),
@@ -91,6 +91,15 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 		&&L(OPSET), &&L(OPFUNCSET),
 		&&L(OPCALL), &&L(OPSELFCALL), &&L(OPSHIFT),
 		&&L(OPiPUSH), &&L(OPsPUSH),
+		/*-------------final inst-----------------*/
+		&&L(OPABADD), &&L(OPACADD), &&L(OPADADD), &&L(OPBCADD), &&L(OPBDADD), &&L(OPCDADD),
+		&&L(OPAiSUBC), &&L(OPBiSUBC), &&L(OPCiSUBC), &&L(OPDiSUBC),
+		&&L(OPAiJLC), &&L(OPBiJLC), &&L(OPCiJLC), &&L(OPDiJLC),
+		&&L(OPAiPUSH), &&L(OPBiPUSH), &&L(OPCiPUSH), &&L(OPDiPUSH),
+		&&L(OPAiMOV), &&L(OPBiMOV), &&L(OPCiMOV), &&L(OPDiMOV),
+		&&L(OPAOMOV), &&L(OPBOMOV), &&L(OPCOMOV), &&L(OPDOMOV),
+		&&L(OPASELFCALL), &&L(OPBSELFCALL), &&L(OPCSELFCALL), &&L(OPDSELFCALL),
+		&&L(OPARET), &&L(OPBRET), &&L(OPCRET), &&L(OPDRET),
 	};
 	//asm("int3");
 	DISPATCH_START();
@@ -101,19 +110,20 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 	}
 	CASE(OPMOV) {
 		DBG_PL("OPMOV");
-		reg.idata[pc->dst] = pc->src;
+		//reg.idata[pc->dst] = pc->src;
+		idata[pc->dst] = pc->src;
 		pc++;
 		GOTO_NEXTOP();
 	}
 	CASE(OPiMOV) {
 		DBG_PL("OPiMOV");
-		reg.idata[pc->dst] = pc->src;
+		idata[pc->dst] = pc->src;
 		pc++;
 		GOTO_NEXTOP();
 	}
 	CASE(OPsMOV) {
 		DBG_PL("OPsMOV");
-		reg.sdata[pc->dst] = (char *)pc->name;
+		sdata[pc->dst] = (char *)pc->name;
 		pc++;
 		GOTO_NEXTOP();
 	}
@@ -122,32 +132,32 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 		//DBG_PL("reg[%d] = [%d]", pc->dst, getFromVariableMemory(pc->src)->data.idata);
 		//reg.idata[pc->dst] = getFromVariableMemory(pc->src)->data.idata;
 		//reg.pdata[pc->dst] = getFromVariableMemory(pc->src)->data.pdata;
-		reg.idata[pc->dst] = callstack->argstack[pc->src]->data.idata;
+		idata[pc->dst] = callstack->argstack[pc->src]->idata;
 		pc++;
 		GOTO_NEXTOP();
 	}
 	CASE(OPOiMOV) {
 		DBG_PL("OPOiMOV");
 		//DBG_PL("reg[%d] = [%d]", pc->dst, getFromVariableMemory(pc->src)->data.idata);
-		reg.idata[pc->dst] = getFromVariableMemory(pc->src)->data.idata;
+		idata[pc->dst] = getFromVariableMemory(pc->src)->idata;
 		pc++;
 		GOTO_NEXTOP();
 	}
 	CASE(OPADD) {
 		DBG_PL("OPADD");
-		reg.idata[pc->dst] += reg.idata[pc->src];
+		idata[pc->dst] += idata[pc->src];
 		pc++;
 		GOTO_NEXTOP();
 	}
 	CASE(OPiADD) {
 		DBG_PL("OPiADD");
-		reg.idata[pc->dst] += reg.idata[pc->src];
+		idata[pc->dst] += idata[pc->src];
 		pc++;
 		GOTO_NEXTOP();
 	}
 	CASE(OPiADDC) {
 		DBG_PL("OPiADDC");
-		reg.idata[pc->dst] += pc->src;
+		idata[pc->dst] += pc->src;
 		pc++;
 		GOTO_NEXTOP();
 	}
@@ -155,116 +165,116 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 		DBG_PL("OPSUB");
 		//DBG_PL("reg[%d]:%d -= reg[%d]:%d", pc->dst, reg.idata[pc->dst],
 		//   pc->src, reg.idata[pc->src]);
-		reg.idata[pc->dst] -= reg.idata[pc->src];
+		idata[pc->dst] -= idata[pc->src];
 		pc++;
 		GOTO_NEXTOP();
 	}
 	CASE(OPiSUB) {
 		DBG_PL("OPiSUB");
-		reg.idata[pc->dst] -= reg.idata[pc->src];
+		idata[pc->dst] -= idata[pc->src];
 		pc++;
 		GOTO_NEXTOP();
 	}
 	CASE(OPiSUBC) {
 		DBG_PL("OPiSUBC");
-		reg.idata[pc->dst] -= pc->src;
+		idata[pc->dst] -= pc->src;
 		pc++;
 		GOTO_NEXTOP();
 	}
 	CASE(OPMUL) {
 		DBG_PL("OPMUL");
-		reg.idata[pc->dst] *= reg.idata[pc->src];
+		idata[pc->dst] *= idata[pc->src];
 		pc++;
 		GOTO_NEXTOP();
 	}
 	CASE(OPiMUL) {
 		DBG_PL("OPiMUL");
-		reg.idata[pc->dst] *= reg.idata[pc->src];
+		idata[pc->dst] *= idata[pc->src];
 		pc++;
 		GOTO_NEXTOP();
 	}
 	CASE(OPiMULC) {
 		DBG_PL("OPiMULC");
-		reg.idata[pc->dst] *= pc->src;
+		idata[pc->dst] *= pc->src;
 		pc++;
 		GOTO_NEXTOP();
 	}
 	CASE(OPDIV) {
 		DBG_PL("OPDIV");
-		reg.idata[pc->dst] /= reg.idata[pc->src];
+		idata[pc->dst] /= idata[pc->src];
 		pc++;
 		GOTO_NEXTOP();
 	}
 	CASE(OPiDIV) {
 		DBG_PL("OPiDIV");
-		reg.idata[pc->dst] /= reg.idata[pc->src];
+		idata[pc->dst] /= idata[pc->src];
 		pc++;
 		GOTO_NEXTOP();
 	}
 	CASE(OPiDIVC) {
 		DBG_PL("OPiDIVC");
-		reg.idata[pc->dst] /= pc->src;
+		idata[pc->dst] /= pc->src;
 		pc++;
 		GOTO_NEXTOP();
 	}
 	CASE(OPJG) {
 		DBG_PL("OPJG");
-		if (reg.idata[pc->dst] > reg.idata[pc->src]) {
-			reg.idata[pc->dst] = 1;
+		if (idata[pc->dst] > idata[pc->src]) {
+			idata[pc->dst] = 1;
 			pc++;
 		} else {
-			reg.idata[pc->dst] = 0;
+			idata[pc->dst] = 0;
 			pc += pc->jmp;
 		}
 		GOTO_NEXTOP();
 	}
 	CASE(OPiJG) {
 		DBG_PL("OPiJG");
-		if (reg.idata[pc->dst] > reg.idata[pc->src]) {
-			reg.idata[pc->dst] = 1;
+		if (idata[pc->dst] > idata[pc->src]) {
+			idata[pc->dst] = 1;
 			pc++;
 		} else {
-			reg.idata[pc->dst] = 0;
+			idata[pc->dst] = 0;
 			pc += pc->jmp;
 		}
 		GOTO_NEXTOP();
 	}
 	CASE(OPiJGC) {
 		DBG_PL("OPiJGC");
-		if (reg.idata[pc->dst] > pc->src) {
-			reg.idata[pc->dst] = 1;
+		if (idata[pc->dst] > pc->src) {
+			idata[pc->dst] = 1;
 			pc++;
 		} else {
-			reg.idata[pc->dst] = 0;
+			idata[pc->dst] = 0;
 			pc += pc->jmp;
 		}
 		GOTO_NEXTOP();
 	}
 	CASE(OPJL) {
 		DBG_PL("OPJL");
-		if (reg.idata[pc->dst] < reg.idata[pc->src]) {
-			reg.idata[pc->dst] = 1;
+		if (idata[pc->dst] < idata[pc->src]) {
+			idata[pc->dst] = 1;
 			pc++;
 		} else {
-			reg.idata[pc->dst] = 0;
+			idata[pc->dst] = 0;
 			pc += pc->jmp;
 		}
 		GOTO_NEXTOP();
 	}
 	CASE(OPiJL) {
 		DBG_PL("OPiJL");
-		if (reg.idata[pc->dst] < reg.idata[pc->src]) {
-			reg.idata[pc->dst] = 1;
+		if (idata[pc->dst] < idata[pc->src]) {
+			idata[pc->dst] = 1;
 			pc++;
 		} else {
-			reg.idata[pc->dst] = 0;
+			idata[pc->dst] = 0;
 			pc += pc->jmp;
 		}
 		GOTO_NEXTOP();
 	}
 	CASE(OPiJLC) {
 		DBG_PL("OPiJLC");
-		if (reg.idata[pc->dst] < pc->src) {
+		if (idata[pc->dst] < pc->src) {
 			//reg.idata[pc->dst] = 1;
 			pc++;
 		} else {
@@ -275,153 +285,153 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 	}
 	CASE(OPJGE) {
 		DBG_PL("OPJGE");
-		if (reg.idata[pc->dst] >= reg.idata[pc->src]) {
-			reg.idata[pc->dst] = 1;
+		if (idata[pc->dst] >= idata[pc->src]) {
+			idata[pc->dst] = 1;
 			pc++;
 		} else {
-			reg.idata[pc->dst] = 0;
+			idata[pc->dst] = 0;
 			pc += pc->jmp;
 		}
 		GOTO_NEXTOP();
 	}
 	CASE(OPiJGE) {
 		DBG_PL("OPiJGE");
-		if (reg.idata[pc->dst] >= reg.idata[pc->src]) {
-			reg.idata[pc->dst] = 1;
+		if (idata[pc->dst] >= idata[pc->src]) {
+			idata[pc->dst] = 1;
 			pc++;
 		} else {
-			reg.idata[pc->dst] = 0;
+			idata[pc->dst] = 0;
 			pc += pc->jmp;
 		}
 		GOTO_NEXTOP();
 	}
 	CASE(OPiJGEC) {
 		DBG_PL("OPiJGEC");
-		if (reg.idata[pc->dst] >= pc->src) {
-			reg.idata[pc->dst] = 1;
+		if (idata[pc->dst] >= pc->src) {
+			idata[pc->dst] = 1;
 			pc++;
 		} else {
-			reg.idata[pc->dst] = 0;
+			idata[pc->dst] = 0;
 			pc += pc->jmp;
 		}
 		GOTO_NEXTOP();
 	}
 	CASE(OPJLE) {
 		DBG_PL("OPJLE");
-		if (reg.idata[pc->dst] <= reg.idata[pc->src]) {
-			reg.idata[pc->dst] = 1;
+		if (idata[pc->dst] <= idata[pc->src]) {
+			idata[pc->dst] = 1;
 			pc++;
 		} else {
-			reg.idata[pc->dst] = 0;
+			idata[pc->dst] = 0;
 			pc += pc->jmp;
 		}
 		GOTO_NEXTOP();
 	}
 	CASE(OPiJLE) {
 		DBG_PL("OPiJLE");
-		if (reg.idata[pc->dst] <= reg.idata[pc->src]) {
-			reg.idata[pc->dst] = 1;
+		if (idata[pc->dst] <= idata[pc->src]) {
+			idata[pc->dst] = 1;
 			pc++;
 		} else {
-			reg.idata[pc->dst] = 0;
+			idata[pc->dst] = 0;
 			pc += pc->jmp;
 		}
 		GOTO_NEXTOP();
 	}
 	CASE(OPiJLEC) {
 		DBG_PL("OPiJLEC");
-		if (reg.idata[pc->dst] <= pc->src) {
-			reg.idata[pc->dst] = 1;
+		if (idata[pc->dst] <= pc->src) {
+			idata[pc->dst] = 1;
 			pc++;
 		} else {
-			reg.idata[pc->dst] = 0;
+			idata[pc->dst] = 0;
 			pc += pc->jmp;
 		}
 		GOTO_NEXTOP();
 	}
 	CASE(OPJE) {
 		DBG_PL("OPJE");
-		if (reg.idata[pc->dst] == reg.idata[pc->src]) {
-			reg.idata[pc->dst] = 1;
+		if (idata[pc->dst] == idata[pc->src]) {
+			idata[pc->dst] = 1;
 			pc++;
 		} else {
-			reg.idata[pc->dst] = 0;
+			idata[pc->dst] = 0;
 			pc += pc->jmp;
 		}
 		GOTO_NEXTOP();
 	}
 	CASE(OPiJE) {
 		DBG_PL("OPiJE");
-		if (reg.idata[pc->dst] == reg.idata[pc->src]) {
-			reg.idata[pc->dst] = 1;
+		if (idata[pc->dst] == idata[pc->src]) {
+			idata[pc->dst] = 1;
 			pc++;
 		} else {
-			reg.idata[pc->dst] = 0;
+			idata[pc->dst] = 0;
 			pc += pc->jmp;
 		}
 		GOTO_NEXTOP();
 	}
 	CASE(OPiJEC) {
 		DBG_PL("OPiJEC");
-		if (reg.idata[pc->dst] == pc->src) {
-			reg.idata[pc->dst] = 1;
+		if (idata[pc->dst] == pc->src) {
+			idata[pc->dst] = 1;
 			pc++;
 		} else {
-			reg.idata[pc->dst] = 0;
+			idata[pc->dst] = 0;
 			pc += pc->jmp;
 		}
 		GOTO_NEXTOP();
 	}
 	CASE(OPJNE) {
 		DBG_PL("OPJNE");
-		if (reg.idata[pc->dst] != reg.idata[pc->src]) {
-			reg.idata[pc->dst] = 1;
+		if (idata[pc->dst] != idata[pc->src]) {
+			idata[pc->dst] = 1;
 			pc++;
 		} else {
-			reg.idata[pc->dst] = 0;
+			idata[pc->dst] = 0;
 			pc += pc->jmp;
 		}
 		GOTO_NEXTOP();
 	}
 	CASE(OPiJNE) {
 		DBG_PL("OPiJNE");
-		if (reg.idata[pc->dst] != reg.idata[pc->src]) {
-			reg.idata[pc->dst] = 1;
+		if (idata[pc->dst] != idata[pc->src]) {
+			idata[pc->dst] = 1;
 			pc++;
 		} else {
-			reg.idata[pc->dst] = 0;
+			idata[pc->dst] = 0;
 			pc += pc->jmp;
 		}
 		GOTO_NEXTOP();
 	}
 	CASE(OPiJNEC) {
 		DBG_PL("OPiJNEC");
-		if (reg.idata[pc->dst] != pc->src) {
-			reg.idata[pc->dst] = 1;
+		if (idata[pc->dst] != pc->src) {
+			idata[pc->dst] = 1;
 			pc++;
 		} else {
-			reg.idata[pc->dst] = 0;
+			idata[pc->dst] = 0;
 			pc += pc->jmp;
 		}
 		GOTO_NEXTOP();
 	}
 	CASE(OPiWRITE) {
 		DBG_PL("OPiWRITE");
-		sprintf(shared_buf, "%d", reg.idata[0]);
+		sprintf(shared_buf, "%d", idata[0]);
 		outbuf += string(shared_buf);
 		pc++;
 		GOTO_NEXTOP();
 	}
 	CASE(OPsWRITE) {
 		DBG_PL("OPsWRITE");
-		outbuf += reg.sdata[0];
+		outbuf += sdata[0];
 		pc++;
 		GOTO_NEXTOP();
 	}
 	CASE(OPoWRITE) {
 		DBG_PL("OPoWRITE");
 		//TODO: need typecheck
-		sprintf(shared_buf, "%p", reg.pdata[0]);
+		sprintf(shared_buf, "%p", pdata[0]);
 		outbuf += string(shared_buf);
 		pc++;
 		GOTO_NEXTOP();
@@ -441,7 +451,7 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 	CASE(OPLET) {
 		DBG_PL("OPLET");
 		GPerlObject *o = getFromVariableMemory(pc->dst);
-		o->data.idata = reg.idata[0];
+		o->idata = idata[0];
 		//o->data.pdata = reg.pdata[0];
 		pc++;
 		GOTO_NEXTOP();
@@ -465,7 +475,7 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 		top = code;
 		int res = run(code);
         callstack--;
-		reg.idata[pc->dst] = res;
+		idata[pc->dst] = res;
 		//DBG_PL("res = [%d]", res);
 		//DBG_PL("reg[%d] = [%d]", pc->dst, reg.idata[pc->dst]);
 		pc++;
@@ -473,14 +483,14 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 	}
 	CASE(OPSELFCALL) {
 		DBG_PL("OPSELFCALL");
-		reg.idata[pc->dst] = run(top);
+		idata[pc->dst] = run(top);
         callstack--;
 		pc++;
 		GOTO_NEXTOP();
 	}
 	CASE(OPSHIFT) {
 		DBG_PL("OPSHIFT");
-		reg.idata[0] = callstack->argstack[pc->src]->data.idata;
+		idata[0] = callstack->argstack[pc->src]->idata;
 		//DBG_PL("reg[%d]%d = argstack[%d]", 0, reg.idata[0], pc->src);
 		//reg.pdata[0] = callstack->argstack[pc->src]->data.pdata;
 		pc++;
@@ -489,7 +499,7 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 	CASE(OPiPUSH) {
 		DBG_PL("OPiPUSH");
 		callstack++;//TODO : multiple arg
-		callstack->argstack[pc->src]->data.idata = reg.idata[pc->dst];
+		callstack->argstack[pc->src]->idata = idata[pc->dst];
 		//DBG_PL("argstack[%d] = reg[%d]:%d", pc->src, pc->dst, reg.idata[pc->dst]);
 		pc++;
 		GOTO_NEXTOP();
@@ -511,8 +521,236 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 	}
 	CASE(OPRET) {
 		DBG_PL("OPRET");
-		reg.idata[0] = reg.idata[pc->src];
+		return idata[pc->src];
 		//DBG_PL("ret = [%d]", reg.idata[0]);
-		return reg.idata[0];
+		//return idata[0];
+	}
+
+	CASE(OPABADD) {
+		DBG_PL("OPABADD");
+		idata[0] += idata[1];
+		pc++;
+		GOTO_NEXTOP();
+	}
+	CASE(OPACADD) {
+		DBG_PL("OPACADD");
+		idata[0] += idata[2];
+		pc++;
+		GOTO_NEXTOP();
+	}
+	CASE(OPADADD) {
+		DBG_PL("OPADADD");
+		idata[0] += idata[3];
+		pc++;
+		GOTO_NEXTOP();
+	}
+	CASE(OPBCADD) {
+		DBG_PL("OPBCADD");
+		idata[1] += idata[2];
+		pc++;
+		GOTO_NEXTOP();
+	}
+	CASE(OPBDADD) {
+		DBG_PL("OPBDADD");
+		idata[1] += idata[3];
+		pc++;
+		GOTO_NEXTOP();
+	}
+	CASE(OPCDADD) {
+		DBG_PL("OPCDADD");
+		idata[2] += idata[3];
+		pc++;
+		GOTO_NEXTOP();
+	}
+	CASE(OPAiSUBC) {
+		DBG_PL("OPAiSUBC");
+		//eax -= pc->src;
+		idata[0] -= pc->src;
+		pc++;
+		GOTO_NEXTOP();
+	}
+	CASE(OPBiSUBC) {
+		DBG_PL("OPBiSUBC");
+		//ebx -= pc->src;
+		idata[1] -= pc->src;
+		pc++;
+		GOTO_NEXTOP();
+	}
+	CASE(OPCiSUBC) {
+		DBG_PL("OPCiSUBC");
+		idata[2] -= pc->src;
+		pc++;
+		GOTO_NEXTOP();
+	}
+	CASE(OPDiSUBC) {
+		DBG_PL("OPDiSUBC");
+		idata[3] -= pc->src;
+		pc++;
+		GOTO_NEXTOP();
+	}
+	CASE(OPAiJLC) {
+		DBG_PL("OPAiJLC");
+		if (idata[0] < pc->src) {
+//		if (eax < pc->src) {
+			pc++;
+		} else {
+			pc += pc->jmp;
+		}
+		GOTO_NEXTOP();
+	}
+	CASE(OPBiJLC) {
+		DBG_PL("OPBiJLC");
+		if (idata[1] < pc->src) {
+			pc++;
+		} else {
+			pc += pc->jmp;
+		}
+		GOTO_NEXTOP();
+	}
+	CASE(OPCiJLC) {
+		DBG_PL("OPCiJLC");
+		if (idata[2] < pc->src) {
+			pc++;
+		} else {
+			pc += pc->jmp;
+		}
+		GOTO_NEXTOP();
+	}
+	CASE(OPDiJLC) {
+		DBG_PL("OPDiJLC");
+		if (idata[3] < pc->src) {
+			pc++;
+		} else {
+			pc += pc->jmp;
+		}
+		GOTO_NEXTOP();
+	}
+	CASE(OPAiPUSH) {
+		DBG_PL("OPAiPUSH");
+		callstack++;
+		//callstack->argstack[pc->src]->data.idata = eax;
+		callstack->argstack[pc->src]->idata = idata[0];
+		pc++;
+		GOTO_NEXTOP();
+	}
+	CASE(OPBiPUSH) {
+		DBG_PL("OPBiPUSH");
+		callstack++;
+		//callstack->argstack[pc->src]->data.idata = ebx;
+		callstack->argstack[pc->src]->idata = idata[1];
+		pc++;
+		GOTO_NEXTOP();
+	}
+	CASE(OPCiPUSH) {
+		DBG_PL("OPCiPUSH");
+		callstack++;
+		callstack->argstack[pc->src]->idata = idata[2];
+		pc++;
+		GOTO_NEXTOP();
+	}
+	CASE(OPDiPUSH) {
+		DBG_PL("OPDiPUSH");
+		callstack++;
+		callstack->argstack[pc->src]->idata = idata[3];
+		pc++;
+		GOTO_NEXTOP();
+	}
+	CASE(OPAiMOV) {
+		DBG_PL("OPAiMOV");
+		//eax = pc->src;
+		idata[0] = pc->src;
+		pc++;
+		GOTO_NEXTOP();
+	}
+	CASE(OPBiMOV) {
+		DBG_PL("OPBiMOV");
+		idata[1] = pc->src;
+		pc++;
+		GOTO_NEXTOP();
+	}
+	CASE(OPCiMOV) {
+		DBG_PL("OPCiMOV");
+		idata[2] = pc->src;
+		pc++;
+		GOTO_NEXTOP();
+	}
+	CASE(OPDiMOV) {
+		DBG_PL("OPDiMOV");
+		idata[3] = pc->src;
+		pc++;
+		GOTO_NEXTOP();
+	}
+	CASE(OPAOMOV) {
+		DBG_PL("OPAOMOV");
+		//eax = callstack->argstack[pc->src]->data.idata;
+		idata[0] = callstack->argstack[pc->src]->idata;
+		pc++;
+		GOTO_NEXTOP();
+	}
+	CASE(OPBOMOV) {
+		DBG_PL("OPBOMOV");
+		//ebx = callstack->argstack[pc->src]->data.idata;
+		idata[1] = callstack->argstack[pc->src]->idata;
+		pc++;
+		GOTO_NEXTOP();
+	}
+	CASE(OPCOMOV) {
+		DBG_PL("OPCOMOV");
+		idata[2] = callstack->argstack[pc->src]->idata;
+		pc++;
+		GOTO_NEXTOP();
+	}
+	CASE(OPDOMOV) {
+		DBG_PL("OPDOMOV");
+		idata[3] = callstack->argstack[pc->src]->idata;
+		pc++;
+		GOTO_NEXTOP();
+	}
+	CASE(OPASELFCALL) {
+		DBG_PL("OPASELFCALL");
+		//eax = run(top);
+		idata[0] = run(top);
+        callstack--;
+		pc++;
+		GOTO_NEXTOP();
+	}
+	CASE(OPBSELFCALL) {
+		DBG_PL("OPBSELFCALL");
+		//ebx = run(top);
+		idata[1] = run(top);
+        callstack--;
+		pc++;
+		GOTO_NEXTOP();
+	}
+	CASE(OPCSELFCALL) {
+		DBG_PL("OPCSELFCALL");
+		idata[2] = run(top);
+        callstack--;
+		pc++;
+		GOTO_NEXTOP();
+	}
+	CASE(OPDSELFCALL) {
+		DBG_PL("OPDSELFCALL");
+		idata[3] = run(top);
+        callstack--;
+		pc++;
+		GOTO_NEXTOP();
+	}
+	CASE(OPARET) {
+		DBG_PL("OPARET");
+		///return eax;
+		return idata[0];
+	}
+	CASE(OPBRET) {
+		DBG_PL("OPBRET");
+		return idata[1];
+	}
+	CASE(OPCRET) {
+		DBG_PL("OPCRET");
+		return idata[2];
+	}
+	CASE(OPDRET) {
+		DBG_PL("OPDRET");
+		return idata[3];
 	}
 }
