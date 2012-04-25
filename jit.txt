@@ -1,0 +1,62 @@
+L[0] : OPAOMOV
+L[1] : OPAiJLC
+L[2] : OPAiMOV
+L[3] : OPARET
+L[4] : OPJMP
+L[5] : OPAiSUBC
+L[6] : OPAiPUSH
+L[7] : OPASELFCALL
+L[8] : OPBOMOV
+L[9] : OPBiSUBC
+L[10] : OPBiPUSH
+L[11] : OPBSELFCALL
+L[12] : OPABADD
+L[13] : OPARET
+
+/* AOMOV */
+idata[0] = callstack->argstack[pc->src]->idata;
+pc++;
+/* AiJLC */
+if (idata[0] < pc->src) {
+	pc++;
+/* AiMOV */
+   idata[0] = pc->src;
+   pc++;
+/* ARET */
+   return idata[0];
+/* JMP */
+   pc += pc->jmp;
+} else {
+    pc += pc->jmp;
+/* AiSUBC */
+	idata[0] -= pc->src;
+	pc++;
+/* AiPUSH */
+	callstack++;
+	callstack->argstack[pc->src]->idata = idata[0];
+	pc++;
+/* ASELFCALL */
+	idata[0] = run(top);
+	callstack--;
+	pc++;
+/* OPBOMOV */
+	idata[1] = callstack->argstack[pc->src]->idata;
+	pc++;
+/* OPBiSUBC */
+	idata[1] -= pc->src;
+	pc++;
+/* OPBiPUSH */
+	callstack++;
+	callstack->argstack[pc->src]->idata = idata[1];
+	pc++;
+/* OPBSELFCALL */
+	idata[1] = run(top);
+	callstack--;
+	pc++;
+/* ABADD */
+	idata[0] += idata[1];
+	pc++;
+/* ARET */
+	return idata[0];
+}
+

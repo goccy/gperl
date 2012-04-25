@@ -98,4 +98,5 @@ GPerlOpDef decl_opdef[]	= {
 	DECL(OPBRET),
 	DECL(OPCRET),
 	DECL(OPDRET),
+	DECL(OPSUPERCALL),
 };

@@ -19,11 +19,6 @@ GPerlVirtualMachine::GPerlVirtualMachine(void)
 	memcpy(callstack, env_, size);
 }
 
-#define L(op) L_##op
-#define CASE(op) L(op) :
-#define DISPATCH_START() goto *jmp_table[pc->op]
-#define GOTO_NEXTOP() goto *(pc->opnext)
-
 void GPerlVirtualMachine::setToVariableMemory(const char *name, int idx)
 {
 	GPerlObject *o = new GPerlObject();//TODO fetch from memory manage unit
@@ -58,6 +53,56 @@ void GPerlVirtualMachine::createDirectThreadingCode(GPerlVirtualMachineCode *cod
 	}
 	pc->opnext = jmp_tbl[pc->op];
 }
+
+static void *gxmalloc(void)
+{
+	int pagesize = sysconf(_SC_PAGE_SIZE);
+	DBG_PL("pagesize = [%d]", pagesize);
+	if (pagesize < 0) perror("sysconf");
+	void *_codeptr = (void *)malloc(pagesize * 10L);
+	void *codeptr = (void *)((long)_codeptr & ~(pagesize - 1L));
+	memset(codeptr, 0xc3, pagesize * 10L);
+	if (mprotect(codeptr, pagesize * 10L, PROT_WRITE|PROT_READ|PROT_EXEC) < 0) perror("mprotect");
+	return codeptr;
+}
+
+void GPerlVirtualMachine::createSelectiveInliningCode(GPerlVirtualMachineCode *c, void **jmp_tbl, InstBlock *block_tbl)
+{
+	int pos = 0;
+	GPerlVirtualMachineCode *pc = c;
+	pc++;//skip THCODE
+	for (; pc->op != OPUNDEF; pc++) {
+		//pc->code = gxmalloc();
+		//pos = 0;
+		InstBlock block = block_tbl[pc->op];
+		int len = (intptr_t)block.end - (intptr_t)block.start;
+		DBG_PL("len = [%d]", len);
+		//memcpy(pc->code + pos, block.start, len);
+		//pos += len;
+		//DBG_PL("=====================================");
+		//if (pc->op == OPSELFCALL) {
+		//} else if (pc->op == OPRET || pc->op == OPARET || pc->op == OPBRET ||
+		//		   pc->op == OPCRET || pc->op == OPDRET) {
+			//pc->op = RET_BLOCK;
+			//pc->opnext = jmp_table[pc->op];
+		//} else {
+			//pc->op = GOTO_BLOCK;
+		//	pc->opnext = jmp_tbl[pc->op];
+		//}
+	}
+}
+
+#define DISPATCH_START() goto *jmp_table[pc->op]
+#define GOTO_NEXTOP() goto *(pc->opnext)
+#define L(op) L_##op
+
+#define B(op) {&&L(OP##op##_START), &&L(OP##op##_END)}
+#define START(op) L_##op##_START:
+#define END(op) L_##op##_END:
+
+#define _CASE(op) L(op) : { DBG_PL(#op); }
+#define BREAK() GOTO_NEXTOP()
+#define CASE(op, block) _CASE(op) { START(op); block; END(op); }
 
 static GPerlVirtualMachineCode *top;
 int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
@@ -100,125 +145,139 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 		&&L(OPAOMOV), &&L(OPBOMOV), &&L(OPCOMOV), &&L(OPDOMOV),
 		&&L(OPASELFCALL), &&L(OPBSELFCALL), &&L(OPCSELFCALL), &&L(OPDSELFCALL),
 		&&L(OPARET), &&L(OPBRET), &&L(OPCRET), &&L(OPDRET),
+		&&L(OPSUPERCALL),
 	};
+	static InstBlock block_table[] = {
+		B(UNDEF),
+		B(MOV), B(iMOV), B(sMOV),
+		B(OMOV), B(OiMOV),
+		B(ADD), B(iADD), B(iADDC),
+		B(SUB), B(iSUB), B(iSUBC),
+		B(MUL), B(iMUL), B(iMULC),
+		B(DIV), B(iDIV), B(iDIVC),
+		B(JG), B(iJG), B(iJGC),
+		B(JL), B(iJL), B(iJLC),
+		B(JGE), B(iJGE), B(iJGEC),
+		B(JLE), B(iJLE), B(iJLEC),
+		B(JE), B(iJE), B(iJEC),
+		B(JNE), B(iJNE), B(iJNEC),
+		B(RET), B(THCODE), B(NOP),
+		B(iWRITE), B(sWRITE), B(oWRITE),
+		B(PRINT), B(JMP), B(LET),
+		B(SET), B(FUNCSET),
+		B(CALL), B(SELFCALL), B(SHIFT),
+		B(iPUSH), B(sPUSH),
+		/*-------------final inst-----------------*/
+		B(ABADD), B(ACADD), B(ADADD), B(BCADD), B(BDADD), B(CDADD),
+		B(AiSUBC), B(BiSUBC), B(CiSUBC), B(DiSUBC),
+		B(AiJLC), B(BiJLC), B(CiJLC), B(DiJLC),
+		B(AiPUSH), B(BiPUSH), B(CiPUSH), B(DiPUSH),
+		B(AiMOV), B(BiMOV), B(CiMOV), B(DiMOV),
+		B(AOMOV), B(BOMOV), B(COMOV), B(DOMOV),
+		B(ASELFCALL), B(BSELFCALL), B(CSELFCALL), B(DSELFCALL),
+		B(ARET), B(BRET), B(CRET), B(DRET),
+		B(SUPERCALL),
+	};
+
 	//asm("int3");
 	DISPATCH_START();
 
-	CASE(OPUNDEF) {
-		DBG_PL("OPUNDEF");
+	CASE(OPUNDEF, {
 		//no reach this case
-	}
-	CASE(OPMOV) {
-		DBG_PL("OPMOV");
+	});
+	CASE(OPMOV, {
 		//reg.idata[pc->dst] = pc->src;
 		idata[pc->dst] = pc->src;
 		pc++;
-		GOTO_NEXTOP();
-	}
-	CASE(OPiMOV) {
-		DBG_PL("OPiMOV");
+		BREAK();
+	});
+	CASE(OPiMOV, {
 		idata[pc->dst] = pc->src;
 		pc++;
-		GOTO_NEXTOP();
-	}
-	CASE(OPsMOV) {
-		DBG_PL("OPsMOV");
+		BREAK();
+	});
+	CASE(OPsMOV, {
 		sdata[pc->dst] = (char *)pc->name;
 		pc++;
-		GOTO_NEXTOP();
-	}
-	CASE(OPOMOV) {
-		DBG_PL("OPOMOV");
+		BREAK();
+	});
+	CASE(OPOMOV, {
 		//DBG_PL("reg[%d] = [%d]", pc->dst, getFromVariableMemory(pc->src)->data.idata);
 		//reg.idata[pc->dst] = getFromVariableMemory(pc->src)->data.idata;
 		//reg.pdata[pc->dst] = getFromVariableMemory(pc->src)->data.pdata;
 		idata[pc->dst] = callstack->argstack[pc->src]->idata;
 		pc++;
-		GOTO_NEXTOP();
-	}
-	CASE(OPOiMOV) {
-		DBG_PL("OPOiMOV");
+		BREAK();
+	});
+	CASE(OPOiMOV, {
 		//DBG_PL("reg[%d] = [%d]", pc->dst, getFromVariableMemory(pc->src)->data.idata);
 		idata[pc->dst] = getFromVariableMemory(pc->src)->idata;
 		pc++;
-		GOTO_NEXTOP();
-	}
-	CASE(OPADD) {
-		DBG_PL("OPADD");
+		BREAK();
+	});
+	CASE(OPADD, {
 		idata[pc->dst] += idata[pc->src];
 		pc++;
-		GOTO_NEXTOP();
-	}
-	CASE(OPiADD) {
-		DBG_PL("OPiADD");
+		BREAK();
+	});
+	CASE(OPiADD, {
 		idata[pc->dst] += idata[pc->src];
 		pc++;
-		GOTO_NEXTOP();
-	}
-	CASE(OPiADDC) {
-		DBG_PL("OPiADDC");
+		BREAK();
+	});
+	CASE(OPiADDC, {
 		idata[pc->dst] += pc->src;
 		pc++;
-		GOTO_NEXTOP();
-	}
-	CASE(OPSUB) {
-		DBG_PL("OPSUB");
+		BREAK();
+	});
+	CASE(OPSUB, {
 		//DBG_PL("reg[%d]:%d -= reg[%d]:%d", pc->dst, reg.idata[pc->dst],
 		//   pc->src, reg.idata[pc->src]);
 		idata[pc->dst] -= idata[pc->src];
 		pc++;
-		GOTO_NEXTOP();
-	}
-	CASE(OPiSUB) {
-		DBG_PL("OPiSUB");
+		BREAK();
+	});
+	CASE(OPiSUB, {
 		idata[pc->dst] -= idata[pc->src];
 		pc++;
-		GOTO_NEXTOP();
-	}
-	CASE(OPiSUBC) {
-		DBG_PL("OPiSUBC");
+		BREAK();
+	});
+	CASE(OPiSUBC, {
 		idata[pc->dst] -= pc->src;
 		pc++;
-		GOTO_NEXTOP();
-	}
-	CASE(OPMUL) {
-		DBG_PL("OPMUL");
+		BREAK();
+	});
+	CASE(OPMUL, {
 		idata[pc->dst] *= idata[pc->src];
 		pc++;
-		GOTO_NEXTOP();
-	}
-	CASE(OPiMUL) {
-		DBG_PL("OPiMUL");
+		BREAK();
+	});
+	CASE(OPiMUL, {
 		idata[pc->dst] *= idata[pc->src];
 		pc++;
-		GOTO_NEXTOP();
-	}
-	CASE(OPiMULC) {
-		DBG_PL("OPiMULC");
+		BREAK();
+	});
+	CASE(OPiMULC, {
 		idata[pc->dst] *= pc->src;
 		pc++;
-		GOTO_NEXTOP();
-	}
-	CASE(OPDIV) {
-		DBG_PL("OPDIV");
+		BREAK();
+	});
+	CASE(OPDIV, {
 		idata[pc->dst] /= idata[pc->src];
 		pc++;
-		GOTO_NEXTOP();
-	}
-	CASE(OPiDIV) {
-		DBG_PL("OPiDIV");
+		BREAK();
+	});
+	CASE(OPiDIV, {
 		idata[pc->dst] /= idata[pc->src];
 		pc++;
-		GOTO_NEXTOP();
-	}
-	CASE(OPiDIVC) {
-		DBG_PL("OPiDIVC");
+		BREAK();
+	});
+	CASE(OPiDIVC, {
 		idata[pc->dst] /= pc->src;
 		pc++;
-		GOTO_NEXTOP();
-	}
-	CASE(OPJG) {
-		DBG_PL("OPJG");
+		BREAK();
+	});
+	CASE(OPJG, {
 		if (idata[pc->dst] > idata[pc->src]) {
 			idata[pc->dst] = 1;
 			pc++;
@@ -226,10 +285,9 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 			idata[pc->dst] = 0;
 			pc += pc->jmp;
 		}
-		GOTO_NEXTOP();
-	}
-	CASE(OPiJG) {
-		DBG_PL("OPiJG");
+		BREAK();
+	});
+	CASE(OPiJG, {
 		if (idata[pc->dst] > idata[pc->src]) {
 			idata[pc->dst] = 1;
 			pc++;
@@ -237,10 +295,9 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 			idata[pc->dst] = 0;
 			pc += pc->jmp;
 		}
-		GOTO_NEXTOP();
-	}
-	CASE(OPiJGC) {
-		DBG_PL("OPiJGC");
+		BREAK();
+	});
+	CASE(OPiJGC, {
 		if (idata[pc->dst] > pc->src) {
 			idata[pc->dst] = 1;
 			pc++;
@@ -248,10 +305,9 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 			idata[pc->dst] = 0;
 			pc += pc->jmp;
 		}
-		GOTO_NEXTOP();
-	}
-	CASE(OPJL) {
-		DBG_PL("OPJL");
+		BREAK();
+	});
+	CASE(OPJL, {
 		if (idata[pc->dst] < idata[pc->src]) {
 			idata[pc->dst] = 1;
 			pc++;
@@ -259,10 +315,9 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 			idata[pc->dst] = 0;
 			pc += pc->jmp;
 		}
-		GOTO_NEXTOP();
-	}
-	CASE(OPiJL) {
-		DBG_PL("OPiJL");
+		BREAK();
+	});
+	CASE(OPiJL, {
 		if (idata[pc->dst] < idata[pc->src]) {
 			idata[pc->dst] = 1;
 			pc++;
@@ -270,10 +325,9 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 			idata[pc->dst] = 0;
 			pc += pc->jmp;
 		}
-		GOTO_NEXTOP();
-	}
-	CASE(OPiJLC) {
-		DBG_PL("OPiJLC");
+		BREAK();
+	});
+	CASE(OPiJLC, {
 		if (idata[pc->dst] < pc->src) {
 			//reg.idata[pc->dst] = 1;
 			pc++;
@@ -281,10 +335,9 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 			//reg.idata[pc->dst] = 0;
 			pc += pc->jmp;
 		}
-		GOTO_NEXTOP();
-	}
-	CASE(OPJGE) {
-		DBG_PL("OPJGE");
+		BREAK();
+	});
+	CASE(OPJGE, {
 		if (idata[pc->dst] >= idata[pc->src]) {
 			idata[pc->dst] = 1;
 			pc++;
@@ -292,10 +345,9 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 			idata[pc->dst] = 0;
 			pc += pc->jmp;
 		}
-		GOTO_NEXTOP();
-	}
-	CASE(OPiJGE) {
-		DBG_PL("OPiJGE");
+		BREAK();
+	});
+	CASE(OPiJGE, {
 		if (idata[pc->dst] >= idata[pc->src]) {
 			idata[pc->dst] = 1;
 			pc++;
@@ -303,10 +355,9 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 			idata[pc->dst] = 0;
 			pc += pc->jmp;
 		}
-		GOTO_NEXTOP();
-	}
-	CASE(OPiJGEC) {
-		DBG_PL("OPiJGEC");
+		BREAK();
+	});
+	CASE(OPiJGEC, {
 		if (idata[pc->dst] >= pc->src) {
 			idata[pc->dst] = 1;
 			pc++;
@@ -314,10 +365,9 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 			idata[pc->dst] = 0;
 			pc += pc->jmp;
 		}
-		GOTO_NEXTOP();
-	}
-	CASE(OPJLE) {
-		DBG_PL("OPJLE");
+		BREAK();
+	});
+	CASE(OPJLE, {
 		if (idata[pc->dst] <= idata[pc->src]) {
 			idata[pc->dst] = 1;
 			pc++;
@@ -325,10 +375,9 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 			idata[pc->dst] = 0;
 			pc += pc->jmp;
 		}
-		GOTO_NEXTOP();
-	}
-	CASE(OPiJLE) {
-		DBG_PL("OPiJLE");
+		BREAK();
+	});
+	CASE(OPiJLE, {
 		if (idata[pc->dst] <= idata[pc->src]) {
 			idata[pc->dst] = 1;
 			pc++;
@@ -336,10 +385,9 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 			idata[pc->dst] = 0;
 			pc += pc->jmp;
 		}
-		GOTO_NEXTOP();
-	}
-	CASE(OPiJLEC) {
-		DBG_PL("OPiJLEC");
+		BREAK();
+	});
+	CASE(OPiJLEC, {
 		if (idata[pc->dst] <= pc->src) {
 			idata[pc->dst] = 1;
 			pc++;
@@ -347,10 +395,9 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 			idata[pc->dst] = 0;
 			pc += pc->jmp;
 		}
-		GOTO_NEXTOP();
-	}
-	CASE(OPJE) {
-		DBG_PL("OPJE");
+		BREAK();
+	});
+	CASE(OPJE, {
 		if (idata[pc->dst] == idata[pc->src]) {
 			idata[pc->dst] = 1;
 			pc++;
@@ -358,10 +405,9 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 			idata[pc->dst] = 0;
 			pc += pc->jmp;
 		}
-		GOTO_NEXTOP();
-	}
-	CASE(OPiJE) {
-		DBG_PL("OPiJE");
+		BREAK();
+	});
+	CASE(OPiJE, {
 		if (idata[pc->dst] == idata[pc->src]) {
 			idata[pc->dst] = 1;
 			pc++;
@@ -369,10 +415,9 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 			idata[pc->dst] = 0;
 			pc += pc->jmp;
 		}
-		GOTO_NEXTOP();
-	}
-	CASE(OPiJEC) {
-		DBG_PL("OPiJEC");
+		BREAK();
+	});
+	CASE(OPiJEC, {
 		if (idata[pc->dst] == pc->src) {
 			idata[pc->dst] = 1;
 			pc++;
@@ -380,10 +425,9 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 			idata[pc->dst] = 0;
 			pc += pc->jmp;
 		}
-		GOTO_NEXTOP();
-	}
-	CASE(OPJNE) {
-		DBG_PL("OPJNE");
+		BREAK();
+	});
+	CASE(OPJNE, {
 		if (idata[pc->dst] != idata[pc->src]) {
 			idata[pc->dst] = 1;
 			pc++;
@@ -391,10 +435,9 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 			idata[pc->dst] = 0;
 			pc += pc->jmp;
 		}
-		GOTO_NEXTOP();
-	}
-	CASE(OPiJNE) {
-		DBG_PL("OPiJNE");
+		BREAK();
+	});
+	CASE(OPiJNE, {
 		if (idata[pc->dst] != idata[pc->src]) {
 			idata[pc->dst] = 1;
 			pc++;
@@ -402,10 +445,9 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 			idata[pc->dst] = 0;
 			pc += pc->jmp;
 		}
-		GOTO_NEXTOP();
-	}
-	CASE(OPiJNEC) {
-		DBG_PL("OPiJNEC");
+		BREAK();
+	});
+	CASE(OPiJNEC, {
 		if (idata[pc->dst] != pc->src) {
 			idata[pc->dst] = 1;
 			pc++;
@@ -413,344 +455,342 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 			idata[pc->dst] = 0;
 			pc += pc->jmp;
 		}
-		GOTO_NEXTOP();
-	}
-	CASE(OPiWRITE) {
-		DBG_PL("OPiWRITE");
+		BREAK();
+	});
+	CASE(OPiWRITE, {
 		sprintf(shared_buf, "%d", idata[0]);
 		outbuf += string(shared_buf);
 		pc++;
-		GOTO_NEXTOP();
-	}
-	CASE(OPsWRITE) {
-		DBG_PL("OPsWRITE");
+		BREAK();
+	});
+	CASE(OPsWRITE, {
 		outbuf += sdata[0];
 		pc++;
-		GOTO_NEXTOP();
-	}
-	CASE(OPoWRITE) {
-		DBG_PL("OPoWRITE");
+		BREAK();
+	});
+	CASE(OPoWRITE, {
 		//TODO: need typecheck
 		sprintf(shared_buf, "%p", pdata[0]);
 		outbuf += string(shared_buf);
 		pc++;
-		GOTO_NEXTOP();
-	}
-	CASE(OPPRINT) {
-		DBG_PL("OPPRINT");
+		BREAK();
+	});
+	CASE(OPPRINT, {
 		fprintf(stderr, "%s", cstr(outbuf));
 		outbuf = "";
 		pc++;
-		GOTO_NEXTOP();
-	}
-	CASE(OPJMP) {
-		DBG_PL("OPJMP");
+		BREAK();
+	});
+	CASE(OPJMP, {
 		pc += pc->jmp;
-		GOTO_NEXTOP();
-	}
-	CASE(OPLET) {
-		DBG_PL("OPLET");
+		BREAK();
+	});
+	CASE(OPLET, {
 		GPerlObject *o = getFromVariableMemory(pc->dst);
 		o->idata = idata[0];
 		//o->data.pdata = reg.pdata[0];
 		pc++;
-		GOTO_NEXTOP();
-	}
-	CASE(OPSET) {
-		DBG_PL("OPSET");
+		BREAK();
+	});
+	CASE(OPSET, {
 		setToVariableMemory(pc->name, pc->dst);
 		pc++;
-		GOTO_NEXTOP();
-	}
-	CASE(OPFUNCSET) {
-		DBG_PL("OPFUNCSET");
+		BREAK();
+	});
+	CASE(OPFUNCSET, {
 		setToFuncMemory(pc->func, pc->dst);
 		pc++;
-		GOTO_NEXTOP();
-	}
-	CASE(OPCALL) {
-		DBG_PL("OPCALL");
-		//GPerlVirtualMachineCode *code = getFromFuncMemory(pc->src);
+		BREAK();
+	});
+	CASE(OPCALL, {
 		GPerlVirtualMachineCode *code = func_memory[pc->src];
 		top = code;
 		int res = run(code);
         callstack--;
 		idata[pc->dst] = res;
-		//DBG_PL("res = [%d]", res);
-		//DBG_PL("reg[%d] = [%d]", pc->dst, reg.idata[pc->dst]);
 		pc++;
-		GOTO_NEXTOP();
-	}
-	CASE(OPSELFCALL) {
-		DBG_PL("OPSELFCALL");
+		BREAK();
+	});
+	CASE(OPSELFCALL, {
 		idata[pc->dst] = run(top);
         callstack--;
 		pc++;
-		GOTO_NEXTOP();
-	}
-	CASE(OPSHIFT) {
-		DBG_PL("OPSHIFT");
+		BREAK();
+	});
+	CASE(OPSHIFT, {
 		idata[0] = callstack->argstack[pc->src]->idata;
 		//DBG_PL("reg[%d]%d = argstack[%d]", 0, reg.idata[0], pc->src);
 		//reg.pdata[0] = callstack->argstack[pc->src]->data.pdata;
 		pc++;
-		GOTO_NEXTOP();
-	}
-	CASE(OPiPUSH) {
-		DBG_PL("OPiPUSH");
+		BREAK();
+	});
+	CASE(OPiPUSH, {
 		callstack++;//TODO : multiple arg
 		callstack->argstack[pc->src]->idata = idata[pc->dst];
 		//DBG_PL("argstack[%d] = reg[%d]:%d", pc->src, pc->dst, reg.idata[pc->dst]);
 		pc++;
-		GOTO_NEXTOP();
-	}
-	CASE(OPsPUSH) {
-		DBG_PL("OPsPUSH");
+		BREAK();
+	});
+	CASE(OPsPUSH, {
 		pc++;
-		GOTO_NEXTOP();
-	}
-	CASE(OPTHCODE) {
-		DBG_PL("OPTHCODE");
+		BREAK();
+	});
+	CASE(OPTHCODE, {
 		createDirectThreadingCode(codes, jmp_table);
+		createSelectiveInliningCode(codes, jmp_table, block_table);
 		return 0;
-	}
-	CASE(OPNOP) {
-		DBG_PL("OPNOP");
+	});
+	CASE(OPNOP, {
 		pc++;
-		GOTO_NEXTOP();
-	}
-	CASE(OPRET) {
-		DBG_PL("OPRET");
+		BREAK();
+	});
+	CASE(OPRET, {
 		return idata[pc->src];
-		//DBG_PL("ret = [%d]", reg.idata[0]);
-		//return idata[0];
-	}
-
-	CASE(OPABADD) {
-		DBG_PL("OPABADD");
+	});
+	CASE(OPABADD, {
 		idata[0] += idata[1];
 		pc++;
-		GOTO_NEXTOP();
-	}
-	CASE(OPACADD) {
-		DBG_PL("OPACADD");
+		BREAK();
+	});
+	CASE(OPACADD, {
 		idata[0] += idata[2];
 		pc++;
-		GOTO_NEXTOP();
-	}
-	CASE(OPADADD) {
-		DBG_PL("OPADADD");
+		BREAK();
+	});
+	CASE(OPADADD, {
 		idata[0] += idata[3];
 		pc++;
-		GOTO_NEXTOP();
-	}
-	CASE(OPBCADD) {
-		DBG_PL("OPBCADD");
+		BREAK();
+	});
+	CASE(OPBCADD, {
 		idata[1] += idata[2];
 		pc++;
-		GOTO_NEXTOP();
-	}
-	CASE(OPBDADD) {
-		DBG_PL("OPBDADD");
+		BREAK();
+	});
+	CASE(OPBDADD, {
 		idata[1] += idata[3];
 		pc++;
-		GOTO_NEXTOP();
-	}
-	CASE(OPCDADD) {
-		DBG_PL("OPCDADD");
+		BREAK();
+	});
+	CASE(OPCDADD, {
 		idata[2] += idata[3];
 		pc++;
-		GOTO_NEXTOP();
-	}
-	CASE(OPAiSUBC) {
-		DBG_PL("OPAiSUBC");
+		BREAK();
+	});
+	CASE(OPAiSUBC, {
 		//eax -= pc->src;
 		idata[0] -= pc->src;
 		pc++;
-		GOTO_NEXTOP();
-	}
-	CASE(OPBiSUBC) {
-		DBG_PL("OPBiSUBC");
+		BREAK();
+	});
+	CASE(OPBiSUBC, {
 		//ebx -= pc->src;
 		idata[1] -= pc->src;
 		pc++;
-		GOTO_NEXTOP();
-	}
-	CASE(OPCiSUBC) {
-		DBG_PL("OPCiSUBC");
+		BREAK();
+	});
+	CASE(OPCiSUBC, {
 		idata[2] -= pc->src;
 		pc++;
-		GOTO_NEXTOP();
-	}
-	CASE(OPDiSUBC) {
-		DBG_PL("OPDiSUBC");
+		BREAK();
+	});
+	CASE(OPDiSUBC, {
 		idata[3] -= pc->src;
 		pc++;
-		GOTO_NEXTOP();
-	}
-	CASE(OPAiJLC) {
-		DBG_PL("OPAiJLC");
+		BREAK();
+	});
+	CASE(OPAiJLC, {
 		if (idata[0] < pc->src) {
 //		if (eax < pc->src) {
 			pc++;
 		} else {
 			pc += pc->jmp;
 		}
-		GOTO_NEXTOP();
-	}
-	CASE(OPBiJLC) {
-		DBG_PL("OPBiJLC");
+		BREAK();
+	});
+	CASE(OPBiJLC, {
 		if (idata[1] < pc->src) {
 			pc++;
 		} else {
 			pc += pc->jmp;
 		}
-		GOTO_NEXTOP();
-	}
-	CASE(OPCiJLC) {
-		DBG_PL("OPCiJLC");
+		BREAK();
+	});
+	CASE(OPCiJLC, {
 		if (idata[2] < pc->src) {
 			pc++;
 		} else {
 			pc += pc->jmp;
 		}
-		GOTO_NEXTOP();
-	}
-	CASE(OPDiJLC) {
-		DBG_PL("OPDiJLC");
+		BREAK();
+	});
+	CASE(OPDiJLC, {
 		if (idata[3] < pc->src) {
 			pc++;
 		} else {
 			pc += pc->jmp;
 		}
-		GOTO_NEXTOP();
-	}
-	CASE(OPAiPUSH) {
-		DBG_PL("OPAiPUSH");
+		BREAK();
+	});
+	CASE(OPAiPUSH, {
 		callstack++;
 		//callstack->argstack[pc->src]->data.idata = eax;
+		//callstack->argstack[0]->idata = idata[0];
 		callstack->argstack[pc->src]->idata = idata[0];
 		pc++;
-		GOTO_NEXTOP();
-	}
-	CASE(OPBiPUSH) {
-		DBG_PL("OPBiPUSH");
+		BREAK();
+	});
+	CASE(OPBiPUSH, {
 		callstack++;
 		//callstack->argstack[pc->src]->data.idata = ebx;
+		//callstack->argstack[0]->idata = idata[1];
 		callstack->argstack[pc->src]->idata = idata[1];
 		pc++;
-		GOTO_NEXTOP();
-	}
-	CASE(OPCiPUSH) {
-		DBG_PL("OPCiPUSH");
+		BREAK();
+	});
+	CASE(OPCiPUSH, {
 		callstack++;
 		callstack->argstack[pc->src]->idata = idata[2];
 		pc++;
-		GOTO_NEXTOP();
-	}
-	CASE(OPDiPUSH) {
-		DBG_PL("OPDiPUSH");
+		BREAK();
+	});
+	CASE(OPDiPUSH, {
 		callstack++;
 		callstack->argstack[pc->src]->idata = idata[3];
 		pc++;
-		GOTO_NEXTOP();
-	}
-	CASE(OPAiMOV) {
-		DBG_PL("OPAiMOV");
+		BREAK();
+	});
+	CASE(OPAiMOV, {
 		//eax = pc->src;
 		idata[0] = pc->src;
 		pc++;
-		GOTO_NEXTOP();
-	}
-	CASE(OPBiMOV) {
-		DBG_PL("OPBiMOV");
+		BREAK();
+	});
+	CASE(OPBiMOV, {
 		idata[1] = pc->src;
 		pc++;
-		GOTO_NEXTOP();
-	}
-	CASE(OPCiMOV) {
-		DBG_PL("OPCiMOV");
+		BREAK();
+	});
+	CASE(OPCiMOV, {
 		idata[2] = pc->src;
 		pc++;
-		GOTO_NEXTOP();
-	}
-	CASE(OPDiMOV) {
-		DBG_PL("OPDiMOV");
+		BREAK();
+	});
+	CASE(OPDiMOV, {
 		idata[3] = pc->src;
 		pc++;
-		GOTO_NEXTOP();
-	}
-	CASE(OPAOMOV) {
-		DBG_PL("OPAOMOV");
+		BREAK();
+	});
+	CASE(OPAOMOV, {
 		//eax = callstack->argstack[pc->src]->data.idata;
+		//idata[0] = callstack->argstack[0]->idata;
 		idata[0] = callstack->argstack[pc->src]->idata;
 		pc++;
-		GOTO_NEXTOP();
-	}
-	CASE(OPBOMOV) {
-		DBG_PL("OPBOMOV");
+		BREAK();
+	});
+	CASE(OPBOMOV, {
 		//ebx = callstack->argstack[pc->src]->data.idata;
+		//idata[1] = callstack->argstack[0]->idata;
 		idata[1] = callstack->argstack[pc->src]->idata;
 		pc++;
-		GOTO_NEXTOP();
-	}
-	CASE(OPCOMOV) {
-		DBG_PL("OPCOMOV");
+		BREAK();
+	});
+	CASE(OPCOMOV, {
 		idata[2] = callstack->argstack[pc->src]->idata;
 		pc++;
-		GOTO_NEXTOP();
-	}
-	CASE(OPDOMOV) {
-		DBG_PL("OPDOMOV");
+		BREAK();
+	});
+	CASE(OPDOMOV, {
 		idata[3] = callstack->argstack[pc->src]->idata;
 		pc++;
-		GOTO_NEXTOP();
-	}
-	CASE(OPASELFCALL) {
-		DBG_PL("OPASELFCALL");
+		BREAK();
+	});
+	CASE(OPASELFCALL, {
 		//eax = run(top);
 		idata[0] = run(top);
         callstack--;
 		pc++;
-		GOTO_NEXTOP();
-	}
-	CASE(OPBSELFCALL) {
-		DBG_PL("OPBSELFCALL");
+		BREAK();
+	});
+	CASE(OPBSELFCALL, {
 		//ebx = run(top);
 		idata[1] = run(top);
         callstack--;
 		pc++;
-		GOTO_NEXTOP();
-	}
-	CASE(OPCSELFCALL) {
-		DBG_PL("OPCSELFCALL");
+		BREAK();
+	});
+	CASE(OPCSELFCALL, {
 		idata[2] = run(top);
         callstack--;
 		pc++;
-		GOTO_NEXTOP();
-	}
-	CASE(OPDSELFCALL) {
-		DBG_PL("OPDSELFCALL");
+		BREAK();
+	});
+	CASE(OPDSELFCALL, {
 		idata[3] = run(top);
         callstack--;
 		pc++;
-		GOTO_NEXTOP();
-	}
-	CASE(OPARET) {
-		DBG_PL("OPARET");
+		BREAK();
+	});
+	CASE(OPARET, {
 		///return eax;
 		return idata[0];
-	}
-	CASE(OPBRET) {
-		DBG_PL("OPBRET");
+	});
+	CASE(OPBRET, {
 		return idata[1];
-	}
-	CASE(OPCRET) {
-		DBG_PL("OPCRET");
+	});
+	CASE(OPCRET, {
 		return idata[2];
-	}
-	CASE(OPDRET) {
-		DBG_PL("OPDRET");
+	});
+	CASE(OPDRET, {
 		return idata[3];
-	}
+	});
+	CASE(OPSUPERCALL, {
+/* AOMOV */
+		idata[0] = callstack->argstack[0]->idata;
+		pc++;
+/* AiJLC */
+		if (idata[0] < pc->src) {
+			pc++;
+/* AiMOV */
+			idata[0] = pc->src;
+			pc++;
+/* ARET */
+			return idata[0];
+/* JMP */
+			pc += pc->jmp;
+		} else {
+			pc += pc->jmp;
+/* AiSUBC */
+			idata[0] -= pc->src;
+			pc++;
+/* AiPUSH */
+			callstack++;
+			callstack->argstack[0]->idata = idata[0];
+			pc++;
+/* ASELFCALL */
+			idata[0] = run(top);
+			callstack--;
+			pc++;
+/* OPBOMOV */
+			idata[1] = callstack->argstack[0]->idata;
+			pc++;
+/* OPBiSUBC */
+			idata[1] -= pc->src;
+			pc++;
+/* OPBiPUSH */
+			callstack++;
+			callstack->argstack[0]->idata = idata[1];
+			pc++;
+/* OPBSELFCALL */
+			idata[1] = run(top);
+			callstack--;
+			pc++;
+/* ABADD */
+			idata[0] += idata[1];
+			pc++;
+/* ARET */
+			return idata[0];
+		}
+	});
+	return 0;
 }

@@ -217,6 +217,9 @@ void GPerlCompiler::compile_(GPerlCell *path, bool isRecursive)
 			compile_(path, true);
 			dst = 0;//reset dst number
 		}
+		//GPerlVirtualMachineCode *super = createRET();
+		//super->op = OPSUPERCALL;
+		//addVMCode(super);
 		GPerlVirtualMachineCode *ret = createRET();
 		addVMCode(ret);
 		GPerlVirtualMachineCode *undef = createUNDEF();//for threaded code
@@ -273,11 +276,12 @@ void GPerlCompiler::optimizeFuncCode(vector<GPerlVirtualMachineCode *> *f, strin
 			reg_n = c->dst;
 			if (isOMOVCall) {
 				//TODO
-				//f->erase(it);
-				//code_num--;
-				//it--;
+				f->erase(it);
+				code_num--;
+				it--;
 				isOMOVCall = false;
 			} else {
+				c->op = OPSUPERCALL;
 				isOMOVCall = true;
 			}
 		}

@@ -171,7 +171,8 @@ typedef enum {
 	OPARET,
 	OPBRET,
 	OPCRET,
-	OPDRET
+	OPDRET,
+	OPSUPERCALL,
 } GPerlOpCodes;
 
 typedef struct _GPerlOpDef {
@@ -336,7 +337,7 @@ typedef struct _GPerlVirtualMachineCode {
 	int src;   /* src value or register number */
 	int code_num;
 	union {
-		void (*code)(void);/* selective inlining code */
+		void *code;/* selective inlining code */
 		int jmp;   /* jmp register number */
 	};
 	const char *name; /* variable or function name */
@@ -410,6 +411,13 @@ typedef struct _GPerlEnv {
 	//localvariable
 } GPerlEnv;
 
+#include <sys/mman.h>
+#include <unistd.h>
+typedef struct _InstBlock {
+	void *start;
+	void *end;
+} InstBlock;
+
 class GPerlVirtualMachine {
 public:
 	GPerlObject *variable_memory[MAX_VARIABLE_NUM];
@@ -422,5 +430,6 @@ public:
 	GPerlObject *getFromVariableMemory(int idx);
 	GPerlVirtualMachineCode *getFromFuncMemory(int idx);
 	void createDirectThreadingCode(GPerlVirtualMachineCode *codes, void **jmp_tbl);
+	void createSelectiveInliningCode(GPerlVirtualMachineCode *codes, void **jmp_tbl, InstBlock *block_tbl);
 	int run(GPerlVirtualMachineCode *codes);
 };
