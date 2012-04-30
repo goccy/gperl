@@ -115,6 +115,7 @@ typedef enum {
 	OPiJNE,
 	OPiJNEC,
 	OPRET,
+	OPJRET,
 	OPTHCODE,
 	OPNOP,
 	OPiWRITE,
@@ -126,7 +127,9 @@ typedef enum {
 	OPSET,
 	OPFUNCSET,
 	OPCALL,
+	OPJCALL,
 	OPSELFCALL,
+	OPJSELFCALL,
 	OPSHIFT,
 	OPiPUSH,
 	OPsPUSH,
@@ -168,10 +171,19 @@ typedef enum {
 	OPCSELFCALL,
 	OPDSELFCALL,
 
+	OPAJSELFCALL,
+	OPBJSELFCALL,
+	OPCJSELFCALL,
+	OPDJSELFCALL,
+
 	OPARET,
 	OPBRET,
 	OPCRET,
 	OPDRET,
+	OPAJRET,
+	OPBJRET,
+	OPCJRET,
+	OPDJRET,
 	OPSUPERCALL,
 } GPerlOpCodes;
 
@@ -406,9 +418,18 @@ typedef struct _GPerlObject {
 #define MAX_ARGSTACK_SIZE 8
 #define MAX_CALLSTACK_SIZE 128
 
+typedef union {
+	int idata[MAX_REG_SIZE];
+	float fdata[MAX_REG_SIZE];
+	char *sdata[MAX_REG_SIZE];
+	void *pdata[MAX_REG_SIZE];
+} Reg;
+
 typedef struct _GPerlEnv {
 	GPerlObject **argstack;
-	//localvariable
+	Reg *reg;
+	GPerlVirtualMachineCode *pc;
+	void *ret_addr;
 } GPerlEnv;
 
 #include <sys/mman.h>

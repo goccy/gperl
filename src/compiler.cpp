@@ -254,8 +254,9 @@ void GPerlCompiler::optimizeFuncCode(vector<GPerlVirtualMachineCode *> *f, strin
 	bool isOMOVCall = false;
 	while (it != f->end()) {
 		GPerlVirtualMachineCode *c = *it;
-		if (c->op == OPCALL && fname == c->name) {
-			c->op = OPSELFCALL;
+		if (c->op == OPJCALL && fname == c->name) {
+			c->op = OPJSELFCALL;
+			//c->op = OPSELFCALL;
 		} else if (c->op == OPNOP) {
 			f->erase(it);
 			code_num--;
@@ -281,7 +282,7 @@ void GPerlCompiler::optimizeFuncCode(vector<GPerlVirtualMachineCode *> *f, strin
 				it--;
 				isOMOVCall = false;
 			} else {
-				c->op = OPSUPERCALL;
+				//c->op = OPSUPERCALL;
 				isOMOVCall = true;
 			}
 		}
@@ -394,9 +395,15 @@ void GPerlCompiler::finalCompile(vector<GPerlVirtualMachineCode *> *code)
 		case OPSELFCALL:
 			OPCREATE_TYPE2(SELFCALL);
 			break;
+		case OPJSELFCALL:
+			OPCREATE_TYPE2(JSELFCALL);
+			break;
 		/*========= TYPE3 =========*/
 		case OPRET:
 			OPCREATE_TYPE3(RET);
+			break;
+		case OPJRET:
+			OPCREATE_TYPE3(JRET);
 			break;
 		default:
 			break;
@@ -541,7 +548,8 @@ GPerlVirtualMachineCode *GPerlCompiler::createVMCode(GPerlCell *c)
 	case Call: {
 		const char *name = cstr(c->fname);
 		int idx = getFuncIndex(name);
-		code->op = OPCALL;
+		code->op = OPJCALL;
+		//code->op = OPCALL;
 		code->dst = dst-1;
 		code->src = idx;
 		code->name = name;
@@ -588,7 +596,8 @@ GPerlVirtualMachineCode *GPerlCompiler::createVMCode(GPerlCell *c)
 		break;
 	}
 	case Return:
-		code->op = OPRET;
+		code->op = OPJRET;
+		//code->op = OPRET;
 		code->dst = 0;
 		code->src = 0;
 		break;
@@ -662,7 +671,8 @@ GPerlVirtualMachineCode *GPerlCompiler::createRET(void)
 {
 	GPerlVirtualMachineCode *code = new GPerlVirtualMachineCode();
 	code->code_num = code_num;
-	code->op = OPRET;
+	code->op = OPJRET;
+	//code->op = OPRET;
 	code_num++;
 	return code;
 }
