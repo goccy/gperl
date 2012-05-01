@@ -427,7 +427,6 @@ typedef union {
 
 typedef struct _GPerlEnv {
 	GPerlObject **argstack;
-	Reg *reg;
 	GPerlVirtualMachineCode *pc;
 	void *ret_addr;
 } GPerlEnv;
@@ -443,7 +442,6 @@ class GPerlVirtualMachine {
 public:
 	GPerlObject *variable_memory[MAX_VARIABLE_NUM];
 	GPerlVirtualMachineCode *func_memory[MAX_FUNC_NUM];
-	GPerlEnv *callstack;
 
 	GPerlVirtualMachine();
 	void setToVariableMemory(const char *name, int idx);

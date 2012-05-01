@@ -4,19 +4,6 @@ using namespace std;
 
 GPerlVirtualMachine::GPerlVirtualMachine(void)
 {
-	//Set DEFAULT Object
-	GPerlEnv env_[MAX_CALLSTACK_SIZE];
-	for (int i = 0; i < MAX_CALLSTACK_SIZE; i++) {
-		GPerlObject **argstack = (GPerlObject **)malloc(sizeof(GPerlObject) * MAX_ARGSTACK_SIZE);
-		env_[i].argstack = argstack;
-		for (int j = 0; j < MAX_ARGSTACK_SIZE; j++) {
-			GPerlObject *o = new GPerlObject();
-			env_[i].argstack[j] = o;
-		}
-	}
-	int size = MAX_CALLSTACK_SIZE * sizeof(GPerlEnv);
-	callstack = (GPerlEnv *)malloc(size);
-	memcpy(callstack, env_, size);
 }
 
 void GPerlVirtualMachine::setToVariableMemory(const char *name, int idx)
@@ -100,7 +87,6 @@ void GPerlVirtualMachine::createSelectiveInliningCode(GPerlVirtualMachineCode *c
 }
 
 #define DISPATCH_START() {						\
-		callstack->reg = reg;					\
 		(callstack+1)->ret_addr = &&L_RETURN;	\
 		goto *jmp_table[pc->op];				\
 	}
@@ -153,6 +139,21 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 	GPerlVirtualMachineCode *pc = codes;
 	Reg reg_[MAX_CALLSTACK_SIZE];
 	Reg *reg = reg_;
+	GPerlEnv *callstack;
+	GPerlEnv env_[MAX_CALLSTACK_SIZE];
+	for (int i = 0; i < MAX_CALLSTACK_SIZE; i++) {
+		GPerlObject **argstack = (GPerlObject **)malloc(sizeof(GPerlObject) * MAX_ARGSTACK_SIZE);
+		env_[i].argstack = argstack;
+		//effect to FAST PROGRAM?? (fib(36) 0.38 => 0.35)
+		for (int j = 0; j < MAX_ARGSTACK_SIZE; j++) {
+			GPerlObject *o = new GPerlObject();
+			env_[i].argstack[j] = o;
+		}
+	}
+	int size = MAX_CALLSTACK_SIZE * sizeof(GPerlEnv);
+	callstack = (GPerlEnv *)malloc(size);
+	memcpy(callstack, env_, size);
+
 	GPerlObject **argstack_[MAX_CALLSTACK_SIZE];
 	for (int i = 0; i < MAX_CALLSTACK_SIZE; i++) {
 		argstack_[i] = (GPerlObject **)malloc(sizeof(GPerlObject) * MAX_ARGSTACK_SIZE);
@@ -456,7 +457,6 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 		callstack--;
 		argstack--;
 		reg--;
-		reg = callstack->reg;
 		I(data)[pc->dst] = res;
 		pc++;
 		BREAK();
@@ -473,7 +473,6 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 		callstack--;
 		argstack--;
 		reg--;
-		reg = callstack->reg;
 		I(data)[pc->dst] = res;
 		pc++;
 		BREAK();
@@ -489,12 +488,11 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 		BREAK();
 	});
 	CASE(OPSHIFT, {
-		I(data)[0] = callstack->argstack[pc->src]->idata;
+		I(data)[0] = argstack[pc->src]->idata;
 		pc++;
 		BREAK();
 	});
 	CASE(OPiPUSH, {
-		callstack->reg = reg;
 		callstack++;//TODO : multiple arg
 		argstack++;
 		argstack[pc->src]->idata = I(data)[pc->dst];
@@ -600,13 +598,15 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 	});
 	CASE(OPCiPUSH, {
 		callstack++;
-		callstack->argstack[pc->src]->idata = I(data)[2];
+		argstack++;
+		argstack[pc->src]->idata = I(data)[2];
 		pc++;
 		BREAK();
 	});
 	CASE(OPDiPUSH, {
 		callstack++;
-		callstack->argstack[pc->src]->idata = I(data)[3];
+		argstack++;
+		argstack[pc->src]->idata = I(data)[3];
 		pc++;
 		BREAK();
 	});
