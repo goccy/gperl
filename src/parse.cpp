@@ -45,95 +45,54 @@ void GPerlAST::drawEdge(GraphvizGraph *graph, GraphvizNode *from, GraphvizNode *
 	edge->set("fontsize", "24");
 }
 
+void GPerlAST::drawStmt(GraphvizGraph *graph, GraphvizNode *if_node,
+						GPerlScope *stmt_, const char *stmt_name, const char *color)
+{
+	char buf[32] = {0};
+	snprintf(buf, 32, "cluster%d", cluster_num);
+	GraphvizGraph *stmt_graph = graph->makeSubGraph(buf);
+	GPerlCell *stmt = stmt_->root;
+	const char *stmt_root_name = stmt->rawstr.c_str();
+	cluster_num++;
+	stmt_graph->set("fillcolor", color);
+	stmt_graph->set("style","filled");
+	snprintf(buf, 32, "%s stmt: [%p]", stmt_name, stmt_);
+	stmt_graph->set("label", buf);
+	stmt_graph->set("fontsize", "24");
+	snprintf(buf, 32, "%s : [%p]", stmt_root_name, stmt_root_name);
+	GraphvizNode *stmt_node = createNode(graph, (const char *)buf);
+	drawEdge(graph, if_node, stmt_node, stmt_name);
+	GraphvizNode *prev_node = NULL;
+	for (; stmt; stmt = stmt->next) {
+		const char *root_name = stmt->rawstr.c_str();
+		snprintf(buf, 32, "%s : [%p]", root_name, root_name);
+		GraphvizNode *root_node = createNode(stmt_graph, (const char *)buf);
+		this->root_node = root_node;
+		if (prev_node) {
+			drawEdge(graph, prev_node, root_node, "next");
+		}
+		draw(stmt_graph, stmt, root_node);
+		prev_node = root_node;
+	}
+}
+
 void GPerlAST::draw(GraphvizGraph *graph, GPerlCell *c, GraphvizNode *node)
 {
 	GraphvizNode *left;
 	GraphvizNode *right;
 	char buf[32] = {0};
 	if (c->type == IfStmt) {
-		snprintf(buf, 32, "cluster%d", cluster_num);
-		GraphvizGraph *true_stmt_graph = graph->makeSubGraph(buf);
-		cluster_num++;
-		true_stmt_graph->set("fillcolor","#e0ffff");
-		true_stmt_graph->set("style","filled");
-		snprintf(buf, 32, "true stmt: [%p]", c->true_stmt);
-		true_stmt_graph->set("label", buf);
-		true_stmt_graph->set("fontsize", "24");
-		GPerlCell *true_stmt = c->true_stmt->root;
-		const char *true_stmt_name = true_stmt->rawstr.c_str();
-		snprintf(buf, 32, "%s : [%p]", true_stmt_name, true_stmt_name);
-		GraphvizNode *true_stmt_node = createNode(graph, (const char *)buf);
 		GraphvizNode *if_node = root_node;
-		drawEdge(graph, if_node, true_stmt_node, "true_stmt");
-		GraphvizNode *prev_node = NULL;
-		for (; true_stmt; true_stmt = true_stmt->next) {
-			const char *root_name = true_stmt->rawstr.c_str();
-			snprintf(buf, 32, "%s : [%p]", root_name, root_name);
-			GraphvizNode *root_node = createNode(true_stmt_graph, (const char *)buf);//root_name);
-			this->root_node = root_node;
-			if (prev_node) {
-				drawEdge(graph, prev_node, root_node, "next");
-			}
-			draw(true_stmt_graph, true_stmt, root_node);
-			prev_node = root_node;
-		}
-		if (c->false_stmt) {
-			prev_node = NULL;
-			snprintf(buf, 32, "cluster%d", cluster_num);
-			GraphvizGraph *false_stmt_graph = graph->makeSubGraph(buf);
-			cluster_num++;
-			false_stmt_graph->set("fillcolor","#fff0f5");
-			false_stmt_graph->set("style","filled");
-			snprintf(buf, 32, "false stmt: [%p]", c->false_stmt);
-			false_stmt_graph->set("label", buf);
-			false_stmt_graph->set("fontsize", "24");
-			GPerlCell *false_stmt = c->false_stmt->root;
-			const char *false_stmt_name = false_stmt->rawstr.c_str();
-			snprintf(buf, 32, "%s : [%p]", false_stmt_name, false_stmt_name);
-			GraphvizNode *false_stmt_node = createNode(graph, (const char *)buf);
-			drawEdge(graph, if_node, false_stmt_node, "false_stmt");
-			for (; false_stmt; false_stmt = false_stmt->next) {
-				const char *root_name = false_stmt->rawstr.c_str();
-				snprintf(buf, 32, "%s : [%p]", root_name, root_name);
-				GraphvizNode *root_node = createNode(false_stmt_graph, (const char *)buf);//root_name);
-				this->root_node = root_node;
-				if (prev_node) {
-					drawEdge(graph, prev_node, root_node, "next");
-				}
-				draw(false_stmt_graph, false_stmt, root_node);
-				prev_node = root_node;
-			}
-		}
-	}
-	if (c->type == Function) {
-		DBG_P("Function");
-		snprintf(buf, 32, "cluster%d", cluster_num);
-		GraphvizGraph *body_graph = graph->makeSubGraph(buf);
-		cluster_num++;
-		body_graph->set("fillcolor","#e6e6fa");
-		body_graph->set("style","filled");
-		snprintf(buf, 32, "body: [%p]", c->body);
-		body_graph->set("label", buf);
-		body_graph->set("fontsize", "24");
-
-		GPerlCell *body_stmt = c->body->root;
-		const char *body_stmt_name = body_stmt->rawstr.c_str();
-		snprintf(buf, 32, "%s : [%p]", body_stmt_name, body_stmt_name);
-		GraphvizNode *body_stmt_node = createNode(graph, (const char *)buf);
+		drawStmt(graph, if_node, c->true_stmt, "true", "#e0ffff");
+		if (c->false_stmt) drawStmt(graph, if_node, c->false_stmt, "false", "#fff0f5");
+	} else if (c->type == Function) {
 		GraphvizNode *func_node = root_node;
-		drawEdge(graph, func_node, body_stmt_node, "body");
-		GraphvizNode *prev_node = NULL;
-		for (; body_stmt; body_stmt = body_stmt->next) {
-			const char *root_name = body_stmt->rawstr.c_str();
-			snprintf(buf, 32, "%s : [%p]", root_name, root_name);
-			GraphvizNode *root_node = createNode(body_graph, (const char *)buf);
-			this->root_node = root_node;
-			if (prev_node) {
-				drawEdge(graph, prev_node, root_node, "next");
-			}
-			draw(body_graph, body_stmt, root_node);
-			prev_node = root_node;
-		}
+		drawStmt(graph, func_node, c->body, "body", "#e6e6fa");
+	} else if (c->type == Call) {
+		const char *func_name = c->rawstr.c_str();
+		snprintf(buf, 32, "%s : [%p]", func_name, func_name);
+		GraphvizNode *func_node = createNode(graph, (const char *)buf);
+		this->root_node = func_node;
 	}
 	if (c->vargs) {
 		const char *to_name = c->vargs->rawstr.c_str();
@@ -142,22 +101,19 @@ void GPerlAST::draw(GraphvizGraph *graph, GPerlCell *c, GraphvizNode *node)
 		drawEdge(graph, root_node, left, "vargs");
 		draw(graph, c->vargs, left);
 	}
-	if (c->left != NULL) {
+	if (c->left) {
 		const char *to_name = c->left->rawstr.c_str();
 		snprintf(buf, 32, "%s : [%p]", to_name, to_name);
 		left = createNode(graph, (const char *)buf);
 		drawEdge(graph, node, left, "left");
+		draw(graph, c->left, left);
 	}
-	if (c->right != NULL && c->right->type != Return/*not Scope*/) {
+	if (c->right && c->right->type != Return/*not Scope*/) {
+		//DBG_PL("TYPENAME = [%s]", TypeName(c->type));
 		const char *to_name = c->right->rawstr.c_str();
 		snprintf(buf, 32, "%s : [%p]", to_name, to_name);
 		right = createNode(graph, (const char *)buf);
 		drawEdge(graph, node, right, "right");
-	}
-	if (c->left && c->left->left != NULL) {
-		draw(graph, c->left, left);
-	}
-	if (c->right && c->right->type != Return && c->right->left != NULL) {
 		draw(graph, c->right, right);
 	}
 }

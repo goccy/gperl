@@ -7,4 +7,4 @@ sub fib {
 	}
 }
 
-fib(36);
+fib(3);

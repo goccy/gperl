@@ -283,6 +283,7 @@ public:
 #ifdef USING_GRAPH_DEBUG
 	void show(void);
 	void draw(GraphvizGraph *graph, GPerlCell *c, GraphvizNode *node);
+	void drawStmt(GraphvizGraph *graph, GraphvizNode *node, GPerlScope *stmt, const char *stmt_name, const char *color);
 	GraphvizNode *createNode(GraphvizGraph *graph, const char *name);
 	void drawEdge(GraphvizGraph *graph, GraphvizNode *from, GraphvizNode *to, const char *label);
 #endif

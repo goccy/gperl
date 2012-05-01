@@ -226,10 +226,13 @@ void GPerlCompiler::compile_(GPerlCell *path, bool isRecursive)
 		addVMCode(undef);
 		//copy codes to func_code
 		size = codes->size();
+		DBG_PL("SIZE = [%d]", size);
 		for (int i = 0; i < size; i++) {
 			func_code->push_back(codes->at(i));
 		}
 		optimizeFuncCode(func_code, path->fname);
+		size = codes->size();
+		DBG_PL("SIZE = [%d]", code_num);
 		finalCompile(func_code);
 		GPerlVirtualMachineCode *f = getPureCodes(func_code);
 		DBG_PL("========= DUMP FUNC CODE ==========");
@@ -258,26 +261,26 @@ void GPerlCompiler::optimizeFuncCode(vector<GPerlVirtualMachineCode *> *f, strin
 			c->op = OPJSELFCALL;
 			//c->op = OPSELFCALL;
 		} else if (c->op == OPNOP) {
-			f->erase(it);
+			it = f->erase(it);
 			code_num--;
 			it--;
 		} else if (c->op == OPSET) {
-			f->erase(it);
+			it = f->erase(it);
 			code_num--;
 			it--;
 		} else if (c->op == OPSHIFT) {
-			f->erase(it);
+			it = f->erase(it);
 			code_num--;
 			it--;
 		} else if (c->op == OPLET) {
-			f->erase(it);
+			it = f->erase(it);
 			code_num--;
 			it--;
 		} else if (c->op == OPOMOV) {
 			reg_n = c->dst;
 			if (isOMOVCall) {
 				//TODO
-				f->erase(it);
+				it = f->erase(it);
 				code_num--;
 				it--;
 				isOMOVCall = false;
@@ -753,7 +756,7 @@ void GPerlCompiler::dumpVMCode(GPerlVirtualMachineCode *code)
 
 void GPerlCompiler::dumpPureVMCode(GPerlVirtualMachineCode *c)
 {
-	int code_n = codes->size();
+	int code_n = (codes->size() > code_num) ? code_num : codes->size();
 	for (int i = 0; i < code_n; i++) {
 		dumpVMCode(&c[i]);
 	}
