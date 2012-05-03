@@ -25,6 +25,7 @@ GPerlTokenType decl_token_types[] = {
 	DECL(LeftBracket,      "["),
 	DECL(RightBracket,     "]"),
 	DECL(Shift,            "shift"),
+	DECL(CallDecl,         "&"),
 	DECL(FieldDecl,        ""),
 	DECL(TypeRef,          ""),
 	DECL(LabelRef,         ""),

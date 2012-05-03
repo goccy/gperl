@@ -3,9 +3,7 @@
 
 GPerl::GPerl(int argc, char **argv)
 {
-	(void)argc;
-	(void)argv;
-	const char *filename = FILENAME;
+	const char *filename = (argc < 2) ? FILENAME : argv[1];
 	char line[MAX_LINE_SIZE] = {0};
 	char script_[MAX_SCRIPT_SIZE] = {0};
 	char *tmp = script_;
@@ -22,9 +20,9 @@ GPerl::GPerl(int argc, char **argv)
 	t.annotateTokens(tokens);
 	DBG_PL("=============<TOKENIZE>============");
 	t.dump(tokens);
-	GPerlParser p;
+	GPerlParser p(tokens);
 	DBG_PL("==============<PARSE>==============");
-	GPerlAST *ast = p.parse(tokens, tokens->begin());
+	GPerlAST *ast = p.parse();
 #ifdef USING_GRAPH_DEBUG
 	ast->show();//graph debug with graphviz
 #endif

@@ -52,6 +52,7 @@ typedef enum {
 	LeftBracket,
 	RightBracket,
 	Shift,
+	CallDecl,
 	FieldDecl,
 	TypeRef,
 	LabelRef,
@@ -187,6 +188,9 @@ typedef enum {
 	OPSUPERCALL,
 } GPerlOpCodes;
 
+#define MAX_ARGSTACK_SIZE 8
+#define MAX_CALLSTACK_SIZE 128
+
 typedef struct _GPerlOpDef {
 	GPerlOpCodes code;
 	const char *name;
@@ -243,7 +247,8 @@ public:
 		GPerlScope *false_stmt;
 	};
 	GPerlCell *next;/* for next stmt */
-	GPerlCell *vargs; /* for print */
+	GPerlCell *vargs[MAX_ARGSTACK_SIZE]; /* for print */
+	int argsize;
 	GPerlT type;
 	std::string vname;/* variable name */
 	std::string fname;/* function name */
@@ -293,9 +298,11 @@ class GPerlParser {
 public:
 	int iterate_count;
 	int func_iterate_count;
+	std::vector<Token *>::iterator it;
+	std::vector<Token *>::iterator end;
 
-	GPerlParser(void);
-	GPerlAST *parse(std::vector<Token *> *tokens, std::vector<Token *>::iterator it);
+	GPerlParser(std::vector<Token *> *tokens);
+	GPerlAST *parse(void);
 };
 
 #ifdef USING_GRAPH_DEBUG
@@ -399,6 +406,8 @@ public:
 	GPerlVirtualMachineCode *createiPUSH(void);
 	GPerlVirtualMachineCode *createsPUSH(void);
 	GPerlVirtualMachineCode *createJMP(int jmp_num);
+	void addWriteCode(void);
+	void addPushCode(void);
 	void addVMCode(GPerlVirtualMachineCode *code);
 	void popVMCode(void);
 	void dumpVMCode(GPerlVirtualMachineCode *code);
@@ -415,9 +424,6 @@ typedef struct _GPerlObject {
 	};
 	const char *name;
 } GPerlObject;
-
-#define MAX_ARGSTACK_SIZE 8
-#define MAX_CALLSTACK_SIZE 128
 
 typedef union {
 	int idata[MAX_REG_SIZE];

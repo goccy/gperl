@@ -59,13 +59,13 @@ void GPerlAST::drawStmt(GraphvizGraph *graph, GraphvizNode *if_node,
 	snprintf(buf, 32, "%s stmt: [%p]", stmt_name, stmt_);
 	stmt_graph->set("label", buf);
 	stmt_graph->set("fontsize", "24");
-	snprintf(buf, 32, "%s : [%p]", stmt_root_name, stmt_root_name);
+	snprintf(buf, 32, "%s : [%p]", stmt_root_name, stmt);
 	GraphvizNode *stmt_node = createNode(graph, (const char *)buf);
 	drawEdge(graph, if_node, stmt_node, stmt_name);
 	GraphvizNode *prev_node = NULL;
 	for (; stmt; stmt = stmt->next) {
 		const char *root_name = stmt->rawstr.c_str();
-		snprintf(buf, 32, "%s : [%p]", root_name, root_name);
+		snprintf(buf, 32, "%s : [%p]", root_name, stmt);
 		GraphvizNode *root_node = createNode(stmt_graph, (const char *)buf);
 		this->root_node = root_node;
 		if (prev_node) {
@@ -90,20 +90,22 @@ void GPerlAST::draw(GraphvizGraph *graph, GPerlCell *c, GraphvizNode *node)
 		drawStmt(graph, func_node, c->body, "body", "#e6e6fa");
 	} else if (c->type == Call) {
 		const char *func_name = c->rawstr.c_str();
-		snprintf(buf, 32, "%s : [%p]", func_name, func_name);
+		snprintf(buf, 32, "%s : [%p]", func_name, c);
 		GraphvizNode *func_node = createNode(graph, (const char *)buf);
-		this->root_node = func_node;
-	}
-	if (c->vargs) {
-		const char *to_name = c->vargs->rawstr.c_str();
-		snprintf(buf, 32, "%s : [%p]", to_name, to_name);
-		left = createNode(graph, (const char *)buf);
-		drawEdge(graph, root_node, left, "vargs");
-		draw(graph, c->vargs, left);
+		if (c->argsize > 0) {
+			for (int i = 0; i < c->argsize; i++) {
+				GPerlCell *arg = c->vargs[i];
+				const char *to_name = arg->rawstr.c_str();
+				snprintf(buf, 32, "%s : [%p]", to_name, arg);
+				left = createNode(graph, (const char *)buf);
+				drawEdge(graph, func_node, left, "vargs");
+				draw(graph, arg, left);
+			}
+		}
 	}
 	if (c->left) {
 		const char *to_name = c->left->rawstr.c_str();
-		snprintf(buf, 32, "%s : [%p]", to_name, to_name);
+		snprintf(buf, 32, "%s : [%p]", to_name, c->left);
 		left = createNode(graph, (const char *)buf);
 		drawEdge(graph, node, left, "left");
 		draw(graph, c->left, left);
@@ -111,7 +113,7 @@ void GPerlAST::draw(GraphvizGraph *graph, GPerlCell *c, GraphvizNode *node)
 	if (c->right && c->right->type != Return/*not Scope*/) {
 		//DBG_PL("TYPENAME = [%s]", TypeName(c->type));
 		const char *to_name = c->right->rawstr.c_str();
-		snprintf(buf, 32, "%s : [%p]", to_name, to_name);
+		snprintf(buf, 32, "%s : [%p]", to_name, c->right);
 		right = createNode(graph, (const char *)buf);
 		drawEdge(graph, node, right, "right");
 		draw(graph, c->right, right);
@@ -129,8 +131,8 @@ void GPerlAST::show(void)
 	for (; stmt; stmt = stmt->next) {
 		const char *root_name = stmt->rawstr.c_str();
 		char buf[32] = {0};
-		snprintf(buf, 32, "%s : [%p]", root_name, root_name);
-		GraphvizNode *root_node = createNode(graph, (const char *)buf);//root_name);
+		snprintf(buf, 32, "%s : [%p]", root_name, stmt);
+		GraphvizNode *root_node = createNode(graph, (const char *)buf);
 		this->root_node = root_node;
 		if (prev_node) {
 			drawEdge(graph, prev_node, root_node, "next");
@@ -158,7 +160,10 @@ GPerlCell::GPerlCell(GPerlT type_) : type(type_)
 	right = NULL;
 	parent = NULL;
 	next = NULL;
-	vargs = NULL;
+	for (int i = 0; i < MAX_ARGSTACK_SIZE; i++) {
+		vargs[i] = NULL;
+	}
+	argsize = 0;
 }
 
 GPerlCell::GPerlCell(GPerlT type_, string name) : type(type_)
@@ -169,7 +174,10 @@ GPerlCell::GPerlCell(GPerlT type_, string name) : type(type_)
 	right = NULL;
 	parent = NULL;
 	next = NULL;
-	vargs = NULL;
+	for (int i = 0; i < MAX_ARGSTACK_SIZE; i++) {
+		vargs[i] = NULL;
+	}
+	argsize = 0;
 	if (type_ == Int) {
 		data.idata = atoi(cstr(name));
 	} else if (type == String) {
@@ -181,8 +189,10 @@ GPerlCell::GPerlCell(GPerlT type_, string name) : type(type_)
 	rawstr = name;
 }
 
-GPerlParser::GPerlParser(void)
+GPerlParser::GPerlParser(vector<Token *> *tokens)
 {
+	it = tokens->begin();
+	end = tokens->end();
 	iterate_count = 0;
 	func_iterate_count = 0;
 }
@@ -214,7 +224,7 @@ GPerlParser::GPerlParser(void)
 
 #define lastBlock() blocks.at(block_num-1)
 
-GPerlAST *GPerlParser::parse(vector<Token *> *tokens, vector<Token *>::iterator it)
+GPerlAST *GPerlParser::parse(void)
 {
 	GPerlAST *ast = new GPerlAST();
 	GPerlCell *root = new GPerlCell(Return);
@@ -224,9 +234,8 @@ GPerlAST *GPerlParser::parse(vector<Token *> *tokens, vector<Token *>::iterator 
 	bool ifStmtFlag = false;
 	bool elseStmtFlag = false;
 	bool funcFlag = false;
-	bool callFlag = false;
 	int block_num = 0;
-	while (it != tokens->end()) {
+	while (it != end) {
 		Token *t = (Token *)*it;
 		switch (t->type) {
 		case VarDecl:
@@ -253,10 +262,10 @@ GPerlAST *GPerlParser::parse(vector<Token *> *tokens, vector<Token *>::iterator 
 			isVarDeclFlag = false;
 			break;
 		}
-		case Var: case Int: case String: {
+		case Var: case Int: case String: case Call: {
 			DBG_PL("L[%d] : ", iterate_count);
 			GPerlT type = t->type;
-			if (block_num > 0 && lastBlock()->type != Assign) {
+			if (block_num > 0 && lastBlock()->type != Assign && lastBlock()->type != Return) {
 				GPerlCell *block = lastBlock();
 				DBG_PL("%s", TypeName(block->type));
 				if (block->type == Call) {
@@ -267,11 +276,17 @@ GPerlAST *GPerlParser::parse(vector<Token *> *tokens, vector<Token *>::iterator 
 					GPerlCell *b = new GPerlCell(type, t->data);
 					block->left = b;
 					b->parent = block;
+					if (type == Call) {
+						PUSH_toBLOCK(b);
+					}
 				} else if (block->right == NULL) {
 					DBG_PL("%s[%s]:LAST BLOCK->right", TypeName(type), cstr(t->data));
 					GPerlCell *b = new GPerlCell(type, t->data);
 					block->right = b;
 					b->parent = block;
+					if (type == Call) {
+						PUSH_toBLOCK(b);
+					}
 				} else {
 					fprintf(stderr, "ERROR:[parse error]!!\n");
 				}
@@ -332,13 +347,6 @@ GPerlAST *GPerlParser::parse(vector<Token *> *tokens, vector<Token *>::iterator 
 			root = new GPerlCell(PrintDecl, t->data);
 			break;
 		}
-		case Call: {
-			DBG_PL("L[%d] : ", iterate_count);
-			DBG_PL("CALL:NEW BLOCK->BLOCKS");
-			PUSH_toBLOCK(new GPerlCell(Call, t->data));
-			callFlag = true;
-			break;
-		}
 		case IfStmt: {
 			DBG_PL("L[%d] : ", iterate_count);
 			DBG_PL("IF:ROOT = IFCELL");
@@ -357,9 +365,8 @@ GPerlAST *GPerlParser::parse(vector<Token *> *tokens, vector<Token *>::iterator 
 		}
 		case Return: {
 			DBG_PL("L[%d] : ", iterate_count);
-			root = new GPerlCell(Return, t->data);
-			//DBG_PL("RETURN: NEW BLOCK->BLOCKS");
-			//PUSH_toBLOCK(new GPerlCell(Return, t->data));
+			DBG_PL("RETURN: ");
+			PUSH_toBLOCK(new GPerlCell(Return, t->data));
 			break;
 		}
 		case ElseStmt: {
@@ -373,18 +380,11 @@ GPerlAST *GPerlParser::parse(vector<Token *> *tokens, vector<Token *>::iterator 
 			DBG_PL("LEFT BRACE:");
 			if (funcFlag) {
 				//DBG_PL("FuncFlag: ON");
-				DBG_PL("----------------function-------------------");
 				MOVE_NEXT_TOKEN();
-				iterate_count--;
-				func_iterate_count = iterate_count+1;
-				GPerlScope *body = parse(tokens, it);
-				DBG_PL("-----------return from function------------");
-				//DBG_PL("func_iterate_count = [%d]", func_iterate_count);
-				it += func_iterate_count;
+				GPerlScope *body = parse();
 				root->body = body;
 				funcFlag = false;
 				DBG_PL("ROOT->BODY = BODY");
-				func_iterate_count--;
 			} else if (ifStmtFlag) {
 				//DBG_PL("IFStmtFlag: ON");
 				GPerlCell *cond = lastBlock();
@@ -392,40 +392,24 @@ GPerlAST *GPerlParser::parse(vector<Token *> *tokens, vector<Token *>::iterator 
 				root->cond = cond;
 				cond->parent = root;
 				MOVE_NEXT_TOKEN();
-				//DBG_PL("iterate_count = [%d]", iterate_count);
-				func_iterate_count += iterate_count;
-				iterate_count = 0;
 				DBG_PL("-----------ifstmt------------");
-				GPerlScope *scope = parse(tokens, it);
-				//DBG_PL("iterate_count = [%d]", iterate_count);
-				it += iterate_count;
-				func_iterate_count += iterate_count;
+				GPerlScope *scope = parse();
 				root->true_stmt = scope;
 				ifStmtFlag = false;
-				//DBG_PL("func_iterate_count = [%d]", func_iterate_count);
-				DBG_PL("ROOT->TRUE_STMT = SCOPE");
-				func_iterate_count--;
+				//DBG_PL("ROOT->TRUE_STMT = SCOPE");
 			} else if (elseStmtFlag) {
 				//DBG_PL("ElseStmtFlag: ON");
 				MOVE_NEXT_TOKEN();
-				iterate_count = 0;
 				DBG_PL("-----------elsestmt------------");
-				GPerlScope *scope = parse(tokens, it);
-				//DBG_PL("iterate_count = [%d]", iterate_count);
-				it += iterate_count;
-				func_iterate_count += iterate_count;
-				//DBG_PL("func_iterate_count = [%d]", func_iterate_count);
+				GPerlScope *scope = parse();
 				root->false_stmt = scope;
 				elseStmtFlag = false;
-				//DBG_PL("ROOT->FALSE_STMT = SCOPE");
-				func_iterate_count--;
 			}
-			continue;
+			break;
 		}
 		case RightBrace: {
 			DBG_PL("L[%d] : ", iterate_count);
 			DBG_PL("RIGHT BRACE:");
-			MOVE_NEXT_TOKEN();
 			return ast;
 		}
 		case Comma: {
@@ -433,26 +417,32 @@ GPerlAST *GPerlParser::parse(vector<Token *> *tokens, vector<Token *>::iterator 
 			DBG_PL("COMMA:VARGS->BLOCKS & CLEAR BLOCKS");
 			GPerlCell *stmt = blocks.at(0);
 			GPerlCell *v = root;
-			for (; v->vargs; v = v->vargs) {}
-			v->vargs = stmt;
+			v->vargs[v->argsize] = stmt;
+			v->argsize++;
 			CLEAR_BLOCK();
 			break;
 		}
-		case LeftParenthesis:
+		case LeftParenthesis: {
 			DBG_PL("L[%d] : ", iterate_count);
 			DBG_PL("[(]:ON LeftParenthesis Flag");
 			leftParenthesisFlag = true;
+			MOVE_NEXT_TOKEN();
+			GPerlScope *scope = parse();
+			if (block_num > 0 && lastBlock()->type == Call) {
+				GPerlCell *call = lastBlock();
+				for (int i = 0; i < scope->root->argsize; i++) {
+					call->vargs[i] = scope->root->vargs[i];
+				}
+				call->argsize = scope->root->argsize;
+			} else {
+				PUSH_toBLOCK(scope->root->vargs[0]);
+			}
 			break;
-		case RightParenthesis:
+		}
+		case RightParenthesis: {
 			DBG_PL("L[%d] : ", iterate_count);
 			DBG_PL("RightParenthesis");
-			if (callFlag) {
-				GPerlCell *stmt = lastBlock();
-				GPerlCell *func = blocks.at(block_num-2);
-				func->vargs = stmt;//TODO:multiple argument
-				POP_fromBLOCK();
-				callFlag = false;
-			} else if (block_num > 1) {
+			if (block_num > 1) {
 				DBG_PL("[)]:CONNECT BLOCK <=> BLOCK");
 				GPerlCell *to = lastBlock();
 				POP_fromBLOCK();
@@ -460,7 +450,21 @@ GPerlAST *GPerlParser::parse(vector<Token *> *tokens, vector<Token *>::iterator 
 				from->right = to;
 				to->parent = from;
 			}
-			break;
+			int size = blocks.size();
+			DBG_PL("BLOCKS SIZE = [%d]", size);
+			if (size == 1) {
+				GPerlCell *stmt = blocks.at(0);
+				if (root->vargs) {
+					GPerlCell *v = root;
+					v->vargs[v->argsize] = stmt;
+					v->argsize++;
+				} else {
+					root = stmt;
+				}
+			}
+			ast->add(root);
+			return ast;
+		}
 		case SemiColon: {
 			DBG_PL("L[%d] : ", iterate_count);
 			DBG_PL("SEMICOLON:END AST");
@@ -470,31 +474,23 @@ GPerlAST *GPerlParser::parse(vector<Token *> *tokens, vector<Token *>::iterator 
 				GPerlCell *stmt = blocks.at(0);
 				if (root->type == PrintDecl || root->type == Call) {
 					GPerlCell *v = root;
-					for (; v->vargs; v = v->vargs) {}
-					v->vargs = stmt;
-				} else if (root->type == Return) {
-					root->left = stmt;
-					stmt->parent = root;
+					v->vargs[v->argsize] = stmt;
+					v->argsize++;
 				} else {
 					root = stmt;
 				}
-			} else if (size == 2) {
+			} else if (size >= 2) {
 				//Assign Statement
-				GPerlCell *left = blocks.at(0); /* [=] */
+				GPerlCell *left = blocks.at(0); /* [=] or [return] */
 				GPerlCell *right = blocks.at(1);
 				left->right = right;
 				right->parent = left;
-				if (root->type == Return) {
-					root->left = left;
-					left->parent = root;
-				} else {
-					root = left;
-				}
+				root = left;
 			}
 			ast->add(root);
 			CLEAR_BLOCK();
 			DBG_PL("*************************");
-			if (it != tokens->end()) {
+			if (it != end) {
 				root = new GPerlCell(Return);
 			}
 			break;

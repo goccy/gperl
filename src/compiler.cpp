@@ -46,78 +46,81 @@ void GPerlCompiler::popVMCode()
 	codes->pop_back();
 }
 
+void GPerlCompiler::addWriteCode(void)
+{
+	GPerlVirtualMachineCode *code;
+	switch (reg_type[0]) {
+	case Int:
+		code = createiWRITE();
+		addVMCode(code);
+		dumpVMCode(code);
+		break;
+	case String:
+		code = createsWRITE();
+		addVMCode(code);
+		dumpVMCode(code);
+		break;
+	case Object:
+		//type check
+		if (reg_type[1] == Int) {
+			code = createiWRITE();
+		} else {
+			code = createoWRITE();
+		}
+		addVMCode(code);
+		dumpVMCode(code);
+		break;
+	default:
+		break;
+	}
+}
+
+void GPerlCompiler::addPushCode(void)
+{
+	GPerlVirtualMachineCode *code;
+	switch (reg_type[0]) {
+	case Int:
+		code = createiPUSH();
+		addVMCode(code);
+		dumpVMCode(code);
+		break;
+	case String:
+		code = createsPUSH();
+		addVMCode(code);
+		dumpVMCode(code);
+		break;
+	case Object:
+		code = createiPUSH();//TODO
+		addVMCode(code);
+		dumpVMCode(code);
+		break;
+	default:
+		break;
+	}
+}
+
 void GPerlCompiler::compile_(GPerlCell *path, bool isRecursive)
 {
 	GPerlVirtualMachineCode *code;
 	GPerlCell *p = path;
-	for (;p->vargs && isRecursive; p = p->vargs) {
-		//path : PrintDecl
-		compile_(p->vargs, false);
-		if (path->type == PrintDecl) {
-			//add WRITE CODE for Print Stmt
-			switch (reg_type[0]) {
-			case Int:
-				code = createiWRITE();
-				addVMCode(code);
-				dumpVMCode(code);
-				break;
-			case String:
-				code = createsWRITE();
-				addVMCode(code);
-				dumpVMCode(code);
-				break;
-			case Object:
-				//type check
-				if (reg_type[1] == Int) {
-					code = createiWRITE();
-				} else {
-					code = createoWRITE();
-				}
-				addVMCode(code);
-				dumpVMCode(code);
-				break;
-			default:
-				break;
+	if (p->argsize > 0 && isRecursive) {
+		for (int i = 0; i < p->argsize; i++) {
+			compile_(p->vargs[i], false);
+			if (path->type == PrintDecl) {
+				//add WRITE CODE for Print Stmt
+				addWriteCode();
+			} else if (path->type == Call) {
+				addPushCode();
 			}
-		} else if (path->type == Call) {
-			switch (reg_type[0]) {
-			case Int:
-				code = createiPUSH();
-				addVMCode(code);
-				dumpVMCode(code);
-				break;
-			case String:
-				code = createsPUSH();
-				addVMCode(code);
-				dumpVMCode(code);
-				break;
-			default:
-				break;
-			}
+			dst = 0;
 		}
-		dst = 0;
 	}
 	for (; path->left; path = path->left) {}
 	if (path->type == Call) {
-		compile_(path->vargs, false);
-		switch (reg_type[0]) {
-		case Int:
-			code = createiPUSH();
-			addVMCode(code);
-			dumpVMCode(code);
-			break;
-		case String:
-			code = createsPUSH();
-			addVMCode(code);
-			dumpVMCode(code);
-			break;
-		case Object:
-			code = createiPUSH();//TODO
-			addVMCode(code);
-			dumpVMCode(code);
-			break;
-		default:
-			break;
+		for (int i = 0; i < path->argsize; i++) {
+			compile_(path->vargs[i], false);
+			addPushCode();
+			dst = 0;
 		}
 	}
 	code = createVMCode(path);
@@ -129,25 +132,10 @@ void GPerlCompiler::compile_(GPerlCell *path, bool isRecursive)
 		if (branch) {
 			if (branch == path) return;
 			if (branch->type == Call) {
-				compile_(branch->vargs, false);
-				switch (reg_type[0]) {
-				case Int:
-					code = createiPUSH();
-					addVMCode(code);
-					dumpVMCode(code);
-					break;
-				case String:
-					code = createsPUSH();
-					addVMCode(code);
-					dumpVMCode(code);
-					break;
-				case Object:
-					code = createiPUSH();//TODO
-					addVMCode(code);
-					dumpVMCode(code);
-					break;
-				default:
-					break;
+				for (int i = 0; i < branch->argsize; i++) {
+					compile_(branch->vargs[i], false);
+					addPushCode();
+					dst = 0;
 				}
 				code = createVMCode(branch);
 				addVMCode(code);
@@ -756,7 +744,7 @@ void GPerlCompiler::dumpVMCode(GPerlVirtualMachineCode *code)
 
 void GPerlCompiler::dumpPureVMCode(GPerlVirtualMachineCode *c)
 {
-	int code_n = (codes->size() > code_num) ? code_num : codes->size();
+	int code_n = (codes->size() > (size_t)code_num) ? code_num : codes->size();
 	for (int i = 0; i < code_n; i++) {
 		dumpVMCode(&c[i]);
 	}

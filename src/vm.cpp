@@ -131,11 +131,11 @@ void GPerlVirtualMachine::createSelectiveInliningCode(GPerlVirtualMachineCode *c
 #define ADD(dst, src)	I(data)[dst] += I(data)[src]
 #define ADDC(dst)	I(data)[dst] += pc->src
 #define SUB(dst, src) I(data)[dst] -= I(data)[src]
-#define SUBC(dst)	I(data)[dst] -= pc->src
+#define SUBC(dst)	I(data)[dst] -=  pc->src
 
-static GPerlVirtualMachineCode *top;
 int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 {
+	static GPerlVirtualMachineCode *top;
 	GPerlVirtualMachineCode *pc = codes;
 	Reg reg_[MAX_CALLSTACK_SIZE];
 	Reg *reg = reg_;
@@ -228,6 +228,8 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 		B(AJRET), B(BJRET), B(CJRET), B(DJRET),
 		B(SUPERCALL),
 	};
+
+
 	DISPATCH_START();
 
 	CASE(OPUNDEF, {
@@ -631,12 +633,14 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 		BREAK();
 	});
 	CASE(OPAOMOV, {
+//		O(data)[0] = argstack[pc->src]->pdata;
 		I(data)[0] = argstack[pc->src]->idata;
 		pc++;
 		BREAK();
 	});
 	CASE(OPBOMOV, {
 		I(data)[1] = argstack[pc->src]->idata;
+//		O(data)[1] = argstack[pc->src]->pdata;
 		pc++;
 		BREAK();
 	});

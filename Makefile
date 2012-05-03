@@ -1,7 +1,7 @@
 CC = g++
-CFLAGS = -O2 -Wall -g3 -W -I./include/ -I/usr/local/include/ #-DDEBUG_MODE -DUSING_GRAPH_DEBUG
-#CFLAGS = -O0 -g3 -Wall -W -fpermissive -I./include/ -I/opt/local/include/ -DDEBUG_MODE -DUSING_GRAPH_DEBUG
-LDLIBS = #`pkg-config libgvc --libs`
+#CFLAGS = -O2 -Wall -g3 -W -I./include/ -I/usr/local/include/ #-DDEBUG_MODE -DUSING_GRAPH_DEBUG
+CFLAGS = -O0 -g3 -Wall -W -fpermissive -I./include/ -I/opt/local/include/ -DDEBUG_MODE -DUSING_GRAPH_DEBUG
+LDLIBS = `pkg-config libgvc --libs`
 target = gperl
 
 objs = build/main.o \

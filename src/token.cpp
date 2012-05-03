@@ -114,7 +114,7 @@ vector<Token *> *GPerlTokenizer::tokenize(char *script)
 			}
 			//through
 		case ',': case ':': case ';': case '=': case '+':
-		case '<': case '>':
+		case '<': case '>': case '&':
 		case '(': case ')': case '{': case '}': {
 			if (isStringStarted) {
 				token[token_idx] = script[i];
@@ -249,7 +249,7 @@ void GPerlTokenizer::annotateTokens(vector<Token *> *tokens)
 		if (data == "+"     || data == "-"   || data == "*"     || data == "/"  ||
 			data == "<"     || data == ">"   || data == "<="    || data == ">=" ||
 			data == "=="    || data == "!="  || data == "="     ||
-			data == ";"     || data == ","   || data == ","     ||
+			data == ";"     || data == ","   || data == ","     || data == "&"  ||
 			data == "("     || data == ")"   || data == "{"     || data == "}"  ||
 			data == "print" || data == "if"  || data == "else"  ||
 			data == "my"    || data == "sub" || data == "shift" ||
