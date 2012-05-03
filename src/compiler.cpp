@@ -120,7 +120,7 @@ void GPerlCompiler::compile_(GPerlCell *path, bool isRecursive)
 		for (int i = 0; i < path->argsize; i++) {
 			compile_(path->vargs[i], false);
 			addPushCode();
-			dst = 0;
+			//dst = 0;
 		}
 	}
 	code = createVMCode(path);
@@ -135,7 +135,7 @@ void GPerlCompiler::compile_(GPerlCell *path, bool isRecursive)
 				for (int i = 0; i < branch->argsize; i++) {
 					compile_(branch->vargs[i], false);
 					addPushCode();
-					dst = 0;
+					//dst = 0;
 				}
 				code = createVMCode(branch);
 				addVMCode(code);

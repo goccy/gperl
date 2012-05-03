@@ -483,8 +483,13 @@ GPerlAST *GPerlParser::parse(void)
 				//Assign Statement
 				GPerlCell *left = blocks.at(0); /* [=] or [return] */
 				GPerlCell *right = blocks.at(1);
-				left->right = right;
-				right->parent = left;
+				if (left->left) {
+					left->right = right;
+					right->parent = left;
+				} else {
+					left->left = right;
+					right->parent = left;
+				}
 				root = left;
 			}
 			ast->add(root);
