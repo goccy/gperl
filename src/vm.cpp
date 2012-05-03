@@ -87,6 +87,7 @@ void GPerlVirtualMachine::createSelectiveInliningCode(GPerlVirtualMachineCode *c
 }
 
 #define DISPATCH_START() {						\
+		callstack->ret_addr = &&L_RETURN;		\
 		(callstack+1)->ret_addr = &&L_RETURN;	\
 		goto *jmp_table[pc->op];				\
 	}

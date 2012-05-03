@@ -25,7 +25,7 @@ GPerlVirtualMachineCode *GPerlCompiler::compile(GPerlAST *ast)
 	addVMCode(thcode);
 	for (; root; root = root->next) {
 		GPerlCell *path = root;
-		compile_(path, true);
+		compile_(path);
 		DBG_PL("============================");
 		dst = 0;//reset dst number
 	}
@@ -34,6 +34,146 @@ GPerlVirtualMachineCode *GPerlCompiler::compile(GPerlAST *ast)
 	GPerlVirtualMachineCode *undef = createUNDEF();//for threaded code
 	addVMCode(undef);
 	return getPureCodes(codes);
+}
+
+#define GOTO_LEFT_LEAFNODE(path) for (; path->left; path = path->left) {}
+#define isRIGHT_LEAF_NODE(branch) branch->left == NULL && branch->right == NULL && branch->argsize == 0 && branch->type != IfStmt
+#define isNotFALSE_STMT(branch) branch->type != IfStmt
+
+void GPerlCompiler::compile_(GPerlCell *path)
+{
+	GOTO_LEFT_LEAFNODE(path);
+	genVMCode(path);
+	while (path->parent) {
+		GPerlCell *parent = path->parent;
+		GPerlCell *branch = parent->right;
+		if (branch) {
+			if (branch == path) return;
+			if (isRIGHT_LEAF_NODE(branch)) {
+				genVMCode(branch);
+			} else if (isNotFALSE_STMT(parent)) {
+				compile_(branch);
+			}
+		}
+		genVMCode(parent);
+		path = parent;
+	}
+}
+
+void GPerlCompiler::genVMCode(GPerlCell *path) {
+	GPerlVirtualMachineCode *code;
+	if (path->type == Call) {
+		genFunctionCallCode(path);
+	} else if (path->type == IfStmt) {
+		genIfStmtCode(path);
+	} else if (path->type == Function) {
+		genFunctionCode(path);
+		return;
+	}
+	code = createVMCode(path);
+	addVMCode(code);
+	dumpVMCode(code);
+}
+
+void GPerlCompiler::genFunctionCallCode(GPerlCell *p)
+{
+	size_t argsize = p->argsize;
+	for (size_t i = 0; i < argsize; i++) {
+		compile_(p->vargs[i]);
+		if (p->type == PrintDecl) {
+			addWriteCode();
+		} else if (p->type == Call) {
+			addPushCode();
+		}
+	}
+}
+
+void GPerlCompiler::genFunctionCode(GPerlCell *path)
+{
+	GPerlVirtualMachineCode *code;
+	dst = 0;//reset dst number
+	args_count = 0;
+	vector<GPerlVirtualMachineCode *> tmp;
+	vector<GPerlVirtualMachineCode *> *func_code = NULL;
+	func_code = new vector<GPerlVirtualMachineCode *>();
+	code = createVMCode(path);
+	addVMCode(code);
+	dumpVMCode(code);
+	//escape current codes => tmp
+	int size = codes->size();
+	for (int i = 0; i < size; i++) {
+		tmp.push_back(codes->at(i));
+	}
+	code_num -= size;
+	codes->clear();
+	//add func code to codes
+	GPerlCell *body_stmt = path->body->root;
+	for (; body_stmt; body_stmt = body_stmt->next) {
+		GPerlCell *path = body_stmt;
+		compile_(path);
+		dst = 0;//reset dst number
+	}
+	GPerlVirtualMachineCode *ret = createRET();
+	addVMCode(ret);
+	GPerlVirtualMachineCode *undef = createUNDEF();//for threaded code
+	addVMCode(undef);
+	//copy codes to func_code
+	size = codes->size();
+	//DBG_PL("SIZE = [%d]", size);
+	for (int i = 0; i < size; i++) {
+		func_code->push_back(codes->at(i));
+	}
+	optimizeFuncCode(func_code, path->fname);
+	size = codes->size();
+	//DBG_PL("SIZE = [%d]", code_num);
+	finalCompile(func_code);
+	GPerlVirtualMachineCode *f = getPureCodes(func_code);
+	DBG_PL("========= DUMP FUNC CODE ==========");
+	dumpPureVMCode(f);
+	DBG_PL("===================================");
+	codes->clear();
+	//revert codes from tmp
+	size = tmp.size();
+	for (int i = 0; i < size; i++) {
+		codes->push_back(tmp.at(i));
+	}
+	code = codes->back();
+	code->func = f;
+	DBG_PL("========= FUNCTION DECL END ==========");
+}
+
+void GPerlCompiler::genIfStmtCode(GPerlCell *path)
+{
+	dst = 0;//reset dst number
+	GPerlCell *true_stmt = path->true_stmt->root;
+	//DBG_P("code_num = [%d], codes->size() = [%d]", code_num, codes->size());
+	GPerlVirtualMachineCode *jmp = codes->at(code_num - 1);
+	//DBG_PL("jmp = [%d]", jmp->op);
+	int cond_code_num = code_num;
+	DBG_PL("-------------TRUE STMT--------------");
+	for (; true_stmt; true_stmt = true_stmt->next) {
+		GPerlCell *path = true_stmt;
+		compile_(path);
+		dst = 0;//reset dst number
+	}
+	jmp->jmp = code_num - cond_code_num + 2/*OPNOP + OPJMP + 1*/;
+	int cur_code_num = code_num;
+	//fprintf(stderr, "cur_code_num = [%d]\n", cur_code_num);
+	jmp = createJMP(1);
+	addVMCode(jmp);
+	dumpVMCode(jmp);
+	dst = 0;//reset dst number
+	DBG_PL("-------------FALSE STMT-------------");
+	if (path->false_stmt) {
+		GPerlCell *false_stmt = path->false_stmt->root;
+		for (; false_stmt; false_stmt = false_stmt->next) {
+			GPerlCell *path = false_stmt;
+			compile_(path);
+			dst = 0;//reset dst number
+		}
+	}
+	jmp->jmp = code_num - cur_code_num;
+	DBG_PL("------------------------------------");
 }
 
 void GPerlCompiler::addVMCode(GPerlVirtualMachineCode *code)
@@ -96,145 +236,6 @@ void GPerlCompiler::addPushCode(void)
 		break;
 	default:
 		break;
-	}
-}
-
-void GPerlCompiler::compile_(GPerlCell *path, bool isRecursive)
-{
-	GPerlVirtualMachineCode *code;
-	GPerlCell *p = path;
-	if (p->argsize > 0 && isRecursive) {
-		for (int i = 0; i < p->argsize; i++) {
-			compile_(p->vargs[i], false);
-			if (path->type == PrintDecl) {
-				//add WRITE CODE for Print Stmt
-				addWriteCode();
-			} else if (path->type == Call) {
-				addPushCode();
-			}
-			dst = 0;
-		}
-	}
-	for (; path->left; path = path->left) {}
-	if (path->type == Call) {
-		for (int i = 0; i < path->argsize; i++) {
-			compile_(path->vargs[i], false);
-			addPushCode();
-			//dst = 0;
-		}
-	}
-	code = createVMCode(path);
-	addVMCode(code);
-	dumpVMCode(code);
-	while (path->parent) {
-		GPerlCell *parent = path->parent;
-		GPerlCell *branch = parent->right;
-		if (branch) {
-			if (branch == path) return;
-			if (branch->type == Call) {
-				for (int i = 0; i < branch->argsize; i++) {
-					compile_(branch->vargs[i], false);
-					addPushCode();
-					//dst = 0;
-				}
-				code = createVMCode(branch);
-				addVMCode(code);
-				dumpVMCode(code);
-			} else if (branch->left == NULL && branch->right == NULL) {
-				code = createVMCode(branch);
-				addVMCode(code);
-				dumpVMCode(code);
-			} else if (branch->type != Return) {
-				compile_(branch, true);
-			}
-		}
-		code = createVMCode(parent);
-		addVMCode(code);
-		dumpVMCode(code);
-		path = parent;
-	}
-	//GPerlTokenizer t;
-	//DBG_P("%s", t.getTypeName(path->type));
-	if (path->type == IfStmt) {
-		dst = 0;//reset dst number
-		GPerlCell *true_stmt = path->true_stmt->root;
-		//DBG_P("code_num = [%d], codes->size() = [%d]", code_num, codes->size());
-		GPerlVirtualMachineCode *jmp = codes->at(code_num - 2);
-		//DBG_PL("jmp = [%d]", jmp->op);
-		int cond_code_num = code_num;
-		DBG_PL("-------------TRUE STMT--------------");
-		for (; true_stmt; true_stmt = true_stmt->next) {
-			GPerlCell *path = true_stmt;
-			compile_(path, true);
-			dst = 0;//reset dst number
-		}
-		jmp->jmp = code_num - cond_code_num + 2/*OPNOP + OPJMP + 1*/;
-		int cur_code_num = code_num;
-		//fprintf(stderr, "cur_code_num = [%d]\n", cur_code_num);
-		jmp = createJMP(1);
-		addVMCode(jmp);
-		dumpVMCode(jmp);
-		dst = 0;//reset dst number
-		DBG_PL("-------------FALSE STMT-------------");
-		if (path->false_stmt) {
-			GPerlCell *false_stmt = path->false_stmt->root;
-			for (; false_stmt; false_stmt = false_stmt->next) {
-				GPerlCell *path = false_stmt;
-				compile_(path, true);
-				dst = 0;//reset dst number
-			}
-		}
-		jmp->jmp = code_num - cur_code_num;
-		DBG_PL("------------------------------------");
-	} else if (path->type == Function) {
-		dst = 0;//reset dst number
-		args_count = 0;
-		vector<GPerlVirtualMachineCode *> tmp;
-		vector<GPerlVirtualMachineCode *> *func_code = new vector<GPerlVirtualMachineCode *>();
-		//escape current codes => tmp
-		int size = codes->size();
-		for (int i = 0; i < size; i++) {
-			tmp.push_back(codes->at(i));
-		}
-		code_num -= size;
-		codes->clear();
-		//add func code to codes
-		GPerlCell *body_stmt = path->body->root;
-		for (; body_stmt; body_stmt = body_stmt->next) {
-			GPerlCell *path = body_stmt;
-			compile_(path, true);
-			dst = 0;//reset dst number
-		}
-		//GPerlVirtualMachineCode *super = createRET();
-		//super->op = OPSUPERCALL;
-		//addVMCode(super);
-		GPerlVirtualMachineCode *ret = createRET();
-		addVMCode(ret);
-		GPerlVirtualMachineCode *undef = createUNDEF();//for threaded code
-		addVMCode(undef);
-		//copy codes to func_code
-		size = codes->size();
-		DBG_PL("SIZE = [%d]", size);
-		for (int i = 0; i < size; i++) {
-			func_code->push_back(codes->at(i));
-		}
-		optimizeFuncCode(func_code, path->fname);
-		size = codes->size();
-		DBG_PL("SIZE = [%d]", code_num);
-		finalCompile(func_code);
-		GPerlVirtualMachineCode *f = getPureCodes(func_code);
-		DBG_PL("========= DUMP FUNC CODE ==========");
-		dumpPureVMCode(f);
-		DBG_PL("===================================");
-		codes->clear();
-		//revert codes from tmp
-		size = tmp.size();
-		for (int i = 0; i < size; i++) {
-			codes->push_back(tmp.at(i));
-		}
-		code = codes->back();
-		code->func = f;
-		//DBG_PL("========= FUNCTION DECL END ==========");
 	}
 }
 
@@ -329,7 +330,7 @@ void GPerlCompiler::optimizeFuncCode(vector<GPerlVirtualMachineCode *> *f, strin
 
 void GPerlCompiler::finalCompile(vector<GPerlVirtualMachineCode *> *code)
 {
-	DBG_P("********* finalCompile ***********");
+	DBG_PL("********* finalCompile ***********");
 	vector<GPerlVirtualMachineCode *>::iterator it = code->begin();
 	while (it != code->end()) {
 		GPerlVirtualMachineCode *c = *it;

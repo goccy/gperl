@@ -391,7 +391,7 @@ public:
 	void finalCompile(std::vector<GPerlVirtualMachineCode *> *f);
 	void optimizeFuncCode(std::vector<GPerlVirtualMachineCode *> *f, std::string fname);
 	GPerlVirtualMachineCode *getPureCodes(std::vector<GPerlVirtualMachineCode *> *c);
-	void compile_(GPerlCell *path, bool isRecursive);
+	void compile_(GPerlCell *path);
 	void setToVariableNames(const char *name);
 	void setToFunctionNames(const char *name);
 	int getVariableIndex(const char *name);
@@ -408,6 +408,10 @@ public:
 	GPerlVirtualMachineCode *createJMP(int jmp_num);
 	void addWriteCode(void);
 	void addPushCode(void);
+	void genFunctionCallCode(GPerlCell *p);
+	void genFunctionCode(GPerlCell *path);
+	void genIfStmtCode(GPerlCell *path);
+	void genVMCode(GPerlCell *path);
 	void addVMCode(GPerlVirtualMachineCode *code);
 	void popVMCode(void);
 	void dumpVMCode(GPerlVirtualMachineCode *code);
