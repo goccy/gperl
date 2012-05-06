@@ -62,7 +62,7 @@ void GPerlCompiler::compile_(GPerlCell *path)
 
 void GPerlCompiler::genVMCode(GPerlCell *path) {
 	GPerlVirtualMachineCode *code;
-	if (path->type == Call) {
+	if (path->type == Call || path->type == PrintDecl) {
 		genFunctionCallCode(path);
 	} else if (path->type == IfStmt) {
 		genIfStmtCode(path);
@@ -203,7 +203,7 @@ void GPerlCompiler::popVMCode()
 void GPerlCompiler::addWriteCode(void)
 {
 	GPerlVirtualMachineCode *code;
-	switch (reg_type[0]) {
+	switch (reg_type[dst-1]) {
 	case Int:
 		code = createiWRITE();
 		addVMCode(code);
@@ -216,7 +216,7 @@ void GPerlCompiler::addWriteCode(void)
 		break;
 	case Object:
 		//type check
-		if (reg_type[1] == Int) {
+		if (reg_type[dst] == Int) {
 			code = createiWRITE();
 		} else {
 			code = createoWRITE();
@@ -698,6 +698,7 @@ GPerlVirtualMachineCode *GPerlCompiler::createiWRITE(void)
 	GPerlVirtualMachineCode *code = new GPerlVirtualMachineCode();
 	code->code_num = code_num;
 	code->op = OPiWRITE;
+	code->dst = dst-1;
 	code_num++;
 	return code;
 }
@@ -707,6 +708,7 @@ GPerlVirtualMachineCode *GPerlCompiler::createsWRITE(void)
 	GPerlVirtualMachineCode *code = new GPerlVirtualMachineCode();
 	code->code_num = code_num;
 	code->op = OPsWRITE;
+	code->dst = dst-1;
 	code_num++;
 	return code;
 }

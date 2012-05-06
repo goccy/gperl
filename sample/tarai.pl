@@ -11,4 +11,4 @@ sub tarai{
     }
 }
 
-tarai(13, 6, 0);
+print(tarai(6, 3, 0), "\n");

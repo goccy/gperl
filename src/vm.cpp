@@ -393,13 +393,13 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 		BREAK();
 	});
 	CASE(OPiWRITE, {
-		sprintf(shared_buf, "%d", I(data)[0]);
+		sprintf(shared_buf, "%d", I(data)[pc->dst]);
 		outbuf += string(shared_buf);
 		pc++;
 		BREAK();
 	});
 	CASE(OPsWRITE, {
-		outbuf += S(data)[0];
+		outbuf += S(data)[pc->dst];
 		pc++;
 		BREAK();
 	});

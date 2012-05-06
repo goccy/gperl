@@ -1,9 +1,9 @@
 #include <gperl.hpp>
-#define FILENAME "hoge.pl"
 
 GPerl::GPerl(int argc, char **argv)
 {
-	const char *filename = (argc < 2) ? FILENAME : argv[1];
+	if (argc < 2) exit(1);
+	const char *filename = argv[1];
 	char line[MAX_LINE_SIZE] = {0};
 	char script_[MAX_SCRIPT_SIZE] = {0};
 	char *tmp = script_;
@@ -35,6 +35,7 @@ GPerl::GPerl(int argc, char **argv)
 	GPerlVirtualMachine *vm = new GPerlVirtualMachine();
 	DBG_PL("=============<RUNTIME>=============");
 	vm->run(codes);//create threading code
-	fprintf(stderr, "%d\n", vm->run(codes));//execute code
+	vm->run(codes);//execute code
+	//fprintf(stderr, "%d\n", vm->run(codes));//execute code
 	fclose(fp);
 }

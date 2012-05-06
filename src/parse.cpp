@@ -88,7 +88,7 @@ void GPerlAST::draw(GraphvizGraph *graph, GPerlCell *c, GraphvizNode *node)
 	} else if (c->type == Function) {
 		GraphvizNode *func_node = root_node;
 		drawStmt(graph, func_node, c->body, "body", "#e6e6fa");
-	} else if (c->type == Call) {
+	} else if (c->type == Call || c->type == PrintDecl) {
 		const char *func_name = c->rawstr.c_str();
 		snprintf(buf, 32, "%s : [%p]", func_name, c);
 		GraphvizNode *func_node = createNode(graph, (const char *)buf);
@@ -229,12 +229,13 @@ GPerlAST *GPerlParser::parse(void)
 	GPerlAST *ast = new GPerlAST();
 	GPerlCell *root = new GPerlCell(Return);
 	vector<GPerlCell * > blocks;
+	int block_num;
 	bool isVarDeclFlag = false;
 	bool leftParenthesisFlag = false;
 	bool ifStmtFlag = false;
 	bool elseStmtFlag = false;
 	bool funcFlag = false;
-	int block_num = 0;
+
 	while (it != end) {
 		Token *t = (Token *)*it;
 		switch (t->type) {
@@ -262,13 +263,13 @@ GPerlAST *GPerlParser::parse(void)
 			isVarDeclFlag = false;
 			break;
 		}
-		case Var: case Int: case String: case Call: {
+		case Var: case Int: case String: case Call: case PrintDecl: {
 			DBG_PL("L[%d] : ", iterate_count);
 			GPerlT type = t->type;
 			if (block_num > 0 && lastBlock()->type != Assign && lastBlock()->type != Return) {
 				GPerlCell *block = lastBlock();
 				DBG_PL("%s", TypeName(block->type));
-				if (block->type == Call) {
+				if (block->type == Call || block->type == PrintDecl) {
 					DBG_PL("%s[%s]:NEW BLOCK->BLOCKS", TypeName(type), cstr(t->data));
 					PUSH_toBLOCK(new GPerlCell(type, t->data));
 				} else if (block->left == NULL) {
@@ -276,17 +277,13 @@ GPerlAST *GPerlParser::parse(void)
 					GPerlCell *b = new GPerlCell(type, t->data);
 					block->left = b;
 					b->parent = block;
-					if (type == Call) {
-						PUSH_toBLOCK(b);
-					}
+					if (type == Call || type == PrintDecl) PUSH_toBLOCK(b);
 				} else if (block->right == NULL) {
 					DBG_PL("%s[%s]:LAST BLOCK->right", TypeName(type), cstr(t->data));
 					GPerlCell *b = new GPerlCell(type, t->data);
 					block->right = b;
 					b->parent = block;
-					if (type == Call) {
-						PUSH_toBLOCK(b);
-					}
+					if (type == Call || type == PrintDecl) PUSH_toBLOCK(b);
 				} else {
 					fprintf(stderr, "ERROR:[parse error]!!\n");
 				}
@@ -294,7 +291,6 @@ GPerlAST *GPerlParser::parse(void)
 				//first var
 				DBG_PL("%s[%s]:NEW BLOCK->BLOCKS", TypeName(type), cstr(t->data));
 				PUSH_toBLOCK(new GPerlCell(type, t->data));
-				if (leftParenthesisFlag) leftParenthesisFlag = false;
 			}
 			break;
 		}
@@ -341,12 +337,14 @@ GPerlAST *GPerlParser::parse(void)
 			root = assign;
 			break;
 		}
+			/*
 		case PrintDecl: {
 			DBG_PL("L[%d] : ", iterate_count);
 			DBG_PL("PRINT:NEW BLOCK->BLOCKS");
 			root = new GPerlCell(PrintDecl, t->data);
 			break;
 		}
+			*/
 		case IfStmt: {
 			DBG_PL("L[%d] : ", iterate_count);
 			DBG_PL("IF:ROOT = IFCELL");
@@ -428,13 +426,34 @@ GPerlAST *GPerlParser::parse(void)
 			leftParenthesisFlag = true;
 			MOVE_NEXT_TOKEN();
 			GPerlScope *scope = parse();
-			if (block_num > 0 && lastBlock()->type == Call) {
-				GPerlCell *call = lastBlock();
-				for (int i = 0; i < scope->root->argsize; i++) {
-					call->vargs[i] = scope->root->vargs[i];
+			GPerlT type = t->type;
+			if (block_num > 0 && lastBlock()->type != Assign && lastBlock()->type != Return) {
+				GPerlCell *block = lastBlock();
+				DBG_PL("%s", TypeName(block->type));
+				if (block->type == Call || block->type == PrintDecl) {
+					GPerlCell *call = lastBlock();
+					for (int i = 0; i < scope->root->argsize; i++) {
+						call->vargs[i] = scope->root->vargs[i];
+					}
+					call->argsize = scope->root->argsize;
+				} else if (block->left == NULL) {
+					DBG_PL("%s[%s]:LAST BLOCK->left", TypeName(type), cstr(t->data));
+					GPerlCell *b = scope->root->vargs[0];
+					block->left = b;
+					b->parent = block;
+					if (type == Call || type == PrintDecl) PUSH_toBLOCK(b);
+				} else if (block->right == NULL) {
+					DBG_PL("%s[%s]:LAST BLOCK->right", TypeName(type), cstr(t->data));
+					GPerlCell *b = scope->root->vargs[0];
+					block->right = b;
+					b->parent = block;
+					if (type == Call || type == PrintDecl) PUSH_toBLOCK(b);
+				} else {
+					fprintf(stderr, "ERROR:[parse error]!!\n");
 				}
-				call->argsize = scope->root->argsize;
 			} else {
+				//first var
+				DBG_PL("%s[%s]:NEW BLOCK->BLOCKS", TypeName(type), cstr(t->data));
 				PUSH_toBLOCK(scope->root->vargs[0]);
 			}
 			break;
