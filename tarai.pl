@@ -11,4 +11,4 @@ sub tarai{
     }
 }
 
-tarai(12, 6, 0);
+tarai(13, 6, 0);

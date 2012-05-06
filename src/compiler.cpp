@@ -83,7 +83,7 @@ void GPerlCompiler::genFunctionCallCode(GPerlCell *p)
 		if (p->type == PrintDecl) {
 			addWriteCode();
 		} else if (p->type == Call) {
-			addPushCode(p, i);
+			addPushCode(i);
 		}
 	}
 }
@@ -229,22 +229,22 @@ void GPerlCompiler::addWriteCode(void)
 	}
 }
 
-void GPerlCompiler::addPushCode(GPerlCell *c, int i)
+void GPerlCompiler::addPushCode(int i)
 {
 	GPerlVirtualMachineCode *code;
 	switch (reg_type[0]) {
 	case Int:
-		code = createiPUSH(c, i);
+		code = createiPUSH(i);
 		addVMCode(code);
 		dumpVMCode(code);
 		break;
 	case String:
-		code = createsPUSH(c, i);
+		code = createsPUSH(i);
 		addVMCode(code);
 		dumpVMCode(code);
 		break;
 	case Object:
-		code = createiPUSH(c, i);//TODO
+		code = createiPUSH(i);//TODO
 		addVMCode(code);
 		dumpVMCode(code);
 		break;
@@ -256,8 +256,8 @@ void GPerlCompiler::addPushCode(GPerlCell *c, int i)
 void GPerlCompiler::optimizeFuncCode(vector<GPerlVirtualMachineCode *> *f, string fname)
 {
 	vector<GPerlVirtualMachineCode *>::iterator it = f->begin();
-	int reg_n = 0;
-	bool isOMOVCall = false;
+	//int reg_n = 0;
+	//bool isOMOVCall = false;
 	while (it != f->end()) {
 		GPerlVirtualMachineCode *c = *it;
 		if (c->op == OPJCALL && fname == c->name) {
@@ -720,25 +720,25 @@ GPerlVirtualMachineCode *GPerlCompiler::createoWRITE(void)
 	return code;
 }
 
-GPerlVirtualMachineCode *GPerlCompiler::createiPUSH(GPerlCell *c, int i)
+GPerlVirtualMachineCode *GPerlCompiler::createiPUSH(int i)
 {
 	GPerlVirtualMachineCode *code = new GPerlVirtualMachineCode();
 	code->code_num = code_num;
 	code->op = OPiPUSH;
-	//int idx = getVariableIndex(cstr(c->fname));
-	//DBG_PL("idx = [%d]", idx);
-	code->src = i;//TODO : multipule arg
+	code->src = i;
 	code->dst = dst-1;
 	code_num++;
 	args_count++;
 	return code;
 }
 
-GPerlVirtualMachineCode *GPerlCompiler::createsPUSH(GPerlCell *c, int i)
+GPerlVirtualMachineCode *GPerlCompiler::createsPUSH(int i)
 {
 	GPerlVirtualMachineCode *code = new GPerlVirtualMachineCode();
 	code->code_num = code_num;
 	code->op = OPsPUSH;
+	code->src = i;
+	code->dst = dst-1;
 	code_num++;
 	return code;
 }
