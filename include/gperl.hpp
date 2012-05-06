@@ -403,11 +403,11 @@ public:
 	GPerlVirtualMachineCode *createiWRITE(void);
 	GPerlVirtualMachineCode *createsWRITE(void);
 	GPerlVirtualMachineCode *createoWRITE(void);
-	GPerlVirtualMachineCode *createiPUSH(void);
-	GPerlVirtualMachineCode *createsPUSH(void);
+	GPerlVirtualMachineCode *createiPUSH(GPerlCell *c, int i);
+	GPerlVirtualMachineCode *createsPUSH(GPerlCell *c, int i);
 	GPerlVirtualMachineCode *createJMP(int jmp_num);
 	void addWriteCode(void);
-	void addPushCode(void);
+	void addPushCode(GPerlCell *c, int i);
 	void genFunctionCallCode(GPerlCell *p);
 	void genFunctionCode(GPerlCell *path);
 	void genIfStmtCode(GPerlCell *path);

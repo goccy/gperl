@@ -83,61 +83,75 @@ void GPerlCompiler::genFunctionCallCode(GPerlCell *p)
 		if (p->type == PrintDecl) {
 			addWriteCode();
 		} else if (p->type == Call) {
-			addPushCode();
+			addPushCode(p, i);
 		}
 	}
 }
 
+
+#define ESCAPE_CURRENT_CODE(codes, tmp) {		\
+		int size = codes->size();				\
+		for (int i = 0; i < size; i++) {		\
+			tmp.push_back(codes->at(i));		\
+		}										\
+	}
+
+#define CLEAR_CURRENT_CODE(codes) {				\
+		code_num = 0;							\
+		codes->clear();							\
+	}
+
+#define ADD_FUNCCODE_TO_CODES(codes) {									\
+		GPerlCell *body_stmt = path->body->root;						\
+		for (; body_stmt; body_stmt = body_stmt->next) {				\
+			GPerlCell *path = body_stmt;								\
+			compile_(path);												\
+			dst = 0;													\
+		}																\
+		GPerlVirtualMachineCode *ret = createRET();						\
+		addVMCode(ret);													\
+		GPerlVirtualMachineCode *undef = createUNDEF();/*for threaded code*/ \
+		addVMCode(undef);												\
+	}
+
+#define COPY_CURRENT_CODE(codes, func_code) {	\
+		size_t size = codes->size();			\
+		for (size_t i = 0; i < size; i++) {		\
+			func_code->push_back(codes->at(i));	\
+		}										\
+	}
+
+#define REVERT_ESCAPED_CODE(tmp, codes) {		\
+		size_t size = tmp.size();				\
+		for (size_t i = 0; i < size; i++) {		\
+			codes->push_back(tmp.at(i));		\
+		}										\
+	}
+
 void GPerlCompiler::genFunctionCode(GPerlCell *path)
 {
 	GPerlVirtualMachineCode *code;
-	dst = 0;//reset dst number
-	args_count = 0;
 	vector<GPerlVirtualMachineCode *> tmp;
 	vector<GPerlVirtualMachineCode *> *func_code = NULL;
+	dst = 0;//reset dst number
+	args_count = 0;
 	func_code = new vector<GPerlVirtualMachineCode *>();
-	code = createVMCode(path);
+	code = createVMCode(path);//OPFUNCSET
 	addVMCode(code);
 	dumpVMCode(code);
-	//escape current codes => tmp
-	int size = codes->size();
-	for (int i = 0; i < size; i++) {
-		tmp.push_back(codes->at(i));
-	}
-	code_num -= size;
-	codes->clear();
-	//add func code to codes
-	GPerlCell *body_stmt = path->body->root;
-	for (; body_stmt; body_stmt = body_stmt->next) {
-		GPerlCell *path = body_stmt;
-		compile_(path);
-		dst = 0;//reset dst number
-	}
-	GPerlVirtualMachineCode *ret = createRET();
-	addVMCode(ret);
-	GPerlVirtualMachineCode *undef = createUNDEF();//for threaded code
-	addVMCode(undef);
-	//copy codes to func_code
-	size = codes->size();
-	//DBG_PL("SIZE = [%d]", size);
-	for (int i = 0; i < size; i++) {
-		func_code->push_back(codes->at(i));
-	}
+	ESCAPE_CURRENT_CODE(codes, tmp);//codes => tmp
+	CLEAR_CURRENT_CODE(codes);
+	ADD_FUNCCODE_TO_CODES(codes);
+	COPY_CURRENT_CODE(codes, func_code);
 	optimizeFuncCode(func_code, path->fname);
-	size = codes->size();
-	//DBG_PL("SIZE = [%d]", code_num);
-	finalCompile(func_code);
+	//finalCompile(func_code);
 	GPerlVirtualMachineCode *f = getPureCodes(func_code);
 	DBG_PL("========= DUMP FUNC CODE ==========");
 	dumpPureVMCode(f);
 	DBG_PL("===================================");
-	codes->clear();
-	//revert codes from tmp
-	size = tmp.size();
-	for (int i = 0; i < size; i++) {
-		codes->push_back(tmp.at(i));
-	}
-	code = codes->back();
+	CLEAR_CURRENT_CODE(codes);
+	REVERT_ESCAPED_CODE(tmp, codes);//tmp => codes
+	code = codes->back();//OPFUNCSET
 	code->func = f;
 	DBG_PL("========= FUNCTION DECL END ==========");
 }
@@ -150,7 +164,7 @@ void GPerlCompiler::genIfStmtCode(GPerlCell *path)
 	GPerlVirtualMachineCode *jmp = codes->at(code_num - 1);
 	//DBG_PL("jmp = [%d]", jmp->op);
 	int cond_code_num = code_num;
-	DBG_PL("-------------TRUE STMT--------------");
+	//DBG_PL("-------------TRUE STMT--------------");
 	for (; true_stmt; true_stmt = true_stmt->next) {
 		GPerlCell *path = true_stmt;
 		compile_(path);
@@ -215,22 +229,22 @@ void GPerlCompiler::addWriteCode(void)
 	}
 }
 
-void GPerlCompiler::addPushCode(void)
+void GPerlCompiler::addPushCode(GPerlCell *c, int i)
 {
 	GPerlVirtualMachineCode *code;
 	switch (reg_type[0]) {
 	case Int:
-		code = createiPUSH();
+		code = createiPUSH(c, i);
 		addVMCode(code);
 		dumpVMCode(code);
 		break;
 	case String:
-		code = createsPUSH();
+		code = createsPUSH(c, i);
 		addVMCode(code);
 		dumpVMCode(code);
 		break;
 	case Object:
-		code = createiPUSH();//TODO
+		code = createiPUSH(c, i);//TODO
 		addVMCode(code);
 		dumpVMCode(code);
 		break;
@@ -248,7 +262,6 @@ void GPerlCompiler::optimizeFuncCode(vector<GPerlVirtualMachineCode *> *f, strin
 		GPerlVirtualMachineCode *c = *it;
 		if (c->op == OPJCALL && fname == c->name) {
 			c->op = OPJSELFCALL;
-			//c->op = OPSELFCALL;
 		} else if (c->op == OPNOP) {
 			it = f->erase(it);
 			code_num--;
@@ -266,6 +279,7 @@ void GPerlCompiler::optimizeFuncCode(vector<GPerlVirtualMachineCode *> *f, strin
 			code_num--;
 			it--;
 		} else if (c->op == OPOMOV) {
+			/*
 			reg_n = c->dst;
 			if (isOMOVCall) {
 				//TODO
@@ -277,6 +291,7 @@ void GPerlCompiler::optimizeFuncCode(vector<GPerlVirtualMachineCode *> *f, strin
 				//c->op = OPSUPERCALL;
 				isOMOVCall = true;
 			}
+			*/
 		}
 		it++;
 	}
@@ -404,7 +419,7 @@ void GPerlCompiler::finalCompile(vector<GPerlVirtualMachineCode *> *code)
 	}
 }
 
-static GPerlVirtualMachineCode pure_codes_[32];
+static GPerlVirtualMachineCode pure_codes_[128];
 GPerlVirtualMachineCode *GPerlCompiler::getPureCodes(vector<GPerlVirtualMachineCode *> *codes)
 {
 	int code_n = codes->size();
@@ -591,7 +606,7 @@ GPerlVirtualMachineCode *GPerlCompiler::createVMCode(GPerlCell *c)
 		code->op = OPJRET;
 		//code->op = OPRET;
 		code->dst = 0;
-		code->src = 0;
+		code->src = dst-1;
 		break;
 	default:
 		break;
@@ -705,18 +720,21 @@ GPerlVirtualMachineCode *GPerlCompiler::createoWRITE(void)
 	return code;
 }
 
-GPerlVirtualMachineCode *GPerlCompiler::createiPUSH(void)
+GPerlVirtualMachineCode *GPerlCompiler::createiPUSH(GPerlCell *c, int i)
 {
 	GPerlVirtualMachineCode *code = new GPerlVirtualMachineCode();
 	code->code_num = code_num;
 	code->op = OPiPUSH;
-	code->src = 0;
+	//int idx = getVariableIndex(cstr(c->fname));
+	//DBG_PL("idx = [%d]", idx);
+	code->src = i;//TODO : multipule arg
 	code->dst = dst-1;
 	code_num++;
+	args_count++;
 	return code;
 }
 
-GPerlVirtualMachineCode *GPerlCompiler::createsPUSH(void)
+GPerlVirtualMachineCode *GPerlCompiler::createsPUSH(GPerlCell *c, int i)
 {
 	GPerlVirtualMachineCode *code = new GPerlVirtualMachineCode();
 	code->code_num = code_num;
