@@ -229,7 +229,7 @@ GPerlAST *GPerlParser::parse(void)
 	GPerlAST *ast = new GPerlAST();
 	GPerlCell *root = new GPerlCell(Return);
 	vector<GPerlCell * > blocks;
-	int block_num;
+	int block_num = 0;
 	bool isVarDeclFlag = false;
 	bool leftParenthesisFlag = false;
 	bool ifStmtFlag = false;
@@ -244,7 +244,7 @@ GPerlAST *GPerlParser::parse(void)
 			DBG_PL("VarDecl");
 			isVarDeclFlag = true;
 			break;
-		case LocalVar:
+		case LocalVar: case LocalArrayVar:
 			DBG_PL("L[%d] : ", iterate_count);
 			if (isVarDeclFlag) {
 				DBG_PL("LOCALVAR[%s]:NEW BLOCK => BLOCKS", cstr(t->data));
@@ -255,7 +255,7 @@ GPerlAST *GPerlParser::parse(void)
 				fprintf(stderr, "ERROR:syntax error!!\n");
 			}
 			break;
-		case GlobalVar: {
+		case GlobalVar: case GlobalArrayVar: {
 			DBG_PL("L[%d] : ", iterate_count);
 			DBG_PL("GLOBALVAR[%s]:NEW BLOCK => BLOCKS", cstr(t->data));
 			GPerlCell *block = new GPerlCell(GlobalVarDecl, t->data);
@@ -263,7 +263,7 @@ GPerlAST *GPerlParser::parse(void)
 			isVarDeclFlag = false;
 			break;
 		}
-		case Var: case Int: case String: case Call: case PrintDecl: {
+		case Var: case ArrayVar: case Int: case String: case Call: case PrintDecl: {
 			DBG_PL("L[%d] : ", iterate_count);
 			GPerlT type = t->type;
 			if (block_num > 0 && lastBlock()->type != Assign && lastBlock()->type != Return) {

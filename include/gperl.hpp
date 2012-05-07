@@ -59,13 +59,16 @@ typedef enum {
 	LocalVarDecl,
 	GlobalVarDecl,
 	Var,
+	ArrayVar,
 	Int,
 	Float,
 	String,
 	Object,
 	Operator,
 	LocalVar,
+	LocalArrayVar,
 	GlobalVar,
+	GlobalArrayVar,
 	Function,
 	Call,
 	Argument,
@@ -403,11 +406,11 @@ public:
 	GPerlVirtualMachineCode *createiWRITE(void);
 	GPerlVirtualMachineCode *createsWRITE(void);
 	GPerlVirtualMachineCode *createoWRITE(void);
-	GPerlVirtualMachineCode *createiPUSH(int i);
-	GPerlVirtualMachineCode *createsPUSH(int i);
+	GPerlVirtualMachineCode *createiPUSH(int i, int dst_);
+	GPerlVirtualMachineCode *createsPUSH(int i, int dst_);
 	GPerlVirtualMachineCode *createJMP(int jmp_num);
 	void addWriteCode(void);
-	void addPushCode(int i);
+	void addPushCode(int i, int dst_);
 	void genFunctionCallCode(GPerlCell *p);
 	void genFunctionCode(GPerlCell *path);
 	void genIfStmtCode(GPerlCell *path);

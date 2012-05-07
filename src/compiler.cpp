@@ -78,12 +78,23 @@ void GPerlCompiler::genVMCode(GPerlCell *path) {
 void GPerlCompiler::genFunctionCallCode(GPerlCell *p)
 {
 	size_t argsize = p->argsize;
+	int dststack[argsize];
 	for (size_t i = 0; i < argsize; i++) {
 		compile_(p->vargs[i]);
+		dststack[i] = dst;
+		/*
 		if (p->type == PrintDecl) {
 			addWriteCode();
 		} else if (p->type == Call) {
 			addPushCode(i);
+		}
+		*/
+	}
+	for (size_t i = 0; i < argsize; i++) {
+		if (p->type == PrintDecl) {
+			addWriteCode();
+		} else if (p->type == Call) {
+			addPushCode(i, dststack[i]);
 		}
 	}
 }
@@ -229,22 +240,22 @@ void GPerlCompiler::addWriteCode(void)
 	}
 }
 
-void GPerlCompiler::addPushCode(int i)
+void GPerlCompiler::addPushCode(int i, int dst_)
 {
 	GPerlVirtualMachineCode *code;
 	switch (reg_type[0]) {
 	case Int:
-		code = createiPUSH(i);
+		code = createiPUSH(i, dst_);
 		addVMCode(code);
 		dumpVMCode(code);
 		break;
 	case String:
-		code = createsPUSH(i);
+		code = createsPUSH(i, dst_);
 		addVMCode(code);
 		dumpVMCode(code);
 		break;
 	case Object:
-		code = createiPUSH(i);//TODO
+		code = createiPUSH(i, dst_);//TODO
 		addVMCode(code);
 		dumpVMCode(code);
 		break;
@@ -722,25 +733,25 @@ GPerlVirtualMachineCode *GPerlCompiler::createoWRITE(void)
 	return code;
 }
 
-GPerlVirtualMachineCode *GPerlCompiler::createiPUSH(int i)
+GPerlVirtualMachineCode *GPerlCompiler::createiPUSH(int i, int dst_)
 {
 	GPerlVirtualMachineCode *code = new GPerlVirtualMachineCode();
 	code->code_num = code_num;
 	code->op = OPiPUSH;
 	code->src = i;
-	code->dst = dst-1;
+	code->dst = dst_-1;
 	code_num++;
 	args_count++;
 	return code;
 }
 
-GPerlVirtualMachineCode *GPerlCompiler::createsPUSH(int i)
+GPerlVirtualMachineCode *GPerlCompiler::createsPUSH(int i, int dst_)
 {
 	GPerlVirtualMachineCode *code = new GPerlVirtualMachineCode();
 	code->code_num = code_num;
 	code->op = OPsPUSH;
 	code->src = i;
-	code->dst = dst-1;
+	code->dst = dst_-1;
 	code_num++;
 	return code;
 }
