@@ -134,14 +134,9 @@ void GPerlVirtualMachine::createSelectiveInliningCode(GPerlVirtualMachineCode *c
 #define SUB(dst, src) I(data)[dst] -= I(data)[src]
 #define SUBC(dst)	I(data)[dst] -=  pc->src
 
-int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
+static GPerlEnv env_[MAX_CALLSTACK_SIZE];
+GPerlEnv *GPerlVirtualMachine::createCallStack(void)
 {
-	static GPerlVirtualMachineCode *top;
-	GPerlVirtualMachineCode *pc = codes;
-	Reg reg_[MAX_CALLSTACK_SIZE];
-	Reg *reg = reg_;
-	GPerlEnv *callstack;
-	GPerlEnv env_[MAX_CALLSTACK_SIZE];
 	for (int i = 0; i < MAX_CALLSTACK_SIZE; i++) {
 		GPerlObject **argstack = (GPerlObject **)malloc(sizeof(GPerlObject) * MAX_ARGSTACK_SIZE);
 		env_[i].argstack = argstack;
@@ -152,21 +147,35 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 		}
 	}
 	int size = MAX_CALLSTACK_SIZE * sizeof(GPerlEnv);
-	callstack = (GPerlEnv *)malloc(size);
+	GPerlEnv *callstack = (GPerlEnv *)malloc(size);
 	memcpy(callstack, env_, size);
+	return callstack;
+}
 
-	GPerlObject **argstack_[MAX_CALLSTACK_SIZE];
+static GPerlObject **argstack_[MAX_CALLSTACK_SIZE];
+GPerlObject **GPerlVirtualMachine::createArgStack(void)
+{
 	for (int i = 0; i < MAX_CALLSTACK_SIZE; i++) {
 		argstack_[i] = (GPerlObject **)malloc(sizeof(GPerlObject) * MAX_ARGSTACK_SIZE);
 		memset(argstack_[i], 0, sizeof(GPerlObject) * MAX_ARGSTACK_SIZE);
 	}
-	GPerlObject **argstack = (GPerlObject **)argstack_;
+	return (GPerlObject **)argstack_;
+}
+
+int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
+{
+	static GPerlVirtualMachineCode *top;
+	GPerlVirtualMachineCode *pc = codes;
+	Reg reg_[MAX_CALLSTACK_SIZE];
+	Reg *reg = reg_;
+	GPerlEnv *callstack = createCallStack();
+	GPerlObject **argstack = createArgStack();
 	static char shared_buf[128] = {0};//TODO must be variable buffer
 	static string outbuf = "";
 	static void *jmp_table[] = {
 		&&L(OPUNDEF),
 		&&L(OPMOV), &&L(OPiMOV), &&L(OPsMOV),
-		&&L(OPOMOV), &&L(OPOiMOV),
+		&&L(OPOMOV), &&L(OPLMOV), &&L(OPOiMOV),
 		&&L(OPADD), &&L(OPiADD), &&L(OPiADDC),
 		&&L(OPSUB), &&L(OPiSUB), &&L(OPiSUBC),
 		&&L(OPMUL), &&L(OPiMUL), &&L(OPiMULC),
@@ -182,7 +191,7 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 		&&L(OPPRINT), &&L(OPJMP), &&L(OPLET),
 		&&L(OPSET), &&L(OPFUNCSET),
 		&&L(OPCALL), &&L(OPJCALL), &&L(OPSELFCALL), &&L(OPJSELFCALL), &&L(OPSHIFT),
-		&&L(OPiPUSH), &&L(OPsPUSH),
+		&&L(OPiPUSH), &&L(OPsPUSH), &&L(OPoPUSH), &&L(OPARRAY_PUSH), &&L(OPLIST_NEW),
 		/*-------------final inst-----------------*/
 		&&L(OPABADD), &&L(OPACADD), &&L(OPADADD), &&L(OPBCADD), &&L(OPBDADD), &&L(OPCDADD),
 		&&L(OPAiSUBC), &&L(OPBiSUBC), &&L(OPCiSUBC), &&L(OPDiSUBC),
@@ -199,7 +208,7 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 	static InstBlock block_table[] = {
 		B(UNDEF),
 		B(MOV), B(iMOV), B(sMOV),
-		B(OMOV), B(OiMOV),
+		B(OMOV), B(LMOV), B(OiMOV),
 		B(ADD), B(iADD), B(iADDC),
 		B(SUB), B(iSUB), B(iSUBC),
 		B(MUL), B(iMUL), B(iMULC),
@@ -215,7 +224,7 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 		B(PRINT), B(JMP), B(LET),
 		B(SET), B(FUNCSET),
 		B(CALL), B(JCALL), B(SELFCALL), B(JSELFCALL), B(SHIFT),
-		B(iPUSH), B(sPUSH),
+		B(iPUSH), B(sPUSH), B(oPUSH), B(ARRAY_PUSH), B(LIST_NEW),
 		/*-------------final inst-----------------*/
 		B(ABADD), B(ACADD), B(ADADD), B(BCADD), B(BDADD), B(CDADD),
 		B(AiSUBC), B(BiSUBC), B(CiSUBC), B(DiSUBC),
@@ -251,12 +260,24 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 		BREAK();
 	});
 	CASE(OPOMOV, {
-		I(data)[pc->dst] = callstack->argstack[pc->src]->idata;
+		I(data)[pc->dst] = callstack->argstack[pc->src]->value.idata;
+		pc++;
+		BREAK();
+	});
+	CASE(OPLMOV, {
+		O(data)[pc->dst] = variable_memory[pc->src]->value.pdata;
+		asm("int3");
+		pc++;
+		BREAK();
+	});
+	CASE(OPLIST_NEW, {
+		O(data)[pc->dst] = (GPerlObject *)pc->list;
+		asm("int3");
 		pc++;
 		BREAK();
 	});
 	CASE(OPOiMOV, {
-		I(data)[pc->dst] = callstack->argstack[pc->src]->idata;
+		I(data)[pc->dst] = callstack->argstack[pc->src]->value.idata;
 		pc++;
 		BREAK();
 	});
@@ -410,6 +431,7 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 		pc++;
 		BREAK();
 	});
+
 	CASE(OPPRINT, {
 		fprintf(stderr, "%s", cstr(outbuf));
 		outbuf = "";
@@ -421,7 +443,8 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 		BREAK();
 	});
 	CASE(OPLET, {
-		variable_memory[pc->dst]->idata = I(data)[0];
+//		variable_memory[pc->dst]->value.idata = I(data)[0];
+		variable_memory[pc->dst]->value.pdata = O(data)[0];
 		pc++;
 		BREAK();
 	});
@@ -487,16 +510,28 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 		BREAK();
 	});
 	CASE(OPSHIFT, {
-		I(data)[0] = argstack[pc->src]->idata;
+		I(data)[0] = argstack[pc->src]->value.idata;
 		pc++;
 		BREAK();
 	});
 	CASE(OPiPUSH, {
-		(callstack+1)->argstack[pc->src]->idata = I(data)[pc->dst];
+		(callstack+1)->argstack[pc->src]->value.idata = I(data)[pc->dst];
 		pc++;
 		BREAK();
 	});
 	CASE(OPsPUSH, {
+		pc++;
+		BREAK();
+	});
+	CASE(OPoPUSH, {
+		(callstack+1)->argstack[pc->src]->value.pdata = O(data)[pc->dst];
+		pc++;
+		BREAK();
+	});
+	CASE(OPARRAY_PUSH, {
+		GPerlObject **array = (GPerlObject **)((callstack+1)->argstack[0]->value.pdata);
+		int data = (callstack+1)->argstack[1]->value.idata;//TODO
+		asm("int3");
 		pc++;
 		BREAK();
 	});
@@ -580,22 +615,22 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 		BREAK();
 	});
 	CASE(OPAiPUSH, {
-		(callstack+1)->argstack[pc->src]->idata = I(data)[0];
+		(callstack+1)->argstack[pc->src]->value.idata = I(data)[0];
 		pc++;
 		BREAK();
 	});
 	CASE(OPBiPUSH, {
-		(callstack+1)->argstack[pc->src]->idata = I(data)[1];
+		(callstack+1)->argstack[pc->src]->value.idata = I(data)[1];
 		pc++;
 		BREAK();
 	});
 	CASE(OPCiPUSH, {
-		(callstack+1)->argstack[pc->src]->idata = I(data)[2];
+		(callstack+1)->argstack[pc->src]->value.idata = I(data)[2];
 		pc++;
 		BREAK();
 	});
 	CASE(OPDiPUSH, {
-		(callstack+1)->argstack[pc->src]->idata = I(data)[3];
+		(callstack+1)->argstack[pc->src]->value.idata = I(data)[3];
 		pc++;
 		BREAK();
 	});
@@ -621,23 +656,23 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 	});
 	CASE(OPAOMOV, {
 //		O(data)[0] = argstack[pc->src]->pdata;
-		I(data)[0] = callstack->argstack[pc->src]->idata;
+		I(data)[0] = callstack->argstack[pc->src]->value.idata;
 		pc++;
 		BREAK();
 	});
 	CASE(OPBOMOV, {
-		I(data)[1] = callstack->argstack[pc->src]->idata;
+		I(data)[1] = callstack->argstack[pc->src]->value.idata;
 //		O(data)[1] = argstack[pc->src]->pdata;
 		pc++;
 		BREAK();
 	});
 	CASE(OPCOMOV, {
-		I(data)[2] = argstack[pc->src]->idata;
+		I(data)[2] = argstack[pc->src]->value.idata;
 		pc++;
 		BREAK();
 	});
 	CASE(OPDOMOV, {
-		I(data)[3] = argstack[pc->src]->idata;
+		I(data)[3] = argstack[pc->src]->value.idata;
 		pc++;
 		BREAK();
 	});

@@ -41,6 +41,7 @@ typedef enum {
 	FunctionDecl,
 	Assign,
 	PrintDecl,
+	PushDecl,
 	IfStmt,
 	ElseStmt,
 	Comma,
@@ -64,6 +65,7 @@ typedef enum {
 	Float,
 	String,
 	Object,
+	Array,
 	Operator,
 	LocalVar,
 	LocalArrayVar,
@@ -72,6 +74,7 @@ typedef enum {
 	Function,
 	Call,
 	Argument,
+	List,
 	Undefined,
 } GPerlT;
 
@@ -87,6 +90,7 @@ typedef enum {
 	OPiMOV,
 	OPsMOV,
 	OPOMOV,
+	OPLMOV,
 	OPOiMOV,
 	OPADD,
 	OPiADD,
@@ -137,6 +141,9 @@ typedef enum {
 	OPSHIFT,
 	OPiPUSH,
 	OPsPUSH,
+	OPoPUSH,
+	OPARRAY_PUSH,
+	OPLIST_NEW,
 	/*------------final inst----------------*/
 	OPABADD,
 	OPACADD,
@@ -234,6 +241,8 @@ public:
 class GPerlAST;
 typedef GPerlAST GPerlScope;
 
+class GPerlNodes;
+
 class GPerlCell {
 public:
 	GPerlCell *parent;
@@ -259,7 +268,6 @@ public:
 	union {
 		int idata;
 		float fdata;
-		bool bdata;
 		char *sdata;
 		void *pdata; /* other Object */
 	} data;
@@ -306,6 +314,7 @@ public:
 
 	GPerlParser(std::vector<Token *> *tokens);
 	GPerlAST *parse(void);
+	void parseValue(Token *t, GPerlNodes *nodes, GPerlScope *scope);
 };
 
 #ifdef USING_GRAPH_DEBUG
@@ -354,6 +363,24 @@ public:
 };
 #endif
 
+#define MAX_REG_SIZE 32
+#define MAX_VARIABLE_NUM 128
+#define MAX_FUNC_NUM 128
+
+typedef union {
+	int idata;
+	float fdata;
+	bool bdata;
+	char *sdata;
+	void *pdata; /* other Object */
+} GPerlValue;
+
+typedef struct _GPerlObject {
+	GPerlT type;
+	GPerlValue value;
+	const char *name;
+} GPerlObject;
+
 typedef struct _GPerlVirtualMachineCode {
 	GPerlOpCodes op; /* operation code */
 	int dst;   /* register number */
@@ -362,15 +389,12 @@ typedef struct _GPerlVirtualMachineCode {
 	union {
 		void *code;/* selective inlining code */
 		int jmp;   /* jmp register number */
+		GPerlObject **list;
 	};
 	const char *name; /* variable or function name */
 	struct _GPerlVirtualMachineCode *func;
 	void *opnext; /* for direct threading */
 } GPerlVirtualMachineCode;
-
-#define MAX_REG_SIZE 32
-#define MAX_VARIABLE_NUM 128
-#define MAX_FUNC_NUM 128
 
 class GPerlCompiler {
 public:
@@ -408,6 +432,7 @@ public:
 	GPerlVirtualMachineCode *createoWRITE(void);
 	GPerlVirtualMachineCode *createiPUSH(int i, int dst_);
 	GPerlVirtualMachineCode *createsPUSH(int i, int dst_);
+	GPerlVirtualMachineCode *createoPUSH(int i, int dst_);
 	GPerlVirtualMachineCode *createJMP(int jmp_num);
 	void addWriteCode(void);
 	void addPushCode(int i, int dst_);
@@ -421,22 +446,23 @@ public:
 	void dumpPureVMCode(GPerlVirtualMachineCode *codes);
 };
 
-typedef struct _GPerlObject {
-	union {
-		int idata;
-		float fdata;
-		bool bdata;
-		char *sdata;
-		void *pdata; /* other Object */
-	};
-	const char *name;
-} GPerlObject;
+typedef GPerlCell GPerlNode;
+class GPerlNodes : public std::vector<GPerlCell *> {
+public:
+	int block_num;
+	GPerlNodes(void);
+	void pushNode(GPerlNode *node);
+	void popNode(void);
+	void swapLastNode(GPerlNode *node);
+	void clearNodes(void);
+	GPerlNode *lastNode(void);
+};
 
 typedef union {
-	int idata[MAX_REG_SIZE];
+	intptr_t idata[MAX_REG_SIZE];
 	float fdata[MAX_REG_SIZE];
 	char *sdata[MAX_REG_SIZE];
-	void *pdata[MAX_REG_SIZE];
+	GPerlObject *pdata[MAX_REG_SIZE];
 } Reg;
 
 typedef struct _GPerlEnv {
@@ -462,6 +488,8 @@ public:
 	void setToFuncMemory(GPerlVirtualMachineCode *func, int idx);
 	GPerlObject *getFromVariableMemory(int idx);
 	GPerlVirtualMachineCode *getFromFuncMemory(int idx);
+	GPerlEnv *createCallStack(void);
+	GPerlObject **createArgStack(void);
 	void createDirectThreadingCode(GPerlVirtualMachineCode *codes, void **jmp_tbl);
 	void createSelectiveInliningCode(GPerlVirtualMachineCode *codes, void **jmp_tbl, InstBlock *block_tbl);
 	int run(GPerlVirtualMachineCode *codes);

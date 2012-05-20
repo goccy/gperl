@@ -1,0 +1,147 @@
+[
+ {
+	 "code" : "UNDEF",
+	 "type" : 0,
+	 "const" : 0,
+	 "final" : 0
+ },
+ {
+	 "code" : "MOV",
+	 "type" : 1,
+	 "const" : 0,
+	 "final" : 2
+ },
+ {
+	 "code" : "ADD",
+	 "type" : 1,
+	 "const" : 1,
+	 "final" : 1
+ },
+ {
+	 "code" : "SUB",
+	 "type" : 1,
+	 "const" : 1,
+	 "final" : 1
+ },
+ {
+	 "code" : "MUL",
+	 "type" : 1,
+	 "const" : 1,
+	 "final" : 1
+ },
+ {
+	 "code" : "DIV",
+	 "type" : 1,
+	 "const" : 1,
+	 "final" : 1
+ },
+ {
+	 "code" : "JG",
+	 "type" : 1,
+	 "const" : 1,
+	 "final" : 2
+ },
+ {
+	 "code" : "JL",
+	 "type" : 1,
+	 "const" : 1,
+	 "final" : 2
+ },
+ {
+	 "code" : "JE",
+	 "type" : 1,
+	 "const" : 1,
+	 "final" : 2
+ },
+ {
+	 "code" : "JNE",
+	 "type" : 1,
+	 "const" : 1,
+	 "final" : 2
+ },
+ {
+	 "code" : "RET",
+	 "type" : 0,
+	 "const" : 0,
+	 "final" : 2
+ },
+ {
+	 "code" : "THCODE",
+	 "type" : 0,
+	 "const" : 0,
+	 "final" : 0
+ },
+ {
+	 "code" : "NOP",
+	 "type" : 0,
+	 "const" : 0,
+	 "final" : 0
+
+ },
+ {
+	 "code" : "WRITE",
+	 "type" : 1,
+	 "const" : 0,
+	 "final" : 0
+ },
+ {
+	 "code" : "FRUSH",
+	 "type" : 0,
+	 "const" : 0,
+	 "final" : 0
+ },
+ {
+	 "code" : "JMP",
+	 "type" : 0,
+	 "const" : 0,
+	 "final" : 0
+ },
+ {
+	 "code" : "LET",
+	 "type" : 0,
+	 "const" : 0,
+	 "final" : 0
+ },
+ {
+	 "code" : "SET",
+	 "type" : 0,
+	 "const" : 0,
+	 "final" : 0
+ },
+ {
+	 "code" : "FUNCSET",
+	 "type" : 0,
+	 "const" : 0,
+	 "final" : 0
+ },
+ {
+	 "code" : "CALL",
+	 "type" : 0,
+	 "const" : 0,
+	 "final" : 0
+ },
+ {
+	 "code" : "SELFCALL",
+	 "type" : 0,
+	 "const" : 0,
+	 "final" : 0
+ },
+ {
+	 "code" : "SHIFT",
+	 "type" : 0,
+	 "const" : 0,
+	 "final" : 0
+ },
+ {
+	 "code" : "PUSH",
+	 "type" : 1,
+	 "const" : 0,
+	 "final" : 2
+ },
+ {
+	 "code" : "NEW",
+	 "type" : 0,
+	 "const" : 0,
+	 "final" : 0
+ }
+]

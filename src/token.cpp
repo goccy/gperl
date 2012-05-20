@@ -246,13 +246,13 @@ void GPerlTokenizer::annotateTokens(vector<Token *> *tokens)
 	while (it != tokens->end()) {
 		Token *t = (Token *)*it;
 		string data = t->data;
-		if (data == "+"     || data == "-"   || data == "*"     || data == "/"  ||
-			data == "<"     || data == ">"   || data == "<="    || data == ">=" ||
-			data == "=="    || data == "!="  || data == "="     ||
-			data == ";"     || data == ","   || data == ","     || data == "&"  ||
-			data == "("     || data == ")"   || data == "{"     || data == "}"  ||
-			data == "print" || data == "if"  || data == "else"  ||
-			data == "my"    || data == "sub" || data == "shift" ||
+		if (data == "+"     || data == "-"    || data == "*"     || data == "/"  ||
+			data == "<"     || data == ">"    || data == "<="    || data == ">=" ||
+			data == "=="    || data == "!="   || data == "="     ||
+			data == ";"     || data == ","    || data == ","     || data == "&"  ||
+			data == "("     || data == ")"    || data == "{"     || data == "}"  ||
+			data == "print" || data == "push" || data == "if"    || data == "else"  ||
+			data == "my"    || data == "sub"  || data == "shift" ||
 			data == "return") {
 			GPerlT type = getType(cstr(data));
 			t->type = type;

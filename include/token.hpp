@@ -14,6 +14,7 @@ GPerlTokenType decl_token_types[] = {
 	DECL(FunctionDecl,     "sub"),
 	DECL(Assign,           "="),
 	DECL(PrintDecl,        "print"),
+	DECL(PushDecl,         "push"),
 	DECL(IfStmt,           "if"),
 	DECL(ElseStmt,         "else"),
 	DECL(Comma,            ","),
@@ -37,6 +38,7 @@ GPerlTokenType decl_token_types[] = {
 	DECL(Float,            ""),
 	DECL(String,           ""),
 	DECL(Object,           ""),
+	DECL(Array,           ""),
 	DECL(Operator,         ""),
 	DECL(LocalVar,         ""),
 	DECL(LocalArrayVar,         ""),
@@ -45,5 +47,6 @@ GPerlTokenType decl_token_types[] = {
 	DECL(Function,         ""),
 	DECL(Call,             ""),
 	DECL(Argument,         ""),
+	DECL(List,         ""),
 	DECL(Undefined,        ""),
 };

@@ -1,0 +1,247 @@
+[
+ {
+	 "type" : "Return",
+	 "data" : "return",
+	 "parse_func" : ""
+ },
+ {
+	 "type" : "Add",
+	 "data" : "+",
+	 "parse_func" : ""
+ },
+ {
+	 "type" : "Sub",
+	 "data" : "-",
+	 "parse_func" : ""
+ },
+ {
+	 "type" : "Mul",
+	 "data" : "*",
+	 "parse_func" : ""
+ },
+ {
+	 "type" : "Div",
+	 "data" : "/",
+	 "parse_func" : ""
+ },
+ {
+	 "type" : "Greater",
+	 "data" : ">",
+	 "parse_func" : ""
+ },
+ {
+	 "type" : "Less",
+	 "data" : "<",
+	 "parse_func" : ""
+ },
+ {
+	 "type" : "GreaterEqual",
+	 "data" : ">=",
+	 "parse_func" : ""
+ },
+ {
+	 "type" : "LessEqual",
+	 "data" : "<=",
+	 "parse_func" : ""
+ },
+ {
+	 "type" : "NotEqual",
+	 "data" : "!=",
+	 "parse_func" : ""
+ },
+ {
+	 "type" : "VarDecl",
+	 "data" : "my",
+	 "parse_func" : ""
+ },
+ {
+	 "type" : "FunctionDecl",
+	 "data" : "sub",
+	 "parse_func" : ""
+ },
+ {
+	 "type" : "Assign",
+	 "data" : "=",
+	 "parse_func" : ""
+ },
+ {
+	 "type" : "BuiltinFunc",
+	 "data" : "print",
+	 "parse_func" : ""
+ },
+ {
+	 "type" : "BuiltinFunc",
+	 "data" : "push",
+	 "parse_func" : ""
+ },
+ {
+	 "type" : "IfStmt",
+	 "data" : "if",
+	 "parse_func" : ""
+ },
+ {
+	 "type" : "ElseStmt",
+	 "data" : "else",
+	 "parse_func" : ""
+ },
+ {
+	 "type" : "Comma",
+	 "data" : ",",
+	 "parse_func" : ""
+ },
+ {
+	 "type" : "SemiColon",
+	 "data" : ";",
+	 "parse_func" : ""
+ },
+ {
+	 "type" : "LeftParenthesis",
+	 "data" : "(",
+	 "parse_func" : ""
+ },
+ {
+	 "type" : "RightParenthesis",
+	 "data" : ")",
+	 "parse_func" : ""
+ },
+ {
+	 "type" : "LeftBrace",
+	 "data" : "{",
+	 "parse_func" : ""
+ },
+ {
+	 "type" : "RightBrace",
+	 "data" : "}",
+	 "parse_func" : ""
+ },
+ {
+	 "type" : "LeftBracket",
+	 "data" : "[",
+	 "parse_func" : ""
+ },
+ {
+	 "type" : "RightBracket",
+	 "data" : "]",
+	 "parse_func" : ""
+ },
+ {
+	 "type" : "Shift",
+	 "data" : "shift",
+	 "parse_func" : ""
+ },
+ {
+	 "type" : "CallDecl",
+	 "data" : "&",
+	 "parse_func" : ""
+ },
+ {
+	 "type" : "FieldDecl",
+	 "data" : "",
+	 "parse_func" : ""
+ },
+ {
+	 "type" : "TypeRef",
+	 "data" : "",
+	 "parse_func" : ""
+ },
+ {
+	 "type" : "LabelRef",
+	 "data" : "",
+	 "parse_func" : ""
+ },
+ {
+	 "type" : "LocalVarDecl",
+	 "data" : "",
+	 "parse_func" : ""
+ },
+ {
+	 "type" : "GlobalVarDecl",
+	 "data" : "",
+	 "parse_func" : ""
+ },
+ {
+	 "type" : "Var",
+	 "data" : "",
+	 "parse_func" : ""
+ },
+ {
+	 "type" : "ArrayVar",
+	 "data" : "",
+	 "parse_func" : ""
+ },
+ {
+	 "type" : "Int",
+	 "data" : "",
+	 "parse_func" : ""
+ },
+ {
+	 "type" : "Float",
+	 "data" : "",
+	 "parse_func" : ""
+ },
+ {
+	 "type" : "String",
+	 "data" : "",
+	 "parse_func" : ""
+ },
+ {
+	 "type" : "Object",
+	 "data" : "",
+	 "parse_func" : ""
+ },
+ {
+	 "type" : "Array",
+	 "data" : "",
+	 "parse_func" : ""
+ },
+ {
+	 "type" : "Operator",
+	 "data" : "",
+	 "parse_func" : ""
+ },
+ {
+	 "type" : "LocalVar",
+	 "data" : "",
+	 "parse_func" : ""
+ },
+ {
+	 "type" : "LocalArrayVar",
+	 "data" : "",
+	 "parse_func" : ""
+ },
+ {
+	 "type" : "GloabalVar",
+	 "data" : "",
+	 "parse_func" : ""
+ },
+ {
+	 "type" : "GlobalArrayVar",
+	 "data" : "",
+	 "parse_func" : ""
+ },
+ {
+	 "type" : "Function",
+	 "data" : "",
+	 "parse_func" : ""
+ },
+ {
+	 "type" : "Call",
+	 "data" : "",
+	 "parse_func" : ""
+ },
+ {
+	 "type" : "Argument",
+	 "data" : "",
+	 "parse_func" : ""
+ },
+ {
+	 "type" : "List",
+	 "data" : "",
+	 "parse_func" : ""
+ },
+ {
+	 "type" : "Undefined",
+	 "data" : "",
+	 "parse_func" : ""
+ }
+]

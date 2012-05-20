@@ -1,6 +1,6 @@
 CC = g++
-CFLAGS = -O2 -Wall -g3 -W -I./include/ -I/opt/local/include/ #-DDEBUG_MODE #-DUSING_GRAPH_DEBUG
-#CFLAGS = -O0 -g3 -Wall -W -fpermissive -I./include/ -I/opt/local/include/ -DDEBUG_MODE -DUSING_GRAPH_DEBUG
+#CFLAGS = -O2 -Wall -g3 -W -I./include/ -I/opt/local/include/ #-DDEBUG_MODE #-DUSING_GRAPH_DEBUG
+CFLAGS = -O0 -g3 -Wall -W -fpermissive -I./include/ -I/opt/local/include/ -DDEBUG_MODE -DUSING_GRAPH_DEBUG
 LDLIBS = `pkg-config libgvc --libs`
 target = gperl
 
@@ -8,6 +8,7 @@ objs = build/main.o \
 	build/gperl.o \
 	build/token.o \
 	build/parse.o \
+	build/ast.o \
 	build/graph.o \
 	build/compiler.o\
 	build/vm.o
@@ -28,6 +29,9 @@ build/token.o : src/token.cpp
 	$(CC) $(CFLAGS) -o $@ -c $^
 
 build/parse.o : src/parse.cpp
+	$(CC) $(CFLAGS) -o $@ -c $^
+
+build/ast.o : src/ast.cpp
 	$(CC) $(CFLAGS) -o $@ -c $^
 
 build/graph.o : src/graph.cpp
