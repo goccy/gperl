@@ -49,8 +49,6 @@ foreach (@array) {
 		if ($const) {
 			push(@inst, "i${code}C");
 			push(@inst, "f${code}C");
-			push(@inst, "s${code}C");
-			push(@inst, "o${code}C");
 			if ($final) {
 				foreach (@prefix) {
 					push(@final_inst, "${_}_i${code}C");
@@ -103,26 +101,8 @@ foreach (@g_final_inst) {
 }
 print ous "};\n";
 
-open(ous, ">src/gen_vm.cpp");
-
-for (my $i = 0; $i < $#hash_array; $i++) {
-	my %hash = %{$hash_array[$i]};
-	my $code = $hash{code};
-	print ous "#define GPERL_${code}() \n";
-}
-
-print ous
-"\nint GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
-{
-	static GPerlVirtualMachineCode *top;
-	GPerlVirtualMachineCode *pc = codes;
-	Reg reg_[MAX_CALLSTACK_SIZE];
-	Reg *reg = reg_;
-	GPerlEnv *callstack = createCallStack();
-	GPerlObject **argstack = createArgStack();
-	static char shared_buf[128] = {0};//TODO must be variable buffer
-	static string outbuf = \"\";
-\n";
+# =============== DECLARE LABEL =================
+open(ous, ">src/gen_label.cpp");
 print ous "\tstatic void *jmp_table[] = {\n";
 for (my $i = 0; $i < $#g_inst; $i += 3) {
 	my $inst = $g_inst[$i];
@@ -166,14 +146,75 @@ for (my $i = 0; $i < $#g_final_inst; $i += 3) {
 print ous "\n";
 print ous "\t};\n";
 
-print ous "\tDISPATCH_START();\n";
+open(ous, ">src/gen_vm.cpp");
+
+for (my $i = 0; $i < $#hash_array; $i++) {
+	my %hash = %{$hash_array[$i]};
+	my @inst = @{$hash{inst}};
+	foreach (@inst) {
+        print ous "#define GPERL_${_}(dst, src) ";
+        if ($_ =~ /^i/) {
+            print ous "I(data)[dst] ";
+        } elsif ($_ =~ /^f/) {
+            print ous "F(data)[dst] ";
+        } elsif ($_ =~ /^s/) {
+            print ous "S(data)[dst] ";
+        } elsif ($_ =~ /^o/) {
+            print ous "O(data)[dst] ";
+        } else {
+            print ous "O(data)[dst] ";
+        }
+        if ($_ =~ "ADD") {
+            print ous "+= ";
+        } elsif ($_ =~ /SUB/) {
+            print ous "-= ";
+        } elsif ($_ =~ /MUL/) {
+            print ous "*= ";
+        } elsif ($_ =~ /DIV/) {
+            print ous "/= ";
+        } elsif ($_ =~ /MOV/) {
+            print ous "= ";
+        }
+        if ($_ =~ /C$/) {
+            print ous "src\n";
+        } elsif ($_ =~ /^i/) {
+            print ous "I(data)[src]\n";
+        } elsif ($_ =~ /^f/) {
+            print ous "F(data)[src]\n";
+        } elsif ($_ =~ /^s/) {
+            print ous "S(data)[src]\n";
+        } elsif ($_ =~ /^o/) {
+            print ous "O(data)[src]\n";
+        } else {
+            print ous "O(data)[src] //NaN-boxing\n";
+        }
+    }
+}
+
+print ous
+"\nint GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
+{
+	static GPerlVirtualMachineCode *top;
+	GPerlVirtualMachineCode *pc = codes;
+	Reg reg_[MAX_CALLSTACK_SIZE];
+	Reg *reg = reg_;
+	GPerlEnv *callstack = createCallStack();
+	GPerlObject **argstack = createArgStack();
+	static char shared_buf[128] = {0};//TODO must be variable buffer
+	static string outbuf = \"\";
+
+#include \"gen_label.cpp\"
+
+    DISPATCH_START();
+
+";
 for (my $i = 0; $i < $#hash_array; $i++) {
 	my %hash = %{$hash_array[$i]};
 	my $code = $hash{code};
 	my @inst = @{$hash{inst}};
 	foreach (@inst) {
 		print ous "\tCASE(${_}), {\n";
-		print ous "\t\tGPERL_${code}();\n";
+		print ous "\t\tGPERL_${_}();\n";
 		print ous "\t\tpc++;\n";
 		print ous "\t\tBREAK();\n";
 		print ous "\t});\n";
@@ -193,8 +234,9 @@ for (my $i = 0; $i < $#hash_array; $i++) {
 	my $code = $hash{code};
 	my @final_inst = @{$hash{final_inst}};
 	foreach (@final_inst) {
+        my @_code = split("_", $_);
 		print ous "\tCASE(${_}), {\n";
-		print ous "\t\tGPERL_${code}();\n";
+		print ous "\t\tGPERL_${_code[1]}();\n";
 		print ous "\t\tpc++;\n";
 		print ous "\t\tBREAK();\n";
 		print ous "\t});\n";
