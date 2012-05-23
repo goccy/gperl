@@ -3,145 +3,168 @@
 	 "code" : "UNDEF",
 	 "type" : 0,
 	 "const" : 0,
-	 "final" : 0
+	 "fast_type" : 0,
+     "args" : []
  },
  {
 	 "code" : "MOV",
 	 "type" : 1,
 	 "const" : 0,
-	 "final" : 2
+	 "fast_type" : 2,
+     "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}]
  },
  {
 	 "code" : "ADD",
 	 "type" : 1,
 	 "const" : 1,
-	 "final" : 1
+	 "fast_type" : 1,
+     "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}]
  },
  {
 	 "code" : "SUB",
 	 "type" : 1,
 	 "const" : 1,
-	 "final" : 1
+	 "fast_type" : 1,
+     "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}]
  },
  {
 	 "code" : "MUL",
 	 "type" : 1,
 	 "const" : 1,
-	 "final" : 1
+	 "fast_type" : 1,
+     "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}]
  },
  {
 	 "code" : "DIV",
 	 "type" : 1,
 	 "const" : 1,
-	 "final" : 1
+	 "fast_type" : 1,
+     "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}]
  },
  {
 	 "code" : "JG",
 	 "type" : 1,
 	 "const" : 1,
-	 "final" : 2
+	 "fast_type" : 2,
+     "args" : [{"op" : ">"}, {"dst" : "pc->dst"}, {"src" : "pc->src"}]
  },
  {
 	 "code" : "JL",
 	 "type" : 1,
 	 "const" : 1,
-	 "final" : 2
+	 "fast_type" : 2,
+     "args" : [{"op" : "<"}, {"dst" : "pc->dst"}, {"src" : "pc->src"}]
  },
  {
 	 "code" : "JE",
 	 "type" : 1,
 	 "const" : 1,
-	 "final" : 2
+	 "fast_type" : 2,
+     "args" : [{"op" : "=="}, {"dst" : "pc->dst"}, {"src" : "pc->src"}]
  },
  {
 	 "code" : "JNE",
 	 "type" : 1,
 	 "const" : 1,
-	 "final" : 2
+	 "fast_type" : 2,
+     "args" : [{"op" : "!="}, {"dst" : "pc->dst"}, {"src" : "pc->src"}]
  },
  {
 	 "code" : "RET",
-	 "type" : 0,
+	 "type" : 1,
 	 "const" : 0,
-	 "final" : 2
+	 "fast_type" : 2,
+     "args" : [{"src" : "pc->src"}]
  },
  {
 	 "code" : "THCODE",
 	 "type" : 0,
 	 "const" : 0,
-	 "final" : 0
+	 "fast_type" : 0,
+     "args" : []
  },
  {
 	 "code" : "NOP",
 	 "type" : 0,
 	 "const" : 0,
-	 "final" : 0
-
+	 "fast_type" : 0,
+     "args" : []
  },
  {
 	 "code" : "WRITE",
 	 "type" : 1,
 	 "const" : 0,
-	 "final" : 0
+	 "fast_type" : 0,
+     "args" : [{"dst" : "pc->dst"}]
  },
  {
 	 "code" : "FRUSH",
 	 "type" : 0,
 	 "const" : 0,
-	 "final" : 0
+	 "fast_type" : 0,
+     "args" : []
  },
  {
 	 "code" : "JMP",
 	 "type" : 0,
 	 "const" : 0,
-	 "final" : 0
+	 "fast_type" : 0,
+     "args" : []
  },
  {
 	 "code" : "LET",
 	 "type" : 0,
 	 "const" : 0,
-	 "final" : 0
+	 "fast_type" : 0,
+     "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}]
  },
  {
 	 "code" : "SET",
 	 "type" : 0,
 	 "const" : 0,
-	 "final" : 0
+	 "fast_type" : 0,
+     "args" : [{"name" : "pc->name"}, {"dst" : "pc->dst"}]
  },
  {
 	 "code" : "FUNCSET",
 	 "type" : 0,
 	 "const" : 0,
-	 "final" : 0
+	 "fast_type" : 0,
+     "args" : [{"func" : "pc->func"}, {"dst" : "pc->dst"}]
  },
  {
 	 "code" : "CALL",
 	 "type" : 0,
 	 "const" : 0,
-	 "final" : 0
+	 "fast_type" : 0,
+     "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}]
  },
  {
 	 "code" : "SELFCALL",
 	 "type" : 0,
 	 "const" : 0,
-	 "final" : 0
+	 "fast_type" : 0,
+     "args" : [{"dst" : "pc->dst"}]
  },
  {
 	 "code" : "SHIFT",
 	 "type" : 0,
 	 "const" : 0,
-	 "final" : 0
+	 "fast_type" : 0,
+     "args" : [{"src" : "pc->src"}]
  },
  {
 	 "code" : "PUSH",
 	 "type" : 1,
 	 "const" : 0,
-	 "final" : 2
+	 "fast_type" : 2,
+     "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}]
  },
  {
 	 "code" : "NEW",
 	 "type" : 0,
 	 "const" : 0,
-	 "final" : 0
+	 "fast_type" : 0,
+     "args" : []
  }
 ]
