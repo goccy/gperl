@@ -41,8 +41,8 @@
 #define GPERL_UNDEF()
 
 #define GPERL_MOV(dst, src)
-#define GPERL_iMOV(dst, src) I(dst) = I(src)
-#define GPERL_dMOV(dst, src) D(dst) = D(src)
+#define GPERL_iMOV(dst, src) I(dst) = src
+#define GPERL_dMOV(dst, src) D(dst) = src
 #define GPERL_sMOV(dst, name) S(dst) = (char *)name
 #define GPERL_oMOV(dst, src) O(dst) = O(src)
 
