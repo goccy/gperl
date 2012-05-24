@@ -29,7 +29,8 @@ print ous
 	const char *name;
 	const char *data;
 } GPerlTokenInfo;\n";
-print ous "\n";
+
+open(ous, ">src/gen_token_decl.cpp");
 print ous "GPerlTokenInfo decl_tokens[] = {\n";
 for (my $i = 0; $i < $#array + 1; $i++) {
 	my $type = $array[$i]->{type};

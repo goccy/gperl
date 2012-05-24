@@ -93,8 +93,7 @@ void GPerlParser::parseValue(Token *t, GPerlNodes *blocks, GPerlScope *scope)
 	GPerlCell *block = (blocks->block_num > 0) ? blocks->lastNode() : NULL;
 	if (block && block->type != Assign && block->type != Return) {
 		DBG_PL("%s", TypeName(block->type));
-		if (block->type == Call || block->type == PrintDecl ||
-			block->type == PushDecl) {
+		if (block->type == Call || block->type == BuiltinFunc) {
 			DBG_PL("[%s]:NEW BLOCK->BLOCKS", cstr(t->data));
 			if (scope) {
 				for (int i = 0; i < scope->root->argsize; i++) {
@@ -109,13 +108,13 @@ void GPerlParser::parseValue(Token *t, GPerlNodes *blocks, GPerlScope *scope)
 			GPerlCell *b = (scope) ? scope->root->vargs[0] : new GPerlCell(type, t->data);
 			block->left = b;
 			b->parent = block;
-			if (type == Call || type == PrintDecl || type == PushDecl) blocks->pushNode(b);
+			if (type == Call || type == BuiltinFunc) blocks->pushNode(b);
 		} else if (block->right == NULL) {
 			DBG_PL("[%s]:LAST BLOCK->right", cstr(t->data));
 			GPerlCell *b = (scope) ? scope->root->vargs[0] : new GPerlCell(type, t->data);
 			block->right = b;
 			b->parent = block;
-			if (type == Call || type == PrintDecl || type == PushDecl) blocks->pushNode(b);
+			if (type == Call || type == BuiltinFunc) blocks->pushNode(b);
 		} else {
 			fprintf(stderr, "ERROR:[parse error]!!\n");
 		}
@@ -167,7 +166,7 @@ GPerlAST *GPerlParser::parse(void)
 			break;
 		}
 		case Var: case ArrayVar: case Int: case String:
-		case Call: case PrintDecl: case PushDecl: {
+		case Call: case BuiltinFunc: {
 			parseValue(t, &blocks, NULL);
 			break;
 		}
@@ -307,8 +306,7 @@ GPerlAST *GPerlParser::parse(void)
 			DBG_PL("BLOCKS SIZE = [%d]", size);
 			if (size == 1) {
 				GPerlCell *stmt = blocks.at(0);
-				if (root->type == PrintDecl || root->type == Call ||
-					root->type == PushDecl) {
+				if (root->type == BuiltinFunc || root->type == Call) {
 					GPerlCell *v = root;
 					v->vargs[v->argsize] = stmt;
 					v->argsize++;

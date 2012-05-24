@@ -248,93 +248,63 @@
 		pc++;
 		BREAK();
 	});
-	CASE(AB_iADDC, {
-		GPERL_iADDC(0, 1);
+	CASE(A_iADDC, {
+		GPERL_iADDC(0, pc->src);
 		pc++;
 		BREAK();
 	});
-	CASE(AB_dADDC, {
-		GPERL_dADDC(0, 1);
+	CASE(A_dADDC, {
+		GPERL_dADDC(0, pc->src);
 		pc++;
 		BREAK();
 	});
-	CASE(AB_sADDC, {
-		GPERL_sADDC(0, 1);
+	CASE(A_sADDC, {
+		GPERL_sADDC(0, pc->src);
 		pc++;
 		BREAK();
 	});
-	CASE(AC_iADDC, {
-		GPERL_iADDC(0, 2);
+	CASE(B_iADDC, {
+		GPERL_iADDC(1, pc->src);
 		pc++;
 		BREAK();
 	});
-	CASE(AC_dADDC, {
-		GPERL_dADDC(0, 2);
+	CASE(B_dADDC, {
+		GPERL_dADDC(1, pc->src);
 		pc++;
 		BREAK();
 	});
-	CASE(AC_sADDC, {
-		GPERL_sADDC(0, 2);
+	CASE(B_sADDC, {
+		GPERL_sADDC(1, pc->src);
 		pc++;
 		BREAK();
 	});
-	CASE(AD_iADDC, {
-		GPERL_iADDC(0, 3);
+	CASE(C_iADDC, {
+		GPERL_iADDC(2, pc->src);
 		pc++;
 		BREAK();
 	});
-	CASE(AD_dADDC, {
-		GPERL_dADDC(0, 3);
+	CASE(C_dADDC, {
+		GPERL_dADDC(2, pc->src);
 		pc++;
 		BREAK();
 	});
-	CASE(AD_sADDC, {
-		GPERL_sADDC(0, 3);
+	CASE(C_sADDC, {
+		GPERL_sADDC(2, pc->src);
 		pc++;
 		BREAK();
 	});
-	CASE(BC_iADDC, {
-		GPERL_iADDC(1, 2);
+	CASE(D_iADDC, {
+		GPERL_iADDC(3, pc->src);
 		pc++;
 		BREAK();
 	});
-	CASE(BC_dADDC, {
-		GPERL_dADDC(1, 2);
+	CASE(D_dADDC, {
+		GPERL_dADDC(3, pc->src);
 		pc++;
 		BREAK();
 	});
-	CASE(BC_sADDC, {
-		GPERL_sADDC(1, 2);
-		pc++;
-		BREAK();
-	});
-	CASE(BD_iADDC, {
-		GPERL_iADDC(1, 3);
-		pc++;
-		BREAK();
-	});
-	CASE(BD_dADDC, {
-		GPERL_dADDC(1, 3);
-		pc++;
-		BREAK();
-	});
-	CASE(BD_sADDC, {
-		GPERL_sADDC(1, 3);
-		pc++;
-		BREAK();
-	});
-	CASE(CD_iADDC, {
-		GPERL_iADDC(2, 3);
-		pc++;
-		BREAK();
-	});
-	CASE(CD_dADDC, {
-		GPERL_dADDC(2, 3);
-		pc++;
-		BREAK();
-	});
-	CASE(CD_sADDC, {
-		GPERL_sADDC(2, 3);
+	CASE(D_sADDC, {
+		GPERL_sADDC(3, pc->src);
 		pc++;
 		BREAK();
 	});
@@ -458,63 +428,43 @@
 		pc++;
 		BREAK();
 	});
-	CASE(AB_iSUBC, {
-		GPERL_iSUBC(0, 1);
+	CASE(A_iSUBC, {
+		GPERL_iSUBC(0, pc->src);
 		pc++;
 		BREAK();
 	});
-	CASE(AB_dSUBC, {
-		GPERL_dSUBC(0, 1);
+	CASE(A_dSUBC, {
+		GPERL_dSUBC(0, pc->src);
 		pc++;
 		BREAK();
 	});
-	CASE(AC_iSUBC, {
-		GPERL_iSUBC(0, 2);
+	CASE(B_iSUBC, {
+		GPERL_iSUBC(1, pc->src);
 		pc++;
 		BREAK();
 	});
-	CASE(AC_dSUBC, {
-		GPERL_dSUBC(0, 2);
+	CASE(B_dSUBC, {
+		GPERL_dSUBC(1, pc->src);
 		pc++;
 		BREAK();
 	});
-	CASE(AD_iSUBC, {
-		GPERL_iSUBC(0, 3);
+	CASE(C_iSUBC, {
+		GPERL_iSUBC(2, pc->src);
 		pc++;
 		BREAK();
 	});
-	CASE(AD_dSUBC, {
-		GPERL_dSUBC(0, 3);
+	CASE(C_dSUBC, {
+		GPERL_dSUBC(2, pc->src);
 		pc++;
 		BREAK();
 	});
-	CASE(BC_iSUBC, {
-		GPERL_iSUBC(1, 2);
+	CASE(D_iSUBC, {
+		GPERL_iSUBC(3, pc->src);
 		pc++;
 		BREAK();
 	});
-	CASE(BC_dSUBC, {
-		GPERL_dSUBC(1, 2);
-		pc++;
-		BREAK();
-	});
-	CASE(BD_iSUBC, {
-		GPERL_iSUBC(1, 3);
-		pc++;
-		BREAK();
-	});
-	CASE(BD_dSUBC, {
-		GPERL_dSUBC(1, 3);
-		pc++;
-		BREAK();
-	});
-	CASE(CD_iSUBC, {
-		GPERL_iSUBC(2, 3);
-		pc++;
-		BREAK();
-	});
-	CASE(CD_dSUBC, {
-		GPERL_dSUBC(2, 3);
+	CASE(D_dSUBC, {
+		GPERL_dSUBC(3, pc->src);
 		pc++;
 		BREAK();
 	});
@@ -668,93 +618,63 @@
 		pc++;
 		BREAK();
 	});
-	CASE(AB_iMULC, {
-		GPERL_iMULC(0, 1);
+	CASE(A_iMULC, {
+		GPERL_iMULC(0, pc->src);
 		pc++;
 		BREAK();
 	});
-	CASE(AB_dMULC, {
-		GPERL_dMULC(0, 1);
+	CASE(A_dMULC, {
+		GPERL_dMULC(0, pc->src);
 		pc++;
 		BREAK();
 	});
-	CASE(AB_sMULC, {
-		GPERL_sMULC(0, 1);
+	CASE(A_sMULC, {
+		GPERL_sMULC(0, pc->src);
 		pc++;
 		BREAK();
 	});
-	CASE(AC_iMULC, {
-		GPERL_iMULC(0, 2);
+	CASE(B_iMULC, {
+		GPERL_iMULC(1, pc->src);
 		pc++;
 		BREAK();
 	});
-	CASE(AC_dMULC, {
-		GPERL_dMULC(0, 2);
+	CASE(B_dMULC, {
+		GPERL_dMULC(1, pc->src);
 		pc++;
 		BREAK();
 	});
-	CASE(AC_sMULC, {
-		GPERL_sMULC(0, 2);
+	CASE(B_sMULC, {
+		GPERL_sMULC(1, pc->src);
 		pc++;
 		BREAK();
 	});
-	CASE(AD_iMULC, {
-		GPERL_iMULC(0, 3);
+	CASE(C_iMULC, {
+		GPERL_iMULC(2, pc->src);
 		pc++;
 		BREAK();
 	});
-	CASE(AD_dMULC, {
-		GPERL_dMULC(0, 3);
+	CASE(C_dMULC, {
+		GPERL_dMULC(2, pc->src);
 		pc++;
 		BREAK();
 	});
-	CASE(AD_sMULC, {
-		GPERL_sMULC(0, 3);
+	CASE(C_sMULC, {
+		GPERL_sMULC(2, pc->src);
 		pc++;
 		BREAK();
 	});
-	CASE(BC_iMULC, {
-		GPERL_iMULC(1, 2);
+	CASE(D_iMULC, {
+		GPERL_iMULC(3, pc->src);
 		pc++;
 		BREAK();
 	});
-	CASE(BC_dMULC, {
-		GPERL_dMULC(1, 2);
+	CASE(D_dMULC, {
+		GPERL_dMULC(3, pc->src);
 		pc++;
 		BREAK();
 	});
-	CASE(BC_sMULC, {
-		GPERL_sMULC(1, 2);
-		pc++;
-		BREAK();
-	});
-	CASE(BD_iMULC, {
-		GPERL_iMULC(1, 3);
-		pc++;
-		BREAK();
-	});
-	CASE(BD_dMULC, {
-		GPERL_dMULC(1, 3);
-		pc++;
-		BREAK();
-	});
-	CASE(BD_sMULC, {
-		GPERL_sMULC(1, 3);
-		pc++;
-		BREAK();
-	});
-	CASE(CD_iMULC, {
-		GPERL_iMULC(2, 3);
-		pc++;
-		BREAK();
-	});
-	CASE(CD_dMULC, {
-		GPERL_dMULC(2, 3);
-		pc++;
-		BREAK();
-	});
-	CASE(CD_sMULC, {
-		GPERL_sMULC(2, 3);
+	CASE(D_sMULC, {
+		GPERL_sMULC(3, pc->src);
 		pc++;
 		BREAK();
 	});
@@ -878,63 +798,43 @@
 		pc++;
 		BREAK();
 	});
-	CASE(AB_iDIVC, {
-		GPERL_iDIVC(0, 1);
+	CASE(A_iDIVC, {
+		GPERL_iDIVC(0, pc->src);
 		pc++;
 		BREAK();
 	});
-	CASE(AB_dDIVC, {
-		GPERL_dDIVC(0, 1);
+	CASE(A_dDIVC, {
+		GPERL_dDIVC(0, pc->src);
 		pc++;
 		BREAK();
 	});
-	CASE(AC_iDIVC, {
-		GPERL_iDIVC(0, 2);
+	CASE(B_iDIVC, {
+		GPERL_iDIVC(1, pc->src);
 		pc++;
 		BREAK();
 	});
-	CASE(AC_dDIVC, {
-		GPERL_dDIVC(0, 2);
+	CASE(B_dDIVC, {
+		GPERL_dDIVC(1, pc->src);
 		pc++;
 		BREAK();
 	});
-	CASE(AD_iDIVC, {
-		GPERL_iDIVC(0, 3);
+	CASE(C_iDIVC, {
+		GPERL_iDIVC(2, pc->src);
 		pc++;
 		BREAK();
 	});
-	CASE(AD_dDIVC, {
-		GPERL_dDIVC(0, 3);
+	CASE(C_dDIVC, {
+		GPERL_dDIVC(2, pc->src);
 		pc++;
 		BREAK();
 	});
-	CASE(BC_iDIVC, {
-		GPERL_iDIVC(1, 2);
+	CASE(D_iDIVC, {
+		GPERL_iDIVC(3, pc->src);
 		pc++;
 		BREAK();
 	});
-	CASE(BC_dDIVC, {
-		GPERL_dDIVC(1, 2);
-		pc++;
-		BREAK();
-	});
-	CASE(BD_iDIVC, {
-		GPERL_iDIVC(1, 3);
-		pc++;
-		BREAK();
-	});
-	CASE(BD_dDIVC, {
-		GPERL_dDIVC(1, 3);
-		pc++;
-		BREAK();
-	});
-	CASE(CD_iDIVC, {
-		GPERL_iDIVC(2, 3);
-		pc++;
-		BREAK();
-	});
-	CASE(CD_dDIVC, {
-		GPERL_dDIVC(2, 3);
+	CASE(D_dDIVC, {
+		GPERL_dDIVC(3, pc->src);
 		pc++;
 		BREAK();
 	});
@@ -1295,6 +1195,366 @@
 	});
 	CASE(D_oJLC, {
 		GPERL_oCMP_JMPC(<, 3, pc->src);
+		pc++;
+		BREAK();
+	});
+	CASE(A_JGE, {
+		GPERL_CMP_JMP(>=, 0, pc->src);
+		pc++;
+		BREAK();
+	});
+	CASE(B_JGE, {
+		GPERL_CMP_JMP(>=, 1, pc->src);
+		pc++;
+		BREAK();
+	});
+	CASE(C_JGE, {
+		GPERL_CMP_JMP(>=, 2, pc->src);
+		pc++;
+		BREAK();
+	});
+	CASE(D_JGE, {
+		GPERL_CMP_JMP(>=, 3, pc->src);
+		pc++;
+		BREAK();
+	});
+	CASE(A_iJGE, {
+		GPERL_iCMP_JMP(>=, 0, pc->src);
+		pc++;
+		BREAK();
+	});
+	CASE(A_dJGE, {
+		GPERL_dCMP_JMP(>=, 0, pc->src);
+		pc++;
+		BREAK();
+	});
+	CASE(A_sJGE, {
+		GPERL_sCMP_JMP(>=, 0, pc->src);
+		pc++;
+		BREAK();
+	});
+	CASE(A_oJGE, {
+		GPERL_oCMP_JMP(>=, 0, pc->src);
+		pc++;
+		BREAK();
+	});
+	CASE(B_iJGE, {
+		GPERL_iCMP_JMP(>=, 1, pc->src);
+		pc++;
+		BREAK();
+	});
+	CASE(B_dJGE, {
+		GPERL_dCMP_JMP(>=, 1, pc->src);
+		pc++;
+		BREAK();
+	});
+	CASE(B_sJGE, {
+		GPERL_sCMP_JMP(>=, 1, pc->src);
+		pc++;
+		BREAK();
+	});
+	CASE(B_oJGE, {
+		GPERL_oCMP_JMP(>=, 1, pc->src);
+		pc++;
+		BREAK();
+	});
+	CASE(C_iJGE, {
+		GPERL_iCMP_JMP(>=, 2, pc->src);
+		pc++;
+		BREAK();
+	});
+	CASE(C_dJGE, {
+		GPERL_dCMP_JMP(>=, 2, pc->src);
+		pc++;
+		BREAK();
+	});
+	CASE(C_sJGE, {
+		GPERL_sCMP_JMP(>=, 2, pc->src);
+		pc++;
+		BREAK();
+	});
+	CASE(C_oJGE, {
+		GPERL_oCMP_JMP(>=, 2, pc->src);
+		pc++;
+		BREAK();
+	});
+	CASE(D_iJGE, {
+		GPERL_iCMP_JMP(>=, 3, pc->src);
+		pc++;
+		BREAK();
+	});
+	CASE(D_dJGE, {
+		GPERL_dCMP_JMP(>=, 3, pc->src);
+		pc++;
+		BREAK();
+	});
+	CASE(D_sJGE, {
+		GPERL_sCMP_JMP(>=, 3, pc->src);
+		pc++;
+		BREAK();
+	});
+	CASE(D_oJGE, {
+		GPERL_oCMP_JMP(>=, 3, pc->src);
+		pc++;
+		BREAK();
+	});
+	CASE(A_iJGEC, {
+		GPERL_iCMP_JMPC(>=, 0, pc->src);
+		pc++;
+		BREAK();
+	});
+	CASE(A_dJGEC, {
+		GPERL_dCMP_JMPC(>=, 0, pc->src);
+		pc++;
+		BREAK();
+	});
+	CASE(A_sJGEC, {
+		GPERL_sCMP_JMPC(>=, 0, pc->src);
+		pc++;
+		BREAK();
+	});
+	CASE(A_oJGEC, {
+		GPERL_oCMP_JMPC(>=, 0, pc->src);
+		pc++;
+		BREAK();
+	});
+	CASE(B_iJGEC, {
+		GPERL_iCMP_JMPC(>=, 1, pc->src);
+		pc++;
+		BREAK();
+	});
+	CASE(B_dJGEC, {
+		GPERL_dCMP_JMPC(>=, 1, pc->src);
+		pc++;
+		BREAK();
+	});
+	CASE(B_sJGEC, {
+		GPERL_sCMP_JMPC(>=, 1, pc->src);
+		pc++;
+		BREAK();
+	});
+	CASE(B_oJGEC, {
+		GPERL_oCMP_JMPC(>=, 1, pc->src);
+		pc++;
+		BREAK();
+	});
+	CASE(C_iJGEC, {
+		GPERL_iCMP_JMPC(>=, 2, pc->src);
+		pc++;
+		BREAK();
+	});
+	CASE(C_dJGEC, {
+		GPERL_dCMP_JMPC(>=, 2, pc->src);
+		pc++;
+		BREAK();
+	});
+	CASE(C_sJGEC, {
+		GPERL_sCMP_JMPC(>=, 2, pc->src);
+		pc++;
+		BREAK();
+	});
+	CASE(C_oJGEC, {
+		GPERL_oCMP_JMPC(>=, 2, pc->src);
+		pc++;
+		BREAK();
+	});
+	CASE(D_iJGEC, {
+		GPERL_iCMP_JMPC(>=, 3, pc->src);
+		pc++;
+		BREAK();
+	});
+	CASE(D_dJGEC, {
+		GPERL_dCMP_JMPC(>=, 3, pc->src);
+		pc++;
+		BREAK();
+	});
+	CASE(D_sJGEC, {
+		GPERL_sCMP_JMPC(>=, 3, pc->src);
+		pc++;
+		BREAK();
+	});
+	CASE(D_oJGEC, {
+		GPERL_oCMP_JMPC(>=, 3, pc->src);
+		pc++;
+		BREAK();
+	});
+	CASE(A_JLE, {
+		GPERL_CMP_JMP(<=, 0, pc->src);
+		pc++;
+		BREAK();
+	});
+	CASE(B_JLE, {
+		GPERL_CMP_JMP(<=, 1, pc->src);
+		pc++;
+		BREAK();
+	});
+	CASE(C_JLE, {
+		GPERL_CMP_JMP(<=, 2, pc->src);
+		pc++;
+		BREAK();
+	});
+	CASE(D_JLE, {
+		GPERL_CMP_JMP(<=, 3, pc->src);
+		pc++;
+		BREAK();
+	});
+	CASE(A_iJLE, {
+		GPERL_iCMP_JMP(<=, 0, pc->src);
+		pc++;
+		BREAK();
+	});
+	CASE(A_dJLE, {
+		GPERL_dCMP_JMP(<=, 0, pc->src);
+		pc++;
+		BREAK();
+	});
+	CASE(A_sJLE, {
+		GPERL_sCMP_JMP(<=, 0, pc->src);
+		pc++;
+		BREAK();
+	});
+	CASE(A_oJLE, {
+		GPERL_oCMP_JMP(<=, 0, pc->src);
+		pc++;
+		BREAK();
+	});
+	CASE(B_iJLE, {
+		GPERL_iCMP_JMP(<=, 1, pc->src);
+		pc++;
+		BREAK();
+	});
+	CASE(B_dJLE, {
+		GPERL_dCMP_JMP(<=, 1, pc->src);
+		pc++;
+		BREAK();
+	});
+	CASE(B_sJLE, {
+		GPERL_sCMP_JMP(<=, 1, pc->src);
+		pc++;
+		BREAK();
+	});
+	CASE(B_oJLE, {
+		GPERL_oCMP_JMP(<=, 1, pc->src);
+		pc++;
+		BREAK();
+	});
+	CASE(C_iJLE, {
+		GPERL_iCMP_JMP(<=, 2, pc->src);
+		pc++;
+		BREAK();
+	});
+	CASE(C_dJLE, {
+		GPERL_dCMP_JMP(<=, 2, pc->src);
+		pc++;
+		BREAK();
+	});
+	CASE(C_sJLE, {
+		GPERL_sCMP_JMP(<=, 2, pc->src);
+		pc++;
+		BREAK();
+	});
+	CASE(C_oJLE, {
+		GPERL_oCMP_JMP(<=, 2, pc->src);
+		pc++;
+		BREAK();
+	});
+	CASE(D_iJLE, {
+		GPERL_iCMP_JMP(<=, 3, pc->src);
+		pc++;
+		BREAK();
+	});
+	CASE(D_dJLE, {
+		GPERL_dCMP_JMP(<=, 3, pc->src);
+		pc++;
+		BREAK();
+	});
+	CASE(D_sJLE, {
+		GPERL_sCMP_JMP(<=, 3, pc->src);
+		pc++;
+		BREAK();
+	});
+	CASE(D_oJLE, {
+		GPERL_oCMP_JMP(<=, 3, pc->src);
+		pc++;
+		BREAK();
+	});
+	CASE(A_iJLEC, {
+		GPERL_iCMP_JMPC(<=, 0, pc->src);
+		pc++;
+		BREAK();
+	});
+	CASE(A_dJLEC, {
+		GPERL_dCMP_JMPC(<=, 0, pc->src);
+		pc++;
+		BREAK();
+	});
+	CASE(A_sJLEC, {
+		GPERL_sCMP_JMPC(<=, 0, pc->src);
+		pc++;
+		BREAK();
+	});
+	CASE(A_oJLEC, {
+		GPERL_oCMP_JMPC(<=, 0, pc->src);
+		pc++;
+		BREAK();
+	});
+	CASE(B_iJLEC, {
+		GPERL_iCMP_JMPC(<=, 1, pc->src);
+		pc++;
+		BREAK();
+	});
+	CASE(B_dJLEC, {
+		GPERL_dCMP_JMPC(<=, 1, pc->src);
+		pc++;
+		BREAK();
+	});
+	CASE(B_sJLEC, {
+		GPERL_sCMP_JMPC(<=, 1, pc->src);
+		pc++;
+		BREAK();
+	});
+	CASE(B_oJLEC, {
+		GPERL_oCMP_JMPC(<=, 1, pc->src);
+		pc++;
+		BREAK();
+	});
+	CASE(C_iJLEC, {
+		GPERL_iCMP_JMPC(<=, 2, pc->src);
+		pc++;
+		BREAK();
+	});
+	CASE(C_dJLEC, {
+		GPERL_dCMP_JMPC(<=, 2, pc->src);
+		pc++;
+		BREAK();
+	});
+	CASE(C_sJLEC, {
+		GPERL_sCMP_JMPC(<=, 2, pc->src);
+		pc++;
+		BREAK();
+	});
+	CASE(C_oJLEC, {
+		GPERL_oCMP_JMPC(<=, 2, pc->src);
+		pc++;
+		BREAK();
+	});
+	CASE(D_iJLEC, {
+		GPERL_iCMP_JMPC(<=, 3, pc->src);
+		pc++;
+		BREAK();
+	});
+	CASE(D_dJLEC, {
+		GPERL_dCMP_JMPC(<=, 3, pc->src);
+		pc++;
+		BREAK();
+	});
+	CASE(D_sJLEC, {
+		GPERL_sCMP_JMPC(<=, 3, pc->src);
+		pc++;
+		BREAK();
+	});
+	CASE(D_oJLEC, {
+		GPERL_oCMP_JMPC(<=, 3, pc->src);
 		pc++;
 		BREAK();
 	});
@@ -1755,6 +2015,406 @@
 	});
 	CASE(D_oRET, {
 		GPERL_oRET(3);
+		pc++;
+		BREAK();
+	});
+	CASE(A_WRITE, {
+		GPERL_WRITE(0);
+		pc++;
+		BREAK();
+	});
+	CASE(B_WRITE, {
+		GPERL_WRITE(1);
+		pc++;
+		BREAK();
+	});
+	CASE(C_WRITE, {
+		GPERL_WRITE(2);
+		pc++;
+		BREAK();
+	});
+	CASE(D_WRITE, {
+		GPERL_WRITE(3);
+		pc++;
+		BREAK();
+	});
+	CASE(A_iWRITE, {
+		GPERL_iWRITE(0);
+		pc++;
+		BREAK();
+	});
+	CASE(A_dWRITE, {
+		GPERL_dWRITE(0);
+		pc++;
+		BREAK();
+	});
+	CASE(A_sWRITE, {
+		GPERL_sWRITE(0);
+		pc++;
+		BREAK();
+	});
+	CASE(A_oWRITE, {
+		GPERL_oWRITE(0);
+		pc++;
+		BREAK();
+	});
+	CASE(B_iWRITE, {
+		GPERL_iWRITE(1);
+		pc++;
+		BREAK();
+	});
+	CASE(B_dWRITE, {
+		GPERL_dWRITE(1);
+		pc++;
+		BREAK();
+	});
+	CASE(B_sWRITE, {
+		GPERL_sWRITE(1);
+		pc++;
+		BREAK();
+	});
+	CASE(B_oWRITE, {
+		GPERL_oWRITE(1);
+		pc++;
+		BREAK();
+	});
+	CASE(C_iWRITE, {
+		GPERL_iWRITE(2);
+		pc++;
+		BREAK();
+	});
+	CASE(C_dWRITE, {
+		GPERL_dWRITE(2);
+		pc++;
+		BREAK();
+	});
+	CASE(C_sWRITE, {
+		GPERL_sWRITE(2);
+		pc++;
+		BREAK();
+	});
+	CASE(C_oWRITE, {
+		GPERL_oWRITE(2);
+		pc++;
+		BREAK();
+	});
+	CASE(D_iWRITE, {
+		GPERL_iWRITE(3);
+		pc++;
+		BREAK();
+	});
+	CASE(D_dWRITE, {
+		GPERL_dWRITE(3);
+		pc++;
+		BREAK();
+	});
+	CASE(D_sWRITE, {
+		GPERL_sWRITE(3);
+		pc++;
+		BREAK();
+	});
+	CASE(D_oWRITE, {
+		GPERL_oWRITE(3);
+		pc++;
+		BREAK();
+	});
+	CASE(A_CALL, {
+		GPERL_CALL(0, pc->src, A_CALL);
+		pc++;
+		BREAK();
+	});
+	CASE(B_CALL, {
+		GPERL_CALL(1, pc->src, B_CALL);
+		pc++;
+		BREAK();
+	});
+	CASE(C_CALL, {
+		GPERL_CALL(2, pc->src, C_CALL);
+		pc++;
+		BREAK();
+	});
+	CASE(D_CALL, {
+		GPERL_CALL(3, pc->src, D_CALL);
+		pc++;
+		BREAK();
+	});
+	CASE(A_iCALL, {
+		GPERL_iCALL(0, pc->src, A_iCALL);
+		pc++;
+		BREAK();
+	});
+	CASE(A_dCALL, {
+		GPERL_dCALL(0, pc->src, A_dCALL);
+		pc++;
+		BREAK();
+	});
+	CASE(A_sCALL, {
+		GPERL_sCALL(0, pc->src, A_sCALL);
+		pc++;
+		BREAK();
+	});
+	CASE(A_oCALL, {
+		GPERL_oCALL(0, pc->src, A_oCALL);
+		pc++;
+		BREAK();
+	});
+	CASE(B_iCALL, {
+		GPERL_iCALL(1, pc->src, B_iCALL);
+		pc++;
+		BREAK();
+	});
+	CASE(B_dCALL, {
+		GPERL_dCALL(1, pc->src, B_dCALL);
+		pc++;
+		BREAK();
+	});
+	CASE(B_sCALL, {
+		GPERL_sCALL(1, pc->src, B_sCALL);
+		pc++;
+		BREAK();
+	});
+	CASE(B_oCALL, {
+		GPERL_oCALL(1, pc->src, B_oCALL);
+		pc++;
+		BREAK();
+	});
+	CASE(C_iCALL, {
+		GPERL_iCALL(2, pc->src, C_iCALL);
+		pc++;
+		BREAK();
+	});
+	CASE(C_dCALL, {
+		GPERL_dCALL(2, pc->src, C_dCALL);
+		pc++;
+		BREAK();
+	});
+	CASE(C_sCALL, {
+		GPERL_sCALL(2, pc->src, C_sCALL);
+		pc++;
+		BREAK();
+	});
+	CASE(C_oCALL, {
+		GPERL_oCALL(2, pc->src, C_oCALL);
+		pc++;
+		BREAK();
+	});
+	CASE(D_iCALL, {
+		GPERL_iCALL(3, pc->src, D_iCALL);
+		pc++;
+		BREAK();
+	});
+	CASE(D_dCALL, {
+		GPERL_dCALL(3, pc->src, D_dCALL);
+		pc++;
+		BREAK();
+	});
+	CASE(D_sCALL, {
+		GPERL_sCALL(3, pc->src, D_sCALL);
+		pc++;
+		BREAK();
+	});
+	CASE(D_oCALL, {
+		GPERL_oCALL(3, pc->src, D_oCALL);
+		pc++;
+		BREAK();
+	});
+	CASE(A_SELFCALL, {
+		GPERL_SELFCALL(0, A_SELFCALL);
+		pc++;
+		BREAK();
+	});
+	CASE(B_SELFCALL, {
+		GPERL_SELFCALL(1, B_SELFCALL);
+		pc++;
+		BREAK();
+	});
+	CASE(C_SELFCALL, {
+		GPERL_SELFCALL(2, C_SELFCALL);
+		pc++;
+		BREAK();
+	});
+	CASE(D_SELFCALL, {
+		GPERL_SELFCALL(3, D_SELFCALL);
+		pc++;
+		BREAK();
+	});
+	CASE(A_iSELFCALL, {
+		GPERL_iSELFCALL(0, A_iSELFCALL);
+		pc++;
+		BREAK();
+	});
+	CASE(A_dSELFCALL, {
+		GPERL_dSELFCALL(0, A_dSELFCALL);
+		pc++;
+		BREAK();
+	});
+	CASE(A_sSELFCALL, {
+		GPERL_sSELFCALL(0, A_sSELFCALL);
+		pc++;
+		BREAK();
+	});
+	CASE(A_oSELFCALL, {
+		GPERL_oSELFCALL(0, A_oSELFCALL);
+		pc++;
+		BREAK();
+	});
+	CASE(B_iSELFCALL, {
+		GPERL_iSELFCALL(1, B_iSELFCALL);
+		pc++;
+		BREAK();
+	});
+	CASE(B_dSELFCALL, {
+		GPERL_dSELFCALL(1, B_dSELFCALL);
+		pc++;
+		BREAK();
+	});
+	CASE(B_sSELFCALL, {
+		GPERL_sSELFCALL(1, B_sSELFCALL);
+		pc++;
+		BREAK();
+	});
+	CASE(B_oSELFCALL, {
+		GPERL_oSELFCALL(1, B_oSELFCALL);
+		pc++;
+		BREAK();
+	});
+	CASE(C_iSELFCALL, {
+		GPERL_iSELFCALL(2, C_iSELFCALL);
+		pc++;
+		BREAK();
+	});
+	CASE(C_dSELFCALL, {
+		GPERL_dSELFCALL(2, C_dSELFCALL);
+		pc++;
+		BREAK();
+	});
+	CASE(C_sSELFCALL, {
+		GPERL_sSELFCALL(2, C_sSELFCALL);
+		pc++;
+		BREAK();
+	});
+	CASE(C_oSELFCALL, {
+		GPERL_oSELFCALL(2, C_oSELFCALL);
+		pc++;
+		BREAK();
+	});
+	CASE(D_iSELFCALL, {
+		GPERL_iSELFCALL(3, D_iSELFCALL);
+		pc++;
+		BREAK();
+	});
+	CASE(D_dSELFCALL, {
+		GPERL_dSELFCALL(3, D_dSELFCALL);
+		pc++;
+		BREAK();
+	});
+	CASE(D_sSELFCALL, {
+		GPERL_sSELFCALL(3, D_sSELFCALL);
+		pc++;
+		BREAK();
+	});
+	CASE(D_oSELFCALL, {
+		GPERL_oSELFCALL(3, D_oSELFCALL);
+		pc++;
+		BREAK();
+	});
+	CASE(A_SHIFT, {
+		GPERL_SHIFT(0);
+		pc++;
+		BREAK();
+	});
+	CASE(B_SHIFT, {
+		GPERL_SHIFT(1);
+		pc++;
+		BREAK();
+	});
+	CASE(C_SHIFT, {
+		GPERL_SHIFT(2);
+		pc++;
+		BREAK();
+	});
+	CASE(D_SHIFT, {
+		GPERL_SHIFT(3);
+		pc++;
+		BREAK();
+	});
+	CASE(A_iSHIFT, {
+		GPERL_iSHIFT(0);
+		pc++;
+		BREAK();
+	});
+	CASE(A_dSHIFT, {
+		GPERL_dSHIFT(0);
+		pc++;
+		BREAK();
+	});
+	CASE(A_sSHIFT, {
+		GPERL_sSHIFT(0);
+		pc++;
+		BREAK();
+	});
+	CASE(A_oSHIFT, {
+		GPERL_oSHIFT(0);
+		pc++;
+		BREAK();
+	});
+	CASE(B_iSHIFT, {
+		GPERL_iSHIFT(1);
+		pc++;
+		BREAK();
+	});
+	CASE(B_dSHIFT, {
+		GPERL_dSHIFT(1);
+		pc++;
+		BREAK();
+	});
+	CASE(B_sSHIFT, {
+		GPERL_sSHIFT(1);
+		pc++;
+		BREAK();
+	});
+	CASE(B_oSHIFT, {
+		GPERL_oSHIFT(1);
+		pc++;
+		BREAK();
+	});
+	CASE(C_iSHIFT, {
+		GPERL_iSHIFT(2);
+		pc++;
+		BREAK();
+	});
+	CASE(C_dSHIFT, {
+		GPERL_dSHIFT(2);
+		pc++;
+		BREAK();
+	});
+	CASE(C_sSHIFT, {
+		GPERL_sSHIFT(2);
+		pc++;
+		BREAK();
+	});
+	CASE(C_oSHIFT, {
+		GPERL_oSHIFT(2);
+		pc++;
+		BREAK();
+	});
+	CASE(D_iSHIFT, {
+		GPERL_iSHIFT(3);
+		pc++;
+		BREAK();
+	});
+	CASE(D_dSHIFT, {
+		GPERL_dSHIFT(3);
+		pc++;
+		BREAK();
+	});
+	CASE(D_sSHIFT, {
+		GPERL_sSHIFT(3);
+		pc++;
+		BREAK();
+	});
+	CASE(D_oSHIFT, {
+		GPERL_oSHIFT(3);
 		pc++;
 		BREAK();
 	});

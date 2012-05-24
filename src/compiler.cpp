@@ -62,8 +62,7 @@ void GPerlCompiler::compile_(GPerlCell *path)
 
 void GPerlCompiler::genVMCode(GPerlCell *path) {
 	GPerlVirtualMachineCode *code;
-	if (path->type == Call || path->type == PrintDecl ||
-		path->type == PushDecl) {
+	if (path->type == Call || path->type == BuiltinFunc) {
 		//asm("int3");
 		genFunctionCallCode(path);
 	} else if (path->type == IfStmt) {
@@ -84,12 +83,12 @@ void GPerlCompiler::genFunctionCallCode(GPerlCell *p)
 	for (size_t i = 0; i < argsize; i++) {
 		compile_(p->vargs[i]);
 		dststack[i] = dst;
-		if (p->type == PrintDecl) {
+		if (p->rawstr == "print") {
 			addWriteCode();
 		}
 	}
 	for (size_t i = 0; i < argsize; i++) {
-		if (p->type == Call || p->type == PushDecl) {
+		if (p->type == Call || p->type == BuiltinFunc) {
 			addPushCode(i, dststack[i]);
 		}
 	}
@@ -267,25 +266,25 @@ void GPerlCompiler::optimizeFuncCode(vector<GPerlVirtualMachineCode *> *f, strin
 	//bool isOMOVCall = false;
 	while (it != f->end()) {
 		GPerlVirtualMachineCode *c = *it;
-		if (c->op == OPJCALL && fname == c->name) {
-			c->op = OPJSELFCALL;
-		} else if (c->op == OPNOP) {
+		if (c->op == CALL && fname == c->name) {
+			c->op = SELFCALL;
+		} else if (c->op == NOP) {
 			it = f->erase(it);
 			code_num--;
 			it--;
-		} else if (c->op == OPSET) {
+		} else if (c->op == SETv) {
 			it = f->erase(it);
 			code_num--;
 			it--;
-		} else if (c->op == OPSHIFT) {
+		} else if (c->op == SHIFT) {
 			it = f->erase(it);
 			code_num--;
 			it--;
-		} else if (c->op == OPLET) {
+		} else if (c->op == LET) {
 			it = f->erase(it);
 			code_num--;
 			it--;
-		} else if (c->op == OPOMOV) {
+		} else if (c->op == oMOV) {
 			/*
 			reg_n = c->dst;
 			if (isOMOVCall) {
@@ -304,8 +303,8 @@ void GPerlCompiler::optimizeFuncCode(vector<GPerlVirtualMachineCode *> *f, strin
 	}
 }
 
-#define CONCAT(c0, c1, c2) OP##c0##c1##c2
-#define CONCAT2(c0, c1) OP##c0##c1
+#define CONCAT(c0, c1, c2) c0##c1##_##c2
+#define CONCAT2(c0, c1) c0##_##c1
 
 #define DST(n) c->dst == n
 #define SRC(n) c->src == n
@@ -358,7 +357,7 @@ void GPerlCompiler::finalCompile(vector<GPerlVirtualMachineCode *> *code)
 		GPerlVirtualMachineCode *c = *it;
 		switch (c->op) {
 		/*========= TYPE1 =========*/
-		case OPADD:
+		case ADD:
 			OPCREATE_TYPE1(ADD);
 			break;
 			/*
@@ -378,10 +377,10 @@ void GPerlCompiler::finalCompile(vector<GPerlVirtualMachineCode *> *code)
 			OPCREATE_TYPE2(iADDC);
 			break;
 */
-		case OPiSUBC:
+		case iSUBC:
 			OPCREATE_TYPE2(iSUBC);
 			break;
-		case OPiJLC:
+		case iJLC:
 			OPCREATE_TYPE2(iJLC);
 			break;
 /*
@@ -392,7 +391,7 @@ void GPerlCompiler::finalCompile(vector<GPerlVirtualMachineCode *> *code)
 			OPCREATE_TYPE2(PUSH);
 			break;
 */
-		case OPiPUSH:
+		case iPUSH:
 			OPCREATE_TYPE2(iPUSH);
 			break;
 /*
@@ -400,24 +399,18 @@ void GPerlCompiler::finalCompile(vector<GPerlVirtualMachineCode *> *code)
 			OPCREATE_TYPE2(MOV);
 			break;
 */
-		case OPiMOV:
+		case iMOV:
 			OPCREATE_TYPE2(iMOV);
 			break;
-		case OPOMOV:
-			OPCREATE_TYPE2(OMOV);
+		case oMOV:
+			OPCREATE_TYPE2(oMOV);
 			break;
-		case OPSELFCALL:
+		case SELFCALL:
 			OPCREATE_TYPE2(SELFCALL);
 			break;
-		case OPJSELFCALL:
-			OPCREATE_TYPE2(JSELFCALL);
-			break;
 		/*========= TYPE3 =========*/
-		case OPRET:
+		case RET:
 			OPCREATE_TYPE3(RET);
-			break;
-		case OPJRET:
-			OPCREATE_TYPE3(JRET);
 			break;
 		default:
 			break;
@@ -441,9 +434,9 @@ GPerlVirtualMachineCode *GPerlCompiler::getPureCodes(vector<GPerlVirtualMachineC
 	return pure_codes;
 }
 
-#define INT(O) OPi ## O
-#define INTC(O) OPi ## O ## C
-#define STRING(O) OPs ## O
+#define INT(O) i ## O
+#define INTC(O) i ## O ## C
+#define STRING(O) s ## O
 
 #define SET_OPCODE(T) {							\
 		dst--;									\
@@ -462,12 +455,12 @@ GPerlVirtualMachineCode *GPerlCompiler::getPureCodes(vector<GPerlVirtualMachineC
 				code->code_num = code_num;		\
 				break;							\
 			default:							\
-				code->op = OP ## T;				\
+				code->op = T;					\
 				break;							\
 			}									\
 			break;								\
 		default:								\
-			code->op = OP ## T;					\
+			code->op = T;						\
 			break;								\
 		}										\
 		code->dst = dst - 1;					\
@@ -524,14 +517,11 @@ GPerlVirtualMachineCode *GPerlCompiler::createVMCode(GPerlCell *c)
 	case NotEqual:
 		SET_OPCODE(JNE);
 		break;
-	case PrintDecl:
-		code->op = OPPRINT;
-		break;
 	case IfStmt:
-		code->op = OPNOP;
+		code->op = NOP;
 		break;
 	case LocalVarDecl: case VarDecl: case GlobalVarDecl: {
-		code->op = OPSET;
+		code->op = SETv;
 		code->dst = variable_index;
 		code->src = 0;
 		const char *name = cstr(c->vname);
@@ -545,11 +535,11 @@ GPerlVirtualMachineCode *GPerlCompiler::createVMCode(GPerlCell *c)
 		int idx = getVariableIndex(name);
 		switch (variable_types[idx]) {
 		case Int:
-			code->op = OPOiMOV;
+			code->op = iMOV;
 			reg_type[dst] = Int;
 			break;
 		default:
-			code->op = OPOMOV;
+			code->op = oMOV;
 			reg_type[dst] = Object;
 			break;
 		}
@@ -563,7 +553,7 @@ GPerlVirtualMachineCode *GPerlCompiler::createVMCode(GPerlCell *c)
 		DBG_PL("ArrayVar");
 		const char *name = cstr(c->vname);
 		int idx = getVariableIndex(name);
-		code->op = OPLMOV;
+		code->op = oMOV;
 		reg_type[dst] = Array;
 		code->dst = dst;
 		code->src = idx;
@@ -571,19 +561,23 @@ GPerlVirtualMachineCode *GPerlCompiler::createVMCode(GPerlCell *c)
 		dst++;
 		break;
 	}
-	case PushDecl: {
-		DBG_PL("PushDecl");
-		if (reg_type[0] != Array) {
-			fprintf(stderr, "COMPILE ERROR : must be Array 1st argument\n");
+	case BuiltinFunc: {
+		if (c->rawstr == "print") {
+			DBG_PL("Print");
+			code->op = FLUSH;
+		} else if (c->rawstr == "push") {
+			DBG_PL("Push");
+			if (reg_type[0] != Array) {
+				fprintf(stderr, "COMPILE ERROR : must be Array 1st argument\n");
+			}
+			code->op = UNDEF;//ARRAY_PUSH;
 		}
-		code->op = OPARRAY_PUSH;
 		break;
 	}
 	case Call: {
 		const char *name = cstr(c->fname);
 		int idx = getFuncIndex(name);
-		code->op = OPJCALL;
-		//code->op = OPCALL;
+		code->op = CALL;
 		code->dst = dst-1;
 		code->src = idx;
 		code->name = name;
@@ -618,19 +612,19 @@ GPerlVirtualMachineCode *GPerlCompiler::createVMCode(GPerlCell *c)
 		}
 		code->dst = dst;
 		code->src = 0;
-		code->op = OPLIST_NEW;/* List MOV */
+		code->op = UNDEF;//LIST_NEW;/* List MOV */
 		reg_type[dst] = Object;
 		dst++;
 		break;
 	}
 	case Shift:
-		code->op = OPSHIFT;
+		code->op = SHIFT;
 		code->dst = 0;
 		code->src = args_count;
 		args_count++;
 		break;
 	case Assign: {
-		code->op = OPLET;
+		code->op = LET;
 		int idx = getVariableIndex(declared_vname);
 		code->dst = idx;
 		code->src = 0;
@@ -654,7 +648,7 @@ GPerlVirtualMachineCode *GPerlCompiler::createVMCode(GPerlCell *c)
 		break;
 	}
 	case Function: {
-		code->op = OPFUNCSET;
+		code->op = FUNCSET;
 		code->dst = func_index;
 		code->src = 0;
 		const char *name = cstr(c->fname);
@@ -664,8 +658,7 @@ GPerlVirtualMachineCode *GPerlCompiler::createVMCode(GPerlCell *c)
 		break;
 	}
 	case Return:
-		code->op = OPJRET;
-		//code->op = OPRET;
+		code->op = RET;
 		code->dst = 0;
 		code->src = dst-1;
 		break;
@@ -730,7 +723,7 @@ GPerlVirtualMachineCode *GPerlCompiler::createTHCODE(void)
 {
 	GPerlVirtualMachineCode *code = new GPerlVirtualMachineCode();
 	code->code_num = code_num;
-	code->op = OPTHCODE;
+	code->op = THCODE;
 	code_num++;
 	return code;
 }
@@ -739,8 +732,7 @@ GPerlVirtualMachineCode *GPerlCompiler::createRET(void)
 {
 	GPerlVirtualMachineCode *code = new GPerlVirtualMachineCode();
 	code->code_num = code_num;
-	code->op = OPJRET;
-	//code->op = OPRET;
+	code->op = RET;
 	code_num++;
 	return code;
 }
@@ -749,7 +741,7 @@ GPerlVirtualMachineCode *GPerlCompiler::createUNDEF(void)
 {
 	GPerlVirtualMachineCode *code = new GPerlVirtualMachineCode();
 	code->code_num = code_num;
-	code->op = OPUNDEF;
+	code->op = UNDEF;
 	code_num++;
 	return code;
 }
@@ -758,7 +750,7 @@ GPerlVirtualMachineCode *GPerlCompiler::createiWRITE(void)
 {
 	GPerlVirtualMachineCode *code = new GPerlVirtualMachineCode();
 	code->code_num = code_num;
-	code->op = OPiWRITE;
+	code->op = iWRITE;
 	code->dst = dst-1;
 	code_num++;
 	return code;
@@ -768,7 +760,7 @@ GPerlVirtualMachineCode *GPerlCompiler::createsWRITE(void)
 {
 	GPerlVirtualMachineCode *code = new GPerlVirtualMachineCode();
 	code->code_num = code_num;
-	code->op = OPsWRITE;
+	code->op = sWRITE;
 	code->dst = dst-1;
 	code_num++;
 	return code;
@@ -778,7 +770,7 @@ GPerlVirtualMachineCode *GPerlCompiler::createoWRITE(void)
 {
 	GPerlVirtualMachineCode *code = new GPerlVirtualMachineCode();
 	code->code_num = code_num;
-	code->op = OPoWRITE;
+	code->op = oWRITE;
 	code_num++;
 	return code;
 }
@@ -787,7 +779,7 @@ GPerlVirtualMachineCode *GPerlCompiler::createiPUSH(int i, int dst_)
 {
 	GPerlVirtualMachineCode *code = new GPerlVirtualMachineCode();
 	code->code_num = code_num;
-	code->op = OPiPUSH;
+	code->op = iPUSH;
 	code->src = i;
 	code->dst = dst_-1;
 	code_num++;
@@ -799,7 +791,7 @@ GPerlVirtualMachineCode *GPerlCompiler::createsPUSH(int i, int dst_)
 {
 	GPerlVirtualMachineCode *code = new GPerlVirtualMachineCode();
 	code->code_num = code_num;
-	code->op = OPsPUSH;
+	code->op = sPUSH;
 	code->src = i;
 	code->dst = dst_-1;
 	code_num++;
@@ -810,7 +802,7 @@ GPerlVirtualMachineCode *GPerlCompiler::createoPUSH(int i, int dst_)
 {
 	GPerlVirtualMachineCode *code = new GPerlVirtualMachineCode();
 	code->code_num = code_num;
-	code->op = OPoPUSH;
+	code->op = oPUSH;
 	code->src = i;
 	code->dst = dst_-1;
 	code_num++;
@@ -821,7 +813,7 @@ GPerlVirtualMachineCode *GPerlCompiler::createJMP(int jmp_num)
 {
 	GPerlVirtualMachineCode *code = new GPerlVirtualMachineCode();
 	code->code_num = code_num;
-	code->op = OPJMP;
+	code->op = JMP;
 	code->jmp = jmp_num;
 	code_num++;
 	return code;

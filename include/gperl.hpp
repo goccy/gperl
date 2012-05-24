@@ -27,58 +27,7 @@
 #define DBG_PL(fmt, ...) {}
 #endif
 
-typedef enum {
-	Return,
-	Add,
-	Sub,
-	Mul,
-	Div,
-	Greater,
-	Less,
-	GreaterEqual,
-	LessEqual,
-	EqualEqual,
-	NotEqual,
-	VarDecl,
-	FunctionDecl,
-	Assign,
-	PrintDecl,
-	PushDecl,
-	IfStmt,
-	ElseStmt,
-	Comma,
-	SemiColon,
-	LeftParenthesis,
-	RightParenthesis,
-	LeftBrace,
-	RightBrace,
-	LeftBracket,
-	RightBracket,
-	Shift,
-	CallDecl,
-	FieldDecl,
-	TypeRef,
-	LabelRef,
-	LocalVarDecl,
-	GlobalVarDecl,
-	Var,
-	ArrayVar,
-	Int,
-	Float,
-	String,
-	Object,
-	Array,
-	Operator,
-	LocalVar,
-	LocalArrayVar,
-	GlobalVar,
-	GlobalArrayVar,
-	Function,
-	Call,
-	Argument,
-	List,
-	Undefined,
-} GPerlT;
+#include <gen_token.hpp>
 
 typedef struct _GPerlTokenType {
 	GPerlT type;
@@ -211,10 +160,10 @@ typedef struct _GPerlOpDef {
 } GPerlOpDef;
 
 #define DECL(T, S) {T, #T, S}
-extern GPerlTokenType decl_token_types[];
+extern GPerlTokenInfo decl_tokens[];
 extern GPerlOpDef decl_opdef[];
-#define TypeName(type) decl_token_types[type].name
-#define RawName(type) decl_token_types[type].str
+#define TypeName(type) decl_tokens[type].name
+#define RawName(type) decl_tokens[type].data
 #define OpName(op) decl_opdef[op].name
 
 class GPerl {
@@ -387,7 +336,7 @@ typedef struct _GPerlObject {
 } GPerlObject;
 
 typedef struct _GPerlVirtualMachineCode {
-	GPerlOpCodes op; /* operation code */
+	GPerlOpCode op; /* operation code */
 	int dst;   /* register number */
 	int src;   /* src value or register number */
 	int code_num;

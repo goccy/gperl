@@ -45,6 +45,11 @@
 	 "parse_func" : ""
  },
  {
+	 "type" : "EqualEqual",
+	 "data" : "==",
+	 "parse_func" : ""
+ },
+ {
 	 "type" : "NotEqual",
 	 "data" : "!=",
 	 "parse_func" : ""
@@ -210,7 +215,7 @@
 	 "parse_func" : ""
  },
  {
-	 "type" : "GloabalVar",
+	 "type" : "GlobalVar",
 	 "data" : "",
 	 "parse_func" : ""
  },

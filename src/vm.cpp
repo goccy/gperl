@@ -30,10 +30,10 @@ inline GPerlVirtualMachineCode *GPerlVirtualMachine::getFromFuncMemory(int idx)
 
 void GPerlVirtualMachine::createDirectThreadingCode(GPerlVirtualMachineCode *codes, void **jmp_tbl)
 {
-	if (codes->op == OPTHCODE) codes->op = OPNOP;
+	if (codes->op == THCODE) codes->op = NOP;
 	GPerlVirtualMachineCode *pc = codes;
-	for (; pc->op != OPUNDEF; pc++) {
-		if (pc->op == OPFUNCSET) {
+	for (; pc->op != UNDEF; pc++) {
+		if (pc->op == FUNCSET) {
 			createDirectThreadingCode(pc->func, jmp_tbl);
 		}
 		pc->opnext = jmp_tbl[pc->op];
@@ -41,6 +41,7 @@ void GPerlVirtualMachine::createDirectThreadingCode(GPerlVirtualMachineCode *cod
 	pc->opnext = jmp_tbl[pc->op];
 }
 
+/*
 static void *gxmalloc(void)
 {
 	int pagesize = sysconf(_SC_PAGE_SIZE);
@@ -52,23 +53,19 @@ static void *gxmalloc(void)
 	if (mprotect(codeptr, pagesize * 10L, PROT_WRITE|PROT_READ|PROT_EXEC) < 0) perror("mprotect");
 	return codeptr;
 }
+*/
 
 void GPerlVirtualMachine::createSelectiveInliningCode(GPerlVirtualMachineCode *c, void **jmp_tbl, InstBlock *block_tbl)
 {
 	GPerlVirtualMachineCode *pc = c;
 	pc++;//skip THCODE
-	for (; pc->op != OPUNDEF; pc++) {
+	for (; pc->op != UNDEF; pc++) {
 		//pc->code = gxmalloc();
 		//pos = 0;
 		InstBlock block = block_tbl[pc->op];
 		int len = (intptr_t)block.end - (intptr_t)block.start;
 		DBG_PL("len = [%d]", len);
-		if (pc->op == OPSUPERCALL) {
-			DBG_PL("OPSUPERCALL");
-			pc->code = gxmalloc();
-			memcpy(pc->code, block.start, len);
-		}
-		if (pc->op == OPFUNCSET) {
+		if (pc->op == FUNCSET) {
 			createSelectiveInliningCode(pc->func, jmp_tbl, block_tbl);
 		}
 	}

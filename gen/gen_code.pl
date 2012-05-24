@@ -59,6 +59,7 @@ sub get_inst_data {
                 push(@inst_names, "i${inst_name}C");
                 push(@inst_names, "d${inst_name}C");
                 if ($fast_type) {
+					@fast_prefix = ("A", "B", "C", "D");
 					foreach (@fast_prefix) {
 						push(@fast_inst_names, "${_}_i${inst_name}C");
 						push(@fast_inst_names, "${_}_d${inst_name}C");
@@ -77,6 +78,7 @@ sub get_inst_data {
         } elsif ($const_flag) {
             push(@inst_names, "${inst_name}C");
             if ($fast_type) {
+				@fast_prefix = ("A", "B", "C", "D");
                 foreach (@fast_prefix) {
                     push(@fast_inst_names, "${_}_${inst_name}C");
                 }
@@ -155,7 +157,7 @@ sub gen_inst_label_code {
         push(@inst_names, @_inst_names);
         push(@fast_inst_names, @_fast_inst_names);
     }
-    for (my $i = 0; $i < $#inst_names; $i += 3) {
+    for (my $i = 0; $i <= $#inst_names; $i += 3) {
         my $inst = $inst_names[$i];
         my $inst2 = $inst_names[$i+1];
         my $inst3 = $inst_names[$i+2];
@@ -163,7 +165,7 @@ sub gen_inst_label_code {
         $jmp_label .= " &&L(${inst2})," if (defined($inst2));
         $jmp_label .= " &&L(${inst3}),\n" if (defined($inst3));
     }
-    for (my $i = 0; $i < $#fast_inst_names; $i += 3) {
+    for (my $i = 0; $i <= $#fast_inst_names; $i += 3) {
         my $inst = $fast_inst_names[$i];
         my $inst2 = $fast_inst_names[$i+1];
         my $inst3 = $fast_inst_names[$i+2];
@@ -173,7 +175,7 @@ sub gen_inst_label_code {
     }
     $jmp_label .= "\n\t};\n";
     my $block_label .= "\tstatic InstBlock block_table[] = {\n";
-    for (my $i = 0; $i < $#inst_names; $i += 3) {
+    for (my $i = 0; $i <= $#inst_names; $i += 3) {
         my $inst = $inst_names[$i];
         my $inst2 = $inst_names[$i+1];
         my $inst3 = $inst_names[$i+2];
@@ -181,7 +183,7 @@ sub gen_inst_label_code {
         $block_label .= " B(${inst2})," if (defined($inst2));
         $block_label .= " B(${inst3}),\n" if (defined($inst3));
     }
-    for (my $i = 0; $i < $#fast_inst_names; $i += 3) {
+    for (my $i = 0; $i <= $#fast_inst_names; $i += 3) {
         my $inst = $fast_inst_names[$i];
         my $inst2 = $fast_inst_names[$i+1];
         my $inst3 = $fast_inst_names[$i+2];
@@ -269,7 +271,14 @@ sub gen_inst_body {
     return $ret;
 }
 
-my $run_init = "\nint GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
+my $run_init = "
+#include <gperl.hpp>
+#include \"gen_decl_code.cpp\"
+#include <vmlibs.hpp>
+
+using namespace std;
+
+int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 {
 	static GPerlVirtualMachineCode *top;
 	GPerlVirtualMachineCode *pc = codes;
@@ -295,6 +304,7 @@ sub gen_vm_run_code {
         my @inst_names = @{$inst->{inst_names}};
 		my @args = @{$inst->{args}};
 		foreach (@inst_names) {
+			my $orig = $_;
 			$ret .= "\tCASE(${_}, {\n";
 			my $decl_args = "";
 			foreach (@args) {
@@ -306,6 +316,8 @@ sub gen_vm_run_code {
 					if ($isFirst) {
 						$decl_args .= $values[0];
 						$isFirst = 0;
+					} elsif ($values[0] =~ /callname/) {
+						$decl_args .= ", " . $orig;
 					} else {
 						$decl_args .= ", " . $values[0];
 					}
@@ -319,11 +331,19 @@ sub gen_vm_run_code {
 				} else {
 					$ret .= "\t\tGPERL_${prefix}CMP_JMP(" . $decl_args . ");\n";
 				}
+			} elsif ($_ =~ /THCODE/) {
 			} else {
 				$ret .= "\t\tGPERL_${_}(" . $decl_args . ");\n";
 			}
-			$ret .= "\t\tpc++;\n";
-			$ret .= "\t\tBREAK();\n";
+			if ($_ =~ /THCODE/) {
+				$ret .= "\t\tcreateDirectThreadingCode(codes, jmp_table);\n";
+				$ret .= "\t\t(void)block_table;\n";
+				$ret .= "\t\t//createSelectiveInliningCode(codes, jmp_table, block_table);\n";
+				$ret .= "\t\treturn 0;\n";
+			} else {
+				$ret .= "\t\tpc++;\n";
+				$ret .= "\t\tBREAK();\n";
+			}
 			$ret .= "\t});\n";
 		}
 	}
@@ -343,6 +363,7 @@ sub gen_fast_vm_code {
         my @inst_names = @{$inst->{fast_inst_names}};
 		my @args = @{$inst->{args}};
 		foreach (@inst_names) {
+			my $orig = $_;
 			$ret .= "\tCASE(${_}, {\n";
 			my @_code = split("_", $_);
 			my $fast_prefix = substr($_code[0], 0, 1);
@@ -374,6 +395,18 @@ sub gen_fast_vm_code {
 								$decl_args .= "2";
 							} elsif ($fast_prefix2 =~ "D") {
 								$decl_args .= "3";
+							} elsif (($orig =~ /RET/ || $orig =~ /SHIFT/) &&
+									 $fast_prefix =~ "A") {
+								$decl_args .= "0";
+							} elsif (($orig =~ /RET/ || $orig =~ /SHIFT/) &&
+									 $fast_prefix =~ "B") {
+								$decl_args .= "1";
+							} elsif (($orig =~ /RET/ || $orig =~ /SHIFT/) &&
+									 $fast_prefix =~ "C") {
+								$decl_args .= "2";
+							} elsif (($orig =~ /RET/ || $orig =~ /SHIFT/) &&
+								$fast_prefix =~ "D") {
+								$decl_args .= "3";
 							}
 						} else {
 							$decl_args .= $values[0];
@@ -402,6 +435,8 @@ sub gen_fast_vm_code {
 							} else {
 								$decl_args .= ", " . $values[0];
 							}
+						} elsif ($values[0] =~ /callname/) {
+							$decl_args .= ", " . $orig;
 						} else {
 							$decl_args .= ", " . $values[0];
 						}
@@ -428,21 +463,25 @@ sub gen_fast_vm_code {
 }
 
 my @array = read_code_data("gen/code.json");
-#open(ous, ">include/gen_vmcode.hpp");
 my @insts = get_inst_data(\@array);
+
+open(ous, ">include/gen_vmcode.hpp");
 my $enum_code = gen_enum_code(\@insts);
+print ous $enum_code;
+
+open(ous, ">src/gen_decl_code.cpp");
 my $info_code = gen_info_code(\@insts);
-#print ous $enum_code;
-#print ous $info_code;
-my $label_code = gen_inst_label_code(\@insts);
+print ous $info_code;
+
 open(ous, ">src/gen_label.cpp");
+my $label_code = gen_inst_label_code(\@insts);
 print ous $label_code;
 
-#open(ous, ">src/gen_vm.cpp");
+open(ous, ">src/gen_vm.cpp");
 #my $body = gen_inst_body(\@insts);
-#my $vm_code = gen_vm_run_code(\@insts);
+my $vm_code = gen_vm_run_code(\@insts);
 #print ous $body;
-#print ous $vm_code;
-#my $fast_vm_code = gen_fast_vm_code(\@insts);
-#open(ous, ">src/gen_fast_vmcode.cpp");
-#print ous $fast_vm_code;
+print ous $vm_code;
+my $fast_vm_code = gen_fast_vm_code(\@insts);
+open(ous, ">src/gen_fast_vmcode.cpp");
+print ous $fast_vm_code;

@@ -56,6 +56,20 @@
      "args" : [{"op" : "<"}, {"dst" : "pc->dst"}, {"src" : "pc->src"}]
  },
  {
+	 "code" : "JGE",
+	 "type" : 1,
+	 "const" : 1,
+	 "fast_type" : 2,
+     "args" : [{"op" : ">="}, {"dst" : "pc->dst"}, {"src" : "pc->src"}]
+ },
+ {
+	 "code" : "JLE",
+	 "type" : 1,
+	 "const" : 1,
+	 "fast_type" : 2,
+     "args" : [{"op" : "<="}, {"dst" : "pc->dst"}, {"src" : "pc->src"}]
+ },
+ {
 	 "code" : "JE",
 	 "type" : 1,
 	 "const" : 1,
@@ -94,11 +108,11 @@
 	 "code" : "WRITE",
 	 "type" : 1,
 	 "const" : 0,
-	 "fast_type" : 0,
+	 "fast_type" : 2,
      "args" : [{"dst" : "pc->dst"}]
  },
  {
-	 "code" : "FRUSH",
+	 "code" : "FLUSH",
 	 "type" : 0,
 	 "const" : 0,
 	 "fast_type" : 0,
@@ -136,21 +150,21 @@
 	 "code" : "CALL",
 	 "type" : 1,
 	 "const" : 0,
-	 "fast_type" : 0,
-     "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}]
+	 "fast_type" : 2,
+     "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}, {"NAME" : "callname"}]
  },
  {
 	 "code" : "SELFCALL",
 	 "type" : 1,
 	 "const" : 0,
-	 "fast_type" : 0,
-     "args" : [{"dst" : "pc->dst"}]
+	 "fast_type" : 2,
+     "args" : [{"dst" : "pc->dst"}, {"NAME" : "callname"}]
  },
  {
 	 "code" : "SHIFT",
 	 "type" : 1,
 	 "const" : 0,
-	 "fast_type" : 0,
+	 "fast_type" : 2,
      "args" : [{"src" : "pc->src"}]
  },
  {

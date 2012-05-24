@@ -1,5 +1,5 @@
 #include <gperl.hpp>
-#include <token.hpp>
+#include "gen_token_decl.cpp"
 using namespace std;
 
 Token::Token(string data_, int idx_) : data(data_), idx(idx_)
@@ -225,8 +225,8 @@ GPerlT GPerlTokenizer::getType(const char *name)
 	int i = 0;
 	size_t nsize = strlen(name);
 	while (true) {
-		const char *type_name = decl_token_types[i].str;
-		GPerlT type = decl_token_types[i].type;
+		const char *type_name = decl_tokens[i].name;
+		GPerlT type = decl_tokens[i].type;
 		size_t tsize = strlen(type_name);
 		if (nsize == tsize && !strncmp(type_name, name, nsize)) {
 			return type;
