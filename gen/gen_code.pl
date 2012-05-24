@@ -13,8 +13,6 @@ sub read_code_data {
     return @array;
 }
 
-my @g_inst = ();
-my @g_fast_inst = ();
 sub get_inst_data {
     my $ref = shift;
     my @array = @{$ref};
@@ -42,27 +40,27 @@ sub get_inst_data {
         }
         if ($type_flag) {# gen Int, Double, String, Object, (TypeInference)
             push(@inst_names, "i${inst_name}");
-            push(@inst_names, "f${inst_name}");
+            push(@inst_names, "d${inst_name}");
             push(@inst_names, "s${inst_name}");
             push(@inst_names, "o${inst_name}");
             if ($fast_type) {
-                foreach (@fast_prefix) {
-                    push(@fast_inst_names, "${_}_i${inst_name}");
-                    push(@fast_inst_names, "${_}_f${inst_name}");
-                    push(@fast_inst_names, "${_}_s${inst_name}");
-                    push(@fast_inst_names, "${_}_o${inst_name}");
-                }
+				foreach (@fast_prefix) {
+					push(@fast_inst_names, "${_}_i${inst_name}");
+					push(@fast_inst_names, "${_}_d${inst_name}");
+					push(@fast_inst_names, "${_}_s${inst_name}");
+					push(@fast_inst_names, "${_}_o${inst_name}");
+				}
             }
             if ($const_flag) {
                 push(@inst_names, "i${inst_name}C");
-                push(@inst_names, "f${inst_name}C");
+                push(@inst_names, "d${inst_name}C");
                 if ($fast_type) {
-                    foreach (@fast_prefix) {
-                        push(@fast_inst_names, "${_}_i${inst_name}C");
-                        push(@fast_inst_names, "${_}_f${inst_name}C");
-                        push(@fast_inst_names, "${_}_s${inst_name}C");
-                        push(@fast_inst_names, "${_}_o${inst_name}C");
-                    }
+					foreach (@fast_prefix) {
+						push(@fast_inst_names, "${_}_i${inst_name}");
+						push(@fast_inst_names, "${_}_d${inst_name}");
+						push(@fast_inst_names, "${_}_s${inst_name}");
+						push(@fast_inst_names, "${_}_o${inst_name}");
+					}
                 }
             }
         } elsif ($const_flag) {
@@ -192,6 +190,9 @@ sub gen_inst_body {
     foreach my $inst (@insts) {
         my @inst_names = @{$inst->{inst_names}};
         my @args = @{$inst->{args}};
+		my $cmp_flag = 0;
+		my $ret_flag = 0;
+
         foreach (@inst_names) {
             my $op = "";
             if ($_ =~ "ADD") {
@@ -204,7 +205,11 @@ sub gen_inst_body {
                 $op .= "/=";
             } elsif ($_ =~ /MOV/) {
                 $op .= "=";
-            }
+            } elsif ($_ =~ /J/ && $_ !~ /JMP/) {
+				$cmp_flag = 1;
+			} elsif ($_ =~ /RET/) {
+				$ret_flag = 1;
+			}
             my $decl_args = "";
             foreach (@args) {
                 my @a = @{$_};
@@ -220,79 +225,40 @@ sub gen_inst_body {
                     }
                 }
             }
+			if ($cmp_flag) {
+				next;
+			}
             my $tmp = "#define GPERL_${_}(" . $decl_args . ") ";
             if ($_ =~ /^i/) {
-                $tmp .= "I(data)[dst] " . $op . " I(data)[src]\n";
+				if ($ret_flag) {
+					$tmp .= "return I(data)[src]\n";
+				} else {
+					$tmp .= "I(data)[dst] " . $op . " I(data)[src]\n";
+				}
             } elsif ($_ =~ /^d/) {
-                $tmp .= "D(data)[dst] " . $op . " D(data)[src]\n";
+				if ($ret_flag) {
+					$tmp .= "return D(data)[src]\n";
+				} else {
+					$tmp .= "D(data)[dst] " . $op . " D(data)[src]\n";
+				}
             } elsif ($_ =~ /^s/) {
+				if ($ret_flag) {
+					$tmp .= "return S(data)[src]\n";
+				} else {
+					$tmp .= "S(data)[dst] " . $op . " S(data)[src]\n";
+				}
             } elsif ($_ =~ /^o/) {
+				$tmp .= "\n";
             } else {
+				$tmp .= "\n";
             }
-            $ret .= $tmp . "\n";
+            $ret .= $tmp;
         }
     }
     return $ret;
 }
 
-my @array = read_code_data("gen/code.json");
-open(ous, ">include/gen_vmcode.hpp");
-my @insts = get_inst_data(\@array);
-my $enum_code = gen_enum_code(\@insts);
-my $info_code = gen_info_code(\@insts);
-print ous $enum_code;
-print ous $info_code;
-# =============== DECLARE LABEL =================
-open(ous, ">src/gen_vm.cpp");
-my $label_code = gen_inst_label_code(\@insts);
-print gen_inst_body(\@insts);
-
-print ous $label_code;
-for (my $i = 0; $i < $#hash_array; $i++) {
-	my %hash = %{$hash_array[$i]};
-	my @inst = @{$hash{inst}};
-	foreach (@inst) {
-        print ous "#define GPERL_${_}(dst, src) ";
-        if ($_ =~ /^i/) {
-            print ous "I(data)[dst] ";
-        } elsif ($_ =~ /^f/) {
-            print ous "F(data)[dst] ";
-        } elsif ($_ =~ /^s/) {
-            print ous "S(data)[dst] ";
-        } elsif ($_ =~ /^o/) {
-            print ous "O(data)[dst] ";
-        } else {
-            print ous "O(data)[dst] ";
-        }
-        if ($_ =~ "ADD") {
-            print ous "+= ";
-        } elsif ($_ =~ /SUB/) {
-            print ous "-= ";
-        } elsif ($_ =~ /MUL/) {
-            print ous "*= ";
-        } elsif ($_ =~ /DIV/) {
-            print ous "/= ";
-        } elsif ($_ =~ /MOV/) {
-            print ous "= ";
-        }
-        if ($_ =~ /C$/) {
-            print ous "src\n";
-        } elsif ($_ =~ /^i/) {
-            print ous "I(data)[src]\n";
-        } elsif ($_ =~ /^f/) {
-            print ous "F(data)[src]\n";
-        } elsif ($_ =~ /^s/) {
-            print ous "S(data)[src]\n";
-        } elsif ($_ =~ /^o/) {
-            print ous "O(data)[src]\n";
-        } else {
-            print ous "O(data)[src] //NaN-boxing\n";
-        }
-    }
-}
-
-print ous
-"\nint GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
+my $run_init = "\nint GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 {
 	static GPerlVirtualMachineCode *top;
 	GPerlVirtualMachineCode *pc = codes;
@@ -308,37 +274,164 @@ print ous
     DISPATCH_START();
 
 ";
-for (my $i = 0; $i < $#hash_array; $i++) {
-	my %hash = %{$hash_array[$i]};
-	my $code = $hash{code};
-	my @inst = @{$hash{inst}};
-	foreach (@inst) {
-		print ous "\tCASE(${_}), {\n";
-		print ous "\t\tGPERL_${_}();\n";
-		print ous "\t\tpc++;\n";
-		print ous "\t\tBREAK();\n";
-		print ous "\t});\n";
-	}
-}
-print ous "#include \"gen_fast_vmcode.cpp\"\n\n";
-print ous "\tDISPATCH_END();\n";
-print ous "\treturn I(data)[0];\n";
-print ous "}\n";
 
-open(ous, ">src/gen_fast_vmcode.cpp");
-print ous "/*****************************************/\n";
-print ous "/*           FAST INSTRUCTION            */\n";
-print ous "/*****************************************/\n";
-for (my $i = 0; $i < $#hash_array; $i++) {
-	my %hash = %{$hash_array[$i]};
-	my $code = $hash{code};
-	my @final_inst = @{$hash{final_inst}};
-	foreach (@final_inst) {
-        my @_code = split("_", $_);
-		print ous "\tCASE(${_}), {\n";
-		print ous "\t\tGPERL_${_code[1]}();\n";
-		print ous "\t\tpc++;\n";
-		print ous "\t\tBREAK();\n";
-		print ous "\t});\n";
+sub gen_vm_run_code {
+	my $ret = $run_init;
+    my $ref = shift;
+    my @insts = @{$ref};
+    my @inst_names = ();
+    foreach my $inst (@insts) {
+        my @inst_names = @{$inst->{inst_names}};
+		my @args = @{$inst->{args}};
+		foreach (@inst_names) {
+			$ret .= "\tCASE(${_}), {\n";
+			my $decl_args = "";
+			foreach (@args) {
+				my @a = @{$_};
+				my $isFirst = 1;
+				foreach (@a) {
+					my %hash = %{$_};
+					my @values = values(%hash);
+					if ($isFirst) {
+						$decl_args .= $values[0];
+						$isFirst = 0;
+					} else {
+						$decl_args .= ", " . $values[0];
+					}
+				}
+			}
+			if ($_ =~ /J/ && $_ !~ /JMP/) {
+				my $prefix = substr($_, 0, 1);
+				$prefix = "" if ($prefix =~ /J/);
+				if ($_ =~ /C$/) {
+					$ret .= "\t\tGPERL_${prefix}CMP_JMPC(" . $decl_args . ");\n";
+				} else {
+					$ret .= "\t\tGPERL_${prefix}CMP_JMP(" . $decl_args . ");\n";
+				}
+			} else {
+				$ret .= "\t\tGPERL_${_}(" . $decl_args . ");\n";
+			}
+			$ret .= "\t\tpc++;\n";
+			$ret .= "\t\tBREAK();\n";
+			$ret .= "\t});\n";
+		}
 	}
+	$ret .= "#include \"gen_fast_vmcode.cpp\"\n\n";
+	$ret .= "\tDISPATCH_END();\n";
+	$ret .= "\treturn I(data)[0];\n";
+	$ret .= "}\n";
+	return $ret;
 }
+
+sub gen_fast_vm_code {
+	my $ret = "";
+    my $ref = shift;
+    my @insts = @{$ref};
+    my @inst_names = ();
+    foreach my $inst (@insts) {
+        my @inst_names = @{$inst->{fast_inst_names}};
+		my @args = @{$inst->{args}};
+		foreach (@inst_names) {
+			$ret .= "\tCASE(${_}), {\n";
+			my @_code = split("_", $_);
+			my $fast_prefix = substr($_code[0], 0, 1);
+			my $fast_prefix2 = substr($_code[0], 1, 1);
+			my $decl_args = "";
+			foreach (@args) {
+				my @a = @{$_};
+				my $isFirst = 1;
+				foreach (@a) {
+					my %hash = %{$_};
+					my @values = values(%hash);
+					if ($isFirst) {
+						if ($values[0] =~ /dst/) {
+							if ($fast_prefix =~ "A") {
+								$decl_args .= "0";
+							} elsif ($fast_prefix =~ "B") {
+								$decl_args .= "1";
+							} elsif ($fast_prefix =~ "C") {
+								$decl_args .= "2";
+							} elsif ($fast_prefix =~ "D") {
+								$decl_args .= "3";
+							}
+						} elsif ($values[0] =~ /src/) {
+							if ($fast_prefix2 =~ "A") {
+								$decl_args .= "0";
+							} elsif ($fast_prefix2 =~ "B") {
+								$decl_args .= "1";
+							} elsif ($fast_prefix2 =~ "C") {
+								$decl_args .= "2";
+							} elsif ($fast_prefix2 =~ "D") {
+								$decl_args .= "3";
+							}
+						} else {
+							$decl_args .= $values[0];
+						}
+						$isFirst = 0;
+					} else {
+						if ($values[0] =~ /dst/) {
+							if ($fast_prefix =~ "A") {
+								$decl_args .= ", 0";
+							} elsif ($fast_prefix =~ "B") {
+								$decl_args .= ", 1";
+							} elsif ($fast_prefix =~ "C") {
+								$decl_args .= ", 2";
+							} elsif ($fast_prefix =~ "D") {
+								$decl_args .= ", 3";
+							}
+						} elsif ($values[0] =~ /src/) {
+							if ($fast_prefix2 =~ "A") {
+								$decl_args .= ", 0";
+							} elsif ($fast_prefix2 =~ "B") {
+								$decl_args .= ", 1";
+							} elsif ($fast_prefix2 =~ "C") {
+								$decl_args .= ", 2";
+							} elsif ($fast_prefix2 =~ "D") {
+								$decl_args .= ", 3";
+							} else {
+								$decl_args .= ", " . $values[0];
+							}
+						} else {
+							$decl_args .= ", " . $values[0];
+						}
+					}
+				}
+			}
+			if ($_ =~ /J/ && $_ !~ /JMP/) {
+				my $prefix = substr($_code[1], 0, 1);
+				$prefix = "" if ($prefix =~ /J/);
+				if ($_ =~ /C$/) {
+					$ret .= "\t\tGPERL_${prefix}CMP_JMPC(" . $decl_args . ");\n";
+				} else {
+					$ret .= "\t\tGPERL_${prefix}CMP_JMP(" . $decl_args . ");\n";
+				}
+			} else {
+				$ret .= "\t\tGPERL_${_code[1]}(" . $decl_args . ");\n";
+			}
+			$ret .= "\t\tpc++;\n";
+			$ret .= "\t\tBREAK();\n";
+			$ret .= "\t});\n";
+		}
+	}
+	return $ret;
+}
+
+my @array = read_code_data("gen/code.json");
+open(ous, ">include/gen_vmcode.hpp");
+my @insts = get_inst_data(\@array);
+my $enum_code = gen_enum_code(\@insts);
+my $info_code = gen_info_code(\@insts);
+print ous $enum_code;
+print ous $info_code;
+my $label_code = gen_inst_label_code(\@insts);
+open(ous, ">src/gen_label.cpp");
+print ous $label_code;
+
+open(ous, ">src/gen_vm.cpp");
+my $body = gen_inst_body(\@insts);
+my $vm_code = gen_vm_run_code(\@insts);
+print ous $body;
+print ous $vm_code;
+my $fast_vm_code = gen_fast_vm_code(\@insts);
+open(ous, ">src/gen_fast_vmcode.cpp");
+print ous $fast_vm_code;

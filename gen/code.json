@@ -134,21 +134,21 @@
  },
  {
 	 "code" : "CALL",
-	 "type" : 0,
+	 "type" : 1,
 	 "const" : 0,
 	 "fast_type" : 0,
      "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}]
  },
  {
 	 "code" : "SELFCALL",
-	 "type" : 0,
+	 "type" : 1,
 	 "const" : 0,
 	 "fast_type" : 0,
      "args" : [{"dst" : "pc->dst"}]
  },
  {
 	 "code" : "SHIFT",
-	 "type" : 0,
+	 "type" : 1,
 	 "const" : 0,
 	 "fast_type" : 0,
      "args" : [{"src" : "pc->src"}]
