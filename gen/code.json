@@ -119,7 +119,7 @@
      "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}]
  },
  {
-	 "code" : "SET",
+	 "code" : "SETv",
 	 "type" : 0,
 	 "const" : 0,
 	 "fast_type" : 0,

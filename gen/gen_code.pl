@@ -41,14 +41,18 @@ sub get_inst_data {
         if ($type_flag) {# gen Int, Double, String, Object, (TypeInference)
             push(@inst_names, "i${inst_name}");
             push(@inst_names, "d${inst_name}");
-            push(@inst_names, "s${inst_name}");
+            if ($inst_name !~ /SUB/ && $inst_name !~ /DIV/) {
+                push(@inst_names, "s${inst_name}");
+            }
             push(@inst_names, "o${inst_name}");
             if ($fast_type) {
 				foreach (@fast_prefix) {
 					push(@fast_inst_names, "${_}_i${inst_name}");
 					push(@fast_inst_names, "${_}_d${inst_name}");
-					push(@fast_inst_names, "${_}_s${inst_name}");
-					push(@fast_inst_names, "${_}_o${inst_name}");
+                    if ($inst_name !~ /SUB/ && $inst_name !~ /DIV/) {
+                        push(@fast_inst_names, "${_}_s${inst_name}");
+                    }
+                    push(@fast_inst_names, "${_}_o${inst_name}");
 				}
             }
             if ($const_flag) {
@@ -56,10 +60,17 @@ sub get_inst_data {
                 push(@inst_names, "d${inst_name}C");
                 if ($fast_type) {
 					foreach (@fast_prefix) {
-						push(@fast_inst_names, "${_}_i${inst_name}");
-						push(@fast_inst_names, "${_}_d${inst_name}");
-						push(@fast_inst_names, "${_}_s${inst_name}");
-						push(@fast_inst_names, "${_}_o${inst_name}");
+						push(@fast_inst_names, "${_}_i${inst_name}C");
+						push(@fast_inst_names, "${_}_d${inst_name}C");
+                        if ($inst_name !~ /SUB/ && $inst_name !~ /DIV/) {
+                            push(@fast_inst_names, "${_}_s${inst_name}C");
+                        }
+                        if ($inst_name !~ /ADD/ &&
+                            $inst_name !~ /SUB/ &&
+                            $inst_name !~ /MUL/ &&
+                            $inst_name !~ /DIV/) {
+                            push(@fast_inst_names, "${_}_o${inst_name}C");
+                        }
 					}
                 }
             }
@@ -85,7 +96,7 @@ sub get_inst_data {
 }
 
 sub gen_enum_code {
-    my $ret = "";
+    my $ret = "typedef enum {\n";
     my $ref = shift;
     my @insts = @{$ref};
     my @fast_inst_names = ();
@@ -148,17 +159,17 @@ sub gen_inst_label_code {
         my $inst = $inst_names[$i];
         my $inst2 = $inst_names[$i+1];
         my $inst3 = $inst_names[$i+2];
-        $jmp_label .= "\t    &&L${inst}," if (defined($inst));
-        $jmp_label .= " &&L${inst2}," if (defined($inst2));
-        $jmp_label .= " &&L${inst3},\n" if (defined($inst3));
+        $jmp_label .= "\t    &&L(${inst})," if (defined($inst));
+        $jmp_label .= " &&L(${inst2})," if (defined($inst2));
+        $jmp_label .= " &&L(${inst3}),\n" if (defined($inst3));
     }
     for (my $i = 0; $i < $#fast_inst_names; $i += 3) {
         my $inst = $fast_inst_names[$i];
         my $inst2 = $fast_inst_names[$i+1];
         my $inst3 = $fast_inst_names[$i+2];
-        $jmp_label .= "\t    &&L${inst}," if (defined($inst));
-        $jmp_label .= " &&L${inst2}," if (defined($inst2));
-        $jmp_label .= " &&L${inst3},\n" if (defined($inst3));
+        $jmp_label .= "\t    &&L(${inst})," if (defined($inst));
+        $jmp_label .= " &&L(${inst2})," if (defined($inst2));
+        $jmp_label .= " &&L(${inst3}),\n" if (defined($inst3));
     }
     $jmp_label .= "\n\t};\n";
     my $block_label .= "\tstatic InstBlock block_table[] = {\n";
@@ -284,7 +295,7 @@ sub gen_vm_run_code {
         my @inst_names = @{$inst->{inst_names}};
 		my @args = @{$inst->{args}};
 		foreach (@inst_names) {
-			$ret .= "\tCASE(${_}), {\n";
+			$ret .= "\tCASE(${_}, {\n";
 			my $decl_args = "";
 			foreach (@args) {
 				my @a = @{$_};
@@ -332,7 +343,7 @@ sub gen_fast_vm_code {
         my @inst_names = @{$inst->{fast_inst_names}};
 		my @args = @{$inst->{args}};
 		foreach (@inst_names) {
-			$ret .= "\tCASE(${_}), {\n";
+			$ret .= "\tCASE(${_}, {\n";
 			my @_code = split("_", $_);
 			my $fast_prefix = substr($_code[0], 0, 1);
 			my $fast_prefix2 = substr($_code[0], 1, 1);
@@ -417,21 +428,21 @@ sub gen_fast_vm_code {
 }
 
 my @array = read_code_data("gen/code.json");
-open(ous, ">include/gen_vmcode.hpp");
+#open(ous, ">include/gen_vmcode.hpp");
 my @insts = get_inst_data(\@array);
 my $enum_code = gen_enum_code(\@insts);
 my $info_code = gen_info_code(\@insts);
-print ous $enum_code;
-print ous $info_code;
+#print ous $enum_code;
+#print ous $info_code;
 my $label_code = gen_inst_label_code(\@insts);
 open(ous, ">src/gen_label.cpp");
 print ous $label_code;
 
-open(ous, ">src/gen_vm.cpp");
-my $body = gen_inst_body(\@insts);
-my $vm_code = gen_vm_run_code(\@insts);
-print ous $body;
-print ous $vm_code;
-my $fast_vm_code = gen_fast_vm_code(\@insts);
-open(ous, ">src/gen_fast_vmcode.cpp");
-print ous $fast_vm_code;
+#open(ous, ">src/gen_vm.cpp");
+#my $body = gen_inst_body(\@insts);
+#my $vm_code = gen_vm_run_code(\@insts);
+#print ous $body;
+#print ous $vm_code;
+#my $fast_vm_code = gen_fast_vm_code(\@insts);
+#open(ous, ">src/gen_fast_vmcode.cpp");
+#print ous $fast_vm_code;

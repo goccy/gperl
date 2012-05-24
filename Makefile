@@ -11,7 +11,8 @@ objs = build/main.o \
 	build/ast.o \
 	build/graph.o \
 	build/compiler.o\
-	build/vm.o
+	build/vm.o \
+	build/gen_vm.o
 
 .PHONY: all
 all: $(target)
@@ -41,6 +42,9 @@ build/compiler.o : src/compiler.cpp
 	$(CC) $(CFLAGS) -o $@ -c $^
 
 build/vm.o : src/vm.cpp
+	$(CC) $(CFLAGS) -o $@ -c $^
+
+build/gen_vm.o : src/gen_vm.cpp
 	$(CC) $(CFLAGS) -o $@ -c $^
 
 .PHONY: clean

@@ -71,21 +71,10 @@ void GPerlVirtualMachine::createSelectiveInliningCode(GPerlVirtualMachineCode *c
 		if (pc->op == OPFUNCSET) {
 			createSelectiveInliningCode(pc->func, jmp_tbl, block_tbl);
 		}
-		//memcpy(pc->code + pos, block.start, len);
-		//pos += len;
-		//DBG_PL("=====================================");
-		//if (pc->op == OPSELFCALL) {
-		//} else if (pc->op == OPRET || pc->op == OPARET || pc->op == OPBRET ||
-		//		   pc->op == OPCRET || pc->op == OPDRET) {
-			//pc->op = RET_BLOCK;
-			//pc->opnext = jmp_table[pc->op];
-		//} else {
-			//pc->op = GOTO_BLOCK;
-		//	pc->opnext = jmp_tbl[pc->op];
-		//}
 	}
 }
 
+/*
 #define DISPATCH_START() {						\
 		callstack->ret_addr = &&L_RETURN;		\
 		(callstack+1)->ret_addr = &&L_RETURN;	\
@@ -133,6 +122,7 @@ void GPerlVirtualMachine::createSelectiveInliningCode(GPerlVirtualMachineCode *c
 #define ADDC(dst)	I(data)[dst] += pc->src
 #define SUB(dst, src) I(data)[dst] -= I(data)[src]
 #define SUBC(dst)	I(data)[dst] -=  pc->src
+*/
 
 static GPerlEnv env_[MAX_CALLSTACK_SIZE];
 GPerlEnv *GPerlVirtualMachine::createCallStack(void)
@@ -161,7 +151,7 @@ GPerlObject **GPerlVirtualMachine::createArgStack(void)
 	}
 	return (GPerlObject **)argstack_;
 }
-
+/*
 int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 {
 	static GPerlVirtualMachineCode *top;
@@ -192,7 +182,6 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 		&&L(OPSET), &&L(OPFUNCSET),
 		&&L(OPCALL), &&L(OPJCALL), &&L(OPSELFCALL), &&L(OPJSELFCALL), &&L(OPSHIFT),
 		&&L(OPiPUSH), &&L(OPsPUSH), &&L(OPoPUSH), &&L(OPARRAY_PUSH), &&L(OPLIST_NEW),
-		/*-------------final inst-----------------*/
 		&&L(OPABADD), &&L(OPACADD), &&L(OPADADD), &&L(OPBCADD), &&L(OPBDADD), &&L(OPCDADD),
 		&&L(OPAiSUBC), &&L(OPBiSUBC), &&L(OPCiSUBC), &&L(OPDiSUBC),
 		&&L(OPAiJLC), &&L(OPBiJLC), &&L(OPCiJLC), &&L(OPDiJLC),
@@ -225,7 +214,6 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 		B(SET), B(FUNCSET),
 		B(CALL), B(JCALL), B(SELFCALL), B(JSELFCALL), B(SHIFT),
 		B(iPUSH), B(sPUSH), B(oPUSH), B(ARRAY_PUSH), B(LIST_NEW),
-		/*-------------final inst-----------------*/
 		B(ABADD), B(ACADD), B(ADADD), B(BCADD), B(BDADD), B(CDADD),
 		B(AiSUBC), B(BiSUBC), B(CiSUBC), B(DiSUBC),
 		B(AiJLC), B(BiJLC), B(CiJLC), B(DiJLC),
@@ -794,41 +782,8 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 		RETURN();
 	});
 	CASE(OPSUPERCALL, {
-	/*
-		I(data)[0] = callstack->argstack[0]->idata;
-		pc++;
-		if (I(data)[0] < pc->src) {
-			pc++;
-			I(data)[0] = pc->src;
-			pc++;
-			return I(data)[0];
-			pc += pc->jmp;
-		} else {
-			pc += pc->jmp;
-			I(data)[0] -= pc->src;
-			pc++;
-			callstack++;
-			callstack->argstack[0]->idata = I(data)[0];
-			pc++;
-			I(data)[0] = run(top);
-			callstack--;
-			pc++;
-			I(data)[1] = callstack->argstack[0]->idata;
-			pc++;
-			I(data)[1] -= pc->src;
-			pc++;
-			callstack++;
-			callstack->argstack[0]->idata = I(data)[1];
-			pc++;
-			I(data)[1] = run(top);
-			callstack--;
-			pc++;
-			I(data)[0] += I(data)[1];
-			pc++;
-			return I(data)[0];
-		}
-	*/
 	});
 	DISPATCH_END();
 	return I(data)[0];
 }
+*/

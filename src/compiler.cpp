@@ -598,17 +598,17 @@ GPerlVirtualMachineCode *GPerlCompiler::createVMCode(GPerlCell *c)
 			GPerlObject *o = new GPerlObject();//TODO : fetch from MMU
 			switch (v->type) {
 			case Int:
-				o->value.idata = v->data.idata;
+				o->value.ivalue = v->data.idata;
 				o->type = Int;
 				code->list[i] = o;
 				break;
 			case String:
-				o->value.sdata = v->data.sdata;
+				o->value.svalue = v->data.sdata;
 				o->type = String;
 				code->list[i] = o;
 				break;
 			case Object:
-				o->value.pdata = v->data.pdata;
+				o->value.ovalue = v->data.pdata;
 				o->type = Object;
 				code->list[i] = o;
 				break;

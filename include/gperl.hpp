@@ -1,4 +1,6 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <stdint.h>
 #include <memory.h>
 #include <iostream>
 #include <vector>
@@ -83,6 +85,8 @@ typedef struct _GPerlTokenType {
 	const char *name;
 	const char *str;
 } GPerlTokenType;
+
+#include <gen_vmcode.hpp>
 
 typedef enum {
 	OPUNDEF,
@@ -368,11 +372,12 @@ public:
 #define MAX_FUNC_NUM 128
 
 typedef union {
-	int idata;
-	float fdata;
-	bool bdata;
-	char *sdata;
-	void *pdata; /* other Object */
+	uint64_t bytes; /* for typecheck */
+	int ivalue;
+	double dvalue;
+	bool bvalue;
+	char *svalue;
+	void *ovalue; /* other Object */
 } GPerlValue;
 
 typedef struct _GPerlObject {
@@ -459,10 +464,10 @@ public:
 };
 
 typedef union {
-	intptr_t idata[MAX_REG_SIZE];
-	float fdata[MAX_REG_SIZE];
-	char *sdata[MAX_REG_SIZE];
-	GPerlObject *pdata[MAX_REG_SIZE];
+	intptr_t ivalue[MAX_REG_SIZE];
+	double dvalue[MAX_REG_SIZE];
+	char *svalue[MAX_REG_SIZE];
+	GPerlObject *ovalue[MAX_REG_SIZE];
 } Reg;
 
 typedef struct _GPerlEnv {
