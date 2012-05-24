@@ -63,7 +63,6 @@ void GPerlCompiler::compile_(GPerlCell *path)
 void GPerlCompiler::genVMCode(GPerlCell *path) {
 	GPerlVirtualMachineCode *code;
 	if (path->type == Call || path->type == BuiltinFunc) {
-		//asm("int3");
 		genFunctionCallCode(path);
 	} else if (path->type == IfStmt) {
 		genIfStmtCode(path);
@@ -823,7 +822,7 @@ void GPerlCompiler::dumpVMCode(GPerlVirtualMachineCode *code)
 {
 	(void)code;
 	DBG_PL("L[%d] : %s [dst:%d], [src:%d], [jmp:%d], [name:%s]",
-		   code->code_num, OpName(code->op), code->dst, code->src,
+		   code->code_num, decl_codes[code->op].name, code->dst, code->src,
 		   code->jmp, code->name);
 }
 

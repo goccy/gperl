@@ -1,8 +1,3 @@
-typedef struct _GPerlCodeInfo {
-	GPerlOpCode code;
-	const char *name;
-} GPerlCodeInfo;
-
 GPerlCodeInfo decl_codes[] = {
 	{UNDEF, "UNDEF"},
 	{MOV, "MOV"},

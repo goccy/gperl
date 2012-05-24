@@ -50,4 +50,3 @@ GPerlTokenInfo decl_tokens[] = {
 	{List, "List", ""},
 	{Undefined, "Undefined", ""},
 };
-

@@ -16,7 +16,7 @@ GPerl::GPerl(int argc, char **argv)
 		tmp += line_size;
 	}
 	GPerlTokenizer t;
-	std::vector<Token *> *tokens = t.tokenize(script);
+	std::vector<GPerlToken *> *tokens = t.tokenize(script);
 	t.annotateTokens(tokens);
 	DBG_PL("=============<TOKENIZE>============");
 	t.dump(tokens);

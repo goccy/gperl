@@ -29,7 +29,7 @@
 		BREAK();
 	});
 	CASE(A_sMOV, {
-		GPERL_sMOV(0, pc->src);
+		GPERL_sMOV(0, pc->name);
 		pc++;
 		BREAK();
 	});
@@ -49,7 +49,7 @@
 		BREAK();
 	});
 	CASE(B_sMOV, {
-		GPERL_sMOV(1, pc->src);
+		GPERL_sMOV(1, pc->name);
 		pc++;
 		BREAK();
 	});
@@ -69,7 +69,7 @@
 		BREAK();
 	});
 	CASE(C_sMOV, {
-		GPERL_sMOV(2, pc->src);
+		GPERL_sMOV(2, pc->name);
 		pc++;
 		BREAK();
 	});
@@ -89,7 +89,7 @@
 		BREAK();
 	});
 	CASE(D_sMOV, {
-		GPERL_sMOV(3, pc->src);
+		GPERL_sMOV(3, pc->name);
 		pc++;
 		BREAK();
 	});

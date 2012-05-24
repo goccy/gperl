@@ -125,8 +125,10 @@ static GPerlEnv env_[MAX_CALLSTACK_SIZE];
 GPerlEnv *GPerlVirtualMachine::createCallStack(void)
 {
 	for (int i = 0; i < MAX_CALLSTACK_SIZE; i++) {
+		GPerlValue *reg = (GPerlValue *)malloc(sizeof(GPerlValue) * MAX_REG_SIZE);
 		GPerlObject **argstack = (GPerlObject **)malloc(sizeof(GPerlObject) * MAX_ARGSTACK_SIZE);
 		env_[i].argstack = argstack;
+		env_[i].reg = reg;
 		//effect to FAST PROGRAM?? (fib(36) 0.38 => 0.35)
 		for (int j = 0; j < MAX_ARGSTACK_SIZE; j++) {
 			GPerlObject *o = new GPerlObject();

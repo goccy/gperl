@@ -617,3 +617,7 @@ typedef enum {
 	D_oPUSH,
 } GPerlOpCode;
 
+typedef struct _GPerlCodeInfo {
+	GPerlOpCode code;
+	const char *name;
+} GPerlCodeInfo;

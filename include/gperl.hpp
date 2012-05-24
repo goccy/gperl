@@ -161,9 +161,8 @@ typedef struct _GPerlOpDef {
 
 #define DECL(T, S) {T, #T, S}
 extern GPerlTokenInfo decl_tokens[];
+extern GPerlCodeInfo decl_codes[];
 extern GPerlOpDef decl_opdef[];
-#define TypeName(type) decl_tokens[type].name
-#define RawName(type) decl_tokens[type].data
 #define OpName(op) decl_opdef[op].name
 
 class GPerl {
@@ -171,23 +170,22 @@ public:
 	GPerl(int argc, char **argv);
 };
 
-class Token {
+class GPerlToken {
 public:
 	std::string data;
 	GPerlT type;
+	GPerlTokenInfo info;
 	int idx;
-	Token(std::string data_, int idx_ = 0);
+	GPerlToken(std::string data_, int idx_ = 0);
 };
 
 class GPerlTokenizer {
 public:
 	GPerlTokenizer(void);
-	std::vector<Token *> *tokenize(char *script);
-	void annotateTokens(std::vector<Token *> *tokens);
-	void dump(std::vector<Token *> *tokens);
-	void dumpType(Token *token);
-	GPerlT getType(const char *name);
-	const char *getTypeName(GPerlT type);
+	std::vector<GPerlToken *> *tokenize(char *script);
+	void annotateTokens(std::vector<GPerlToken *> *tokens);
+	void dump(std::vector<GPerlToken *> *tokens);
+	GPerlTokenInfo getTokenInfo(const char *name, const char *data);
 	bool search(std::vector<std::string> list, std::string str);
 };
 
@@ -215,6 +213,7 @@ public:
 	GPerlCell *vargs[MAX_ARGSTACK_SIZE]; /* for print */
 	int argsize;
 	GPerlT type;
+	GPerlTokenInfo info;
 	std::string vname;/* variable name */
 	std::string fname;/* function name */
 	std::string rawstr;
@@ -262,12 +261,12 @@ class GPerlParser {
 public:
 	int iterate_count;
 	int func_iterate_count;
-	std::vector<Token *>::iterator it;
-	std::vector<Token *>::iterator end;
+	std::vector<GPerlToken *>::iterator it;
+	std::vector<GPerlToken *>::iterator end;
 
-	GPerlParser(std::vector<Token *> *tokens);
+	GPerlParser(std::vector<GPerlToken *> *tokens);
 	GPerlAST *parse(void);
-	void parseValue(Token *t, GPerlNodes *nodes, GPerlScope *scope);
+	void parseValue(GPerlToken *t, GPerlNodes *nodes, GPerlScope *scope);
 };
 
 #ifdef USING_GRAPH_DEBUG
@@ -413,13 +412,15 @@ public:
 };
 
 typedef union {
-	intptr_t ivalue[MAX_REG_SIZE];
+	uint64_t bytes[MAX_REG_SIZE];
+	int ivalue[MAX_REG_SIZE];
 	double dvalue[MAX_REG_SIZE];
 	char *svalue[MAX_REG_SIZE];
 	GPerlObject *ovalue[MAX_REG_SIZE];
 } Reg;
 
 typedef struct _GPerlEnv {
+	GPerlValue *reg;
 	GPerlObject **argstack;
 	GPerlVirtualMachineCode *pc;
 	void *ret_addr;

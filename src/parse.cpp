@@ -24,9 +24,26 @@ GPerlCell::GPerlCell(GPerlT type_, string name) : type(type_)
 	right = NULL;
 	parent = NULL;
 	next = NULL;
-	for (int i = 0; i < MAX_ARGSTACK_SIZE; i++) {
+	int i = 0;
+	for (i = 0; i < MAX_ARGSTACK_SIZE; i++) {
 		vargs[i] = NULL;
 	}
+	for (i = 0; i < Undefined; i++) {
+		if (type_ == decl_tokens[i].type) {
+			if (name == "BuiltinFunc") {
+				for (int j = 0; j < Undefined; j++) {
+					if (name == decl_tokens[i].data) {
+						info = decl_tokens[i];
+						break;
+					}
+				}
+			} else {
+				info = decl_tokens[i];
+			}
+			break;
+		}
+	}
+	if (i == Undefined) info = decl_tokens[i];
 	argsize = 0;
 	if (type_ == Int) {
 		data.idata = atoi(cstr(name));
@@ -39,7 +56,7 @@ GPerlCell::GPerlCell(GPerlT type_, string name) : type(type_)
 	rawstr = name;
 }
 
-GPerlParser::GPerlParser(vector<Token *> *tokens)
+GPerlParser::GPerlParser(vector<GPerlToken *> *tokens)
 {
 	it = tokens->begin();
 	end = tokens->end();
@@ -87,12 +104,12 @@ GPerlNode *GPerlNodes::lastNode(void)
 		iterate_count++;						\
 	}
 
-void GPerlParser::parseValue(Token *t, GPerlNodes *blocks, GPerlScope *scope)
+void GPerlParser::parseValue(GPerlToken *t, GPerlNodes *blocks, GPerlScope *scope)
 {
-	GPerlT type = t->type;
+	GPerlT type = t->info.type;
 	GPerlCell *block = (blocks->block_num > 0) ? blocks->lastNode() : NULL;
 	if (block && block->type != Assign && block->type != Return) {
-		DBG_PL("%s", TypeName(block->type));
+		DBG_PL("%s", block->info.name);
 		if (block->type == Call || block->type == BuiltinFunc) {
 			DBG_PL("[%s]:NEW BLOCK->BLOCKS", cstr(t->data));
 			if (scope) {
@@ -143,10 +160,10 @@ GPerlAST *GPerlParser::parse(void)
 	bool funcFlag = false;
 
 	while (it != end) {
-		Token *t = (Token *)*it;
-		DBG_PL("L[%d] : ", iterate_count);
-		DBG_PL("(%s)", TypeName(t->type));
-		switch (t->type) {
+		GPerlToken *t = (GPerlToken *)*it;
+		DBG_P("L[%d] : ", iterate_count);
+		DBG_PL("(%s)", t->info.name);
+		switch (t->info.type) {
 		case VarDecl:
 			isVarDeclFlag = true;
 			break;
@@ -188,7 +205,7 @@ GPerlAST *GPerlParser::parse(void)
 		case GreaterEqual: case LessEqual: case EqualEqual: case NotEqual: {
 			DBG_PL("[%s]:LAST BLOCK->PARENT", cstr(t->data));
 			GPerlCell *block = blocks.lastNode();
-			GPerlCell *b = new GPerlCell(t->type, t->data);
+			GPerlCell *b = new GPerlCell(t->info.type, t->data);
 			block->parent = b;
 			b->left = block;
 			blocks.swapLastNode(b);

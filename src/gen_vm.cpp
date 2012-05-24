@@ -9,8 +9,8 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 {
 	static GPerlVirtualMachineCode *top;
 	GPerlVirtualMachineCode *pc = codes;
-	Reg reg_[MAX_CALLSTACK_SIZE];
-	Reg *reg = reg_;
+	//Reg reg_[MAX_CALLSTACK_SIZE];
+	//Reg *reg = reg_;
 	GPerlEnv *callstack = createCallStack();
 	GPerlObject **argstack = createArgStack();
 	static char shared_buf[128] = {0};//TODO must be variable buffer
@@ -41,7 +41,7 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 		BREAK();
 	});
 	CASE(sMOV, {
-		GPERL_sMOV(pc->dst, pc->src);
+		GPERL_sMOV(pc->dst, pc->name);
 		pc++;
 		BREAK();
 	});
@@ -584,5 +584,5 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 #include "gen_fast_vmcode.cpp"
 
 	DISPATCH_END();
-	return I(data)[0];
+	return I(0);
 }

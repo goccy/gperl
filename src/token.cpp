@@ -2,7 +2,7 @@
 #include "gen_token_decl.cpp"
 using namespace std;
 
-Token::Token(string data_, int idx_) : data(data_), idx(idx_)
+GPerlToken::GPerlToken(string data_, int idx_) : data(data_), idx(idx_)
 {
 	type = Undefined;
 }
@@ -11,12 +11,12 @@ GPerlTokenizer::GPerlTokenizer(void)
 {
 }
 
-vector<Token *> *GPerlTokenizer::tokenize(char *script)
+vector<GPerlToken *> *GPerlTokenizer::tokenize(char *script)
 {
 	size_t i = 0;
 	char token[MAX_TOKEN_SIZE] = {0};
 	int token_idx = 0;
-	vector<Token*> *tokens = new vector<Token *>();
+	vector<GPerlToken*> *tokens = new vector<GPerlToken *>();
 	bool isStringStarted = false;
 	bool escapeFlag = false;
 	bool mdOperationFlag = false;/*multi or div operation flag*/
@@ -29,8 +29,8 @@ vector<Token *> *GPerlTokenizer::tokenize(char *script)
 			if (isStringStarted) {
 				//token[token_idx] = script[i];
 				//DBG_PL("token = [%s]", token);
-				Token *t = new Token(string(token));
-				t->type = String;
+				GPerlToken *t = new GPerlToken(string(token));
+				t->info = getTokenInfo("String", NULL);
 				tokens->push_back(t);
 				memset(token, 0, MAX_TOKEN_SIZE);
 				token_idx = 0;
@@ -48,7 +48,7 @@ vector<Token *> *GPerlTokenizer::tokenize(char *script)
 			}
 			if (token[0] != EOL) {
 				//DBG_PL("token = [%s]", token);
-				tokens->push_back(new Token(string(token)));
+				tokens->push_back(new GPerlToken(string(token)));
 				memset(token, 0, MAX_TOKEN_SIZE);
 				token_idx = 0;
 			}
@@ -80,10 +80,10 @@ vector<Token *> *GPerlTokenizer::tokenize(char *script)
 					//insert LEFT CURLY BRACE
 					//DBG_PL("token = [(]");
 					tmp[0] = '(';
-					tokens->push_back(new Token(string(tmp)));
+					tokens->push_back(new GPerlToken(string(tmp)));
 					mdOperationFlag = true;//to insert RIGHT CURLY BRACE
 				}
-				tokens->push_back(new Token(string(token)));
+				tokens->push_back(new GPerlToken(string(token)));
 				memset(token, 0, MAX_TOKEN_SIZE);
 			} else if (!mdOperationFlag && atoi(cstr(tokens->back()->data)) != 0) {
 				//----previous token is number---
@@ -91,12 +91,12 @@ vector<Token *> *GPerlTokenizer::tokenize(char *script)
 				//insert LEFT CURLY BRACE
 				//DBG_PL("token = [(]");
 				tmp[0] = '(';
-				tokens->insert(tokens->end()-1, new Token(string(tmp)));
+				tokens->insert(tokens->end()-1, new GPerlToken(string(tmp)));
 				mdOperationFlag = true;//to insert RIGHT CURLY BRACE
 			}
 			//DBG_PL("token = [%c]", script[i]);
 			tmp[0] = script[i];
-			tokens->push_back(new Token(string(tmp)));
+			tokens->push_back(new GPerlToken(string(tmp)));
 			token_idx = 0;
 			escapeFlag = false;
 			break;
@@ -123,7 +123,7 @@ vector<Token *> *GPerlTokenizer::tokenize(char *script)
 			}
 			if (token[0] != EOL) {
 				//DBG_PL("token = [%s]", token);
-				tokens->push_back(new Token(string(token)));
+				tokens->push_back(new GPerlToken(string(token)));
 				memset(token, 0, MAX_TOKEN_SIZE);
 			}
 			char tmp[2] = {0};
@@ -132,7 +132,7 @@ vector<Token *> *GPerlTokenizer::tokenize(char *script)
 				//insert RIGHT CURLY BRACE
 				//DBG_PL("token = [)]");
 				tmp[0] = ')';
-				tokens->push_back(new Token(string(tmp)));
+				tokens->push_back(new GPerlToken(string(tmp)));
 				mdOperationFlag = false;
 			}
 			if (i + 1 < script_size &&
@@ -140,12 +140,12 @@ vector<Token *> *GPerlTokenizer::tokenize(char *script)
 				script[i + 1] == '=') {
 				//DBG_PL("token = [%c=]", script[i]);
 				tmp[0] = script[i];
-				tokens->push_back(new Token(string(tmp) + "="));
+				tokens->push_back(new GPerlToken(string(tmp) + "="));
 				i++;
 			} else {
 				//DBG_PL("token = [%c]", script[i]);
 				tmp[0] = script[i];
-				tokens->push_back(new Token(string(tmp)));
+				tokens->push_back(new GPerlToken(string(tmp)));
 			}
 			token_idx = 0;
 			escapeFlag = false;
@@ -159,19 +159,19 @@ vector<Token *> *GPerlTokenizer::tokenize(char *script)
 			}
 			if (token[0] != EOL) {
 				//DBG_PL("token = [%s]", token);
-				tokens->push_back(new Token(string(token)));
+				tokens->push_back(new GPerlToken(string(token)));
 				memset(token, 0, MAX_TOKEN_SIZE);
 			}
 			char tmp[2] = {0};
 			if (i + 1 < script_size && script[i + 1] == '=') {
 				//DBG_PL("token = [%c=]", script[i]);
 				tmp[0] = script[i];
-				tokens->push_back(new Token(string(tmp) + "="));
+				tokens->push_back(new GPerlToken(string(tmp) + "="));
 				i++;
 			} else {
 				//DBG_PL("token = [%c]", script[i]);
 				tmp[0] = script[i];
-				tokens->push_back(new Token(string(tmp)));
+				tokens->push_back(new GPerlToken(string(tmp)));
 			}
 			token_idx = 0;
 			escapeFlag = false;
@@ -198,53 +198,57 @@ vector<Token *> *GPerlTokenizer::tokenize(char *script)
 	return tokens;
 }
 
-void GPerlTokenizer::dump(vector<Token *> *tokens)
+void GPerlTokenizer::dump(vector<GPerlToken *> *tokens)
 {
-	vector<Token *>::iterator it = tokens->begin();
+	vector<GPerlToken *>::iterator it = tokens->begin();
 	while (it != tokens->end()) {
-		Token *t = (Token *)*it;
+		GPerlToken *t = (GPerlToken *)*it;
 		(void)t;
-		DBG_PL("[%s] TYPE:%s", cstr(t->data), getTypeName(t->type));
+		DBG_PL("[%s] TYPE:%s", cstr(t->data), t->info.name);
 		it++;
 	}
 }
 
-void GPerlTokenizer::dumpType(Token *token)
-{
-	(void)token;
-	DBG_P("%s", TypeName(token->type));
-}
-
-const char *GPerlTokenizer::getTypeName(GPerlT type)
-{
-	return TypeName(type);
-}
-
-GPerlT GPerlTokenizer::getType(const char *name)
+GPerlTokenInfo GPerlTokenizer::getTokenInfo(const char *name, const char *data)
 {
 	int i = 0;
-	size_t nsize = strlen(name);
-	while (true) {
-		const char *type_name = decl_tokens[i].name;
-		GPerlT type = decl_tokens[i].type;
-		size_t tsize = strlen(type_name);
-		if (nsize == tsize && !strncmp(type_name, name, nsize)) {
-			return type;
-		} else if (type == Undefined) {
-			return Undefined;
+	if (name) {
+		size_t nsize = strlen(name);
+		while (true) {
+			GPerlT type = decl_tokens[i].type;
+			const char *token_name = decl_tokens[i].name;
+			size_t tsize = strlen(token_name);
+			if (nsize == tsize && !strncmp(token_name, name, nsize)) {
+				return decl_tokens[i];
+			} else if (type == Undefined) {
+				return decl_tokens[i];
+			}
+			i++;
 		}
-		i++;
+	} else if (data) {
+		size_t dsize = strlen(data);
+		while (true) {
+			GPerlT type = decl_tokens[i].type;
+			const char *token_data = decl_tokens[i].data;
+			size_t tsize = strlen(token_data);
+			if (dsize == tsize && !strncmp(token_data, data, dsize)) {
+				return decl_tokens[i];
+			} else if (type == Undefined) {
+				return decl_tokens[i];
+			}
+			i++;
+		}
 	}
 }
 
-void GPerlTokenizer::annotateTokens(vector<Token *> *tokens)
+void GPerlTokenizer::annotateTokens(vector<GPerlToken *> *tokens)
 {
-	vector<Token *>::iterator it = tokens->begin();
+	vector<GPerlToken *>::iterator it = tokens->begin();
 	vector<string> vardecl_list;
 	vector<string> funcdecl_list;
 	int cur_type = 0;
 	while (it != tokens->end()) {
-		Token *t = (Token *)*it;
+		GPerlToken *t = (GPerlToken *)*it;
 		string data = t->data;
 		if (data == "+"     || data == "-"    || data == "*"     || data == "/"  ||
 			data == "<"     || data == ">"    || data == "<="    || data == ">=" ||
@@ -254,42 +258,41 @@ void GPerlTokenizer::annotateTokens(vector<Token *> *tokens)
 			data == "print" || data == "push" || data == "if"    || data == "else"  ||
 			data == "my"    || data == "sub"  || data == "shift" ||
 			data == "return") {
-			GPerlT type = getType(cstr(data));
-			t->type = type;
-			cur_type = type;
+			t->info = getTokenInfo(NULL, cstr(data));
+			cur_type = t->info.type;
 		} else if (cur_type == VarDecl && t->data.find("$") != string::npos) {
-			t->type = LocalVar;
+			t->info = getTokenInfo("LocalVar", NULL);
 			vardecl_list.push_back(t->data);
 			cur_type = LocalVar;
 		} else if (cur_type == VarDecl && t->data.find("@") != string::npos) {
-			t->type = LocalArrayVar;
+			t->info = getTokenInfo("LocalArrayVar", NULL);
 			vardecl_list.push_back(t->data);
 			cur_type = LocalArrayVar;
 		} else if (search(vardecl_list, t->data)) {
 			if (t->data.find("@") != string::npos) {
-				t->type = ArrayVar;
+				t->info = getTokenInfo("ArrayVar", NULL);
 				cur_type = ArrayVar;
 			} else {
-				t->type = Var;
+				t->info = getTokenInfo("Var", NULL);
 				cur_type = Var;
 			}
 		} else if (t->data.find("$") != string::npos) {
-			t->type = GlobalVar;
+			t->info = getTokenInfo("GlobalVar", NULL);
 			vardecl_list.push_back(t->data);
 			cur_type = GlobalVar;
 		} else if (t->data.find("@") != string::npos) {
-			t->type = GlobalArrayVar;
+			t->info = getTokenInfo("GlobalArrayVar", NULL);
 			vardecl_list.push_back(t->data);
 			cur_type = GlobalArrayVar;
 		} else if (t->data == "0" || atoi(cstr(t->data)) != 0) {
-			t->type = Int;
+			t->info = getTokenInfo("Int", NULL);
 			cur_type = Int;
 		} else if (cur_type == FunctionDecl) {
-			t->type = Function;
+			t->info = getTokenInfo("Function", NULL);
 			cur_type = Function;
 			funcdecl_list.push_back(t->data);
 		} else if (search(funcdecl_list, t->data)) {
-			t->type = Call;
+			t->info = getTokenInfo("Call", NULL);
 			cur_type = Call;
 		} else {
 			//string
