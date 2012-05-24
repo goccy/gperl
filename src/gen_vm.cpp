@@ -119,16 +119,16 @@ using namespace std;
 #define GPERL_oCMP_JMPC(op, dst, src) {}
 
 #define GPERL_RET(src)
-#define GPERL_iRET(src) return I(data)[src]
-#define GPERL_dRET(src) return (int)D(data)[src]
-#define GPERL_sRET(src) return (int)S(data)[src]
-#define GPERL_oRET(src) return (int)O(data)[src]
+#define GPERL_iRET(src) I(data)[0] = I(data)[src]; RETURN();
+#define GPERL_dRET(src) D(data)[0] = D(data)[src]; RETURN();
+#define GPERL_sRET(src) S(data)[0] = S(data)[src]; RETURN();
+#define GPERL_oRET(src) O(data)[0] = O(data)[src]; RETURN();
 
 #define GPERL_NOP()
 
 #define GPERL_WRITE(dst)
 #define GPERL_iWRITE(dst) {								\
-		sprintf(shared_buf, "%d", I(data)[dst]);		\
+		sprintf(shared_buf, "%ld", I(data)[dst]);		\
 		outbuf += string(shared_buf);					\
 	}
 #define GPERL_dWRITE(dst) {								\
