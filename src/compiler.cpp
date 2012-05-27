@@ -235,29 +235,9 @@ void GPerlCompiler::addWriteCode(void)
 
 void GPerlCompiler::addPushCode(int i, int dst_)
 {
-	GPerlVirtualMachineCode *code;
-	switch (reg_type[i]) {
-	case Int:
-		code = createiPUSH(i, dst_);
-		addVMCode(code);
-		dumpVMCode(code);
-		break;
-	case String:
-		code = createsPUSH(i, dst_);
-		addVMCode(code);
-		dumpVMCode(code);
-		break;
-	case Array: case Object:
-		code = createoPUSH(i, dst_);
-		addVMCode(code);
-		dumpVMCode(code);
-		break;
-	default:
-		code = createiPUSH(i, dst_);
-		addVMCode(code);
-		dumpVMCode(code);
-		break;
-	}
+	GPerlVirtualMachineCode *code = createPUSH(i, dst_);
+	addVMCode(code);
+	dumpVMCode(code);
 }
 
 void GPerlCompiler::optimizeFuncCode(vector<GPerlVirtualMachineCode *> *f, string fname)
@@ -286,19 +266,6 @@ void GPerlCompiler::optimizeFuncCode(vector<GPerlVirtualMachineCode *> *f, strin
 			code_num--;
 			it--;
 		} else if (c->op == MOV) {
-			/*
-			reg_n = c->dst;
-			if (isOMOVCall) {
-				//TODO
-				it = f->erase(it);
-				code_num--;
-				it--;
-				isOMOVCall = false;
-			} else {
-				//c->op = OPSUPERCALL;
-				isOMOVCall = true;
-			}
-			*/
 		}
 		it++;
 	}
@@ -371,25 +338,24 @@ void GPerlCompiler::finalCompile(vector<GPerlVirtualMachineCode *> *code)
 			OPCREATE_TYPE1(iSUB);
 			break;
 		/*========= TYPE2 =========*/
-/*
-		case OPiADDC:
+		case iADDC:
 			OPCREATE_TYPE2(iADDC);
 			break;
-*/
 		case iSUBC:
 			OPCREATE_TYPE2(iSUBC);
 			break;
 		case JL:
 			OPCREATE_TYPE2(JL);
 			break;
+		case JG:
+			OPCREATE_TYPE2(JG);
+			break;
 		case iJLC:
 			OPCREATE_TYPE2(iJLC);
 			break;
-/*
-		case OPiJGC:
+		case iJGC:
 			OPCREATE_TYPE2(iJGC);
 			break;
-*/
 		case PUSH:
 			OPCREATE_TYPE2(PUSH);
 			break;
@@ -468,7 +434,6 @@ GPerlVirtualMachineCode *GPerlCompiler::createVMCode(GPerlCell *c)
 	switch (c->type) {
 	case Int:
 		code->dst = dst;
-		//code->src = c->data.idata;
 		INT_init(code->v, c->data.idata);
 		code->op = MOV;
 		reg_type[dst] = Int;
@@ -477,7 +442,6 @@ GPerlVirtualMachineCode *GPerlCompiler::createVMCode(GPerlCell *c)
 	case String:
 		code->dst = dst;
 		code->src = -1;
-		//code->name = c->data.sdata;
 		STRING_init(code->v, c->data.sdata);
 		code->op = MOV;
 		reg_type[dst] = String;
@@ -772,7 +736,7 @@ GPerlVirtualMachineCode *GPerlCompiler::createoWRITE(void)
 	return code;
 }
 
-GPerlVirtualMachineCode *GPerlCompiler::createiPUSH(int i, int dst_)
+GPerlVirtualMachineCode *GPerlCompiler::createPUSH(int i, int dst_)
 {
 	GPerlVirtualMachineCode *code = new GPerlVirtualMachineCode();
 	code->code_num = code_num;
@@ -781,28 +745,6 @@ GPerlVirtualMachineCode *GPerlCompiler::createiPUSH(int i, int dst_)
 	code->dst = dst_-1;
 	code_num++;
 	args_count++;
-	return code;
-}
-
-GPerlVirtualMachineCode *GPerlCompiler::createsPUSH(int i, int dst_)
-{
-	GPerlVirtualMachineCode *code = new GPerlVirtualMachineCode();
-	code->code_num = code_num;
-	code->op = PUSH;
-	code->src = i;
-	code->dst = dst_-1;
-	code_num++;
-	return code;
-}
-
-GPerlVirtualMachineCode *GPerlCompiler::createoPUSH(int i, int dst_)
-{
-	GPerlVirtualMachineCode *code = new GPerlVirtualMachineCode();
-	code->code_num = code_num;
-	code->op = PUSH;
-	code->src = i;
-	code->dst = dst_-1;
-	code_num++;
 	return code;
 }
 

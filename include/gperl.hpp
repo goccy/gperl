@@ -271,9 +271,7 @@ public:
 	GPerlVirtualMachineCode *createiWRITE(void);
 	GPerlVirtualMachineCode *createsWRITE(void);
 	GPerlVirtualMachineCode *createoWRITE(void);
-	GPerlVirtualMachineCode *createiPUSH(int i, int dst_);
-	GPerlVirtualMachineCode *createsPUSH(int i, int dst_);
-	GPerlVirtualMachineCode *createoPUSH(int i, int dst_);
+	GPerlVirtualMachineCode *createPUSH(int i, int dst_);
 	GPerlVirtualMachineCode *createJMP(int jmp_num);
 	void addWriteCode(void);
 	void addPushCode(int i, int dst_);
@@ -298,14 +296,6 @@ public:
 	void clearNodes(void);
 	GPerlNode *lastNode(void);
 };
-
-typedef union {
-	uint64_t bytes[MAX_REG_SIZE];
-	int ivalue[MAX_REG_SIZE];
-	double dvalue[MAX_REG_SIZE];
-	char *svalue[MAX_REG_SIZE];
-	GPerlObject *ovalue[MAX_REG_SIZE];
-} Reg;
 
 typedef struct _GPerlEnv {
 	GPerlValue *reg;
