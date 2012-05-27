@@ -9,8 +9,6 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 {
 	static GPerlVirtualMachineCode *top;
 	GPerlVirtualMachineCode *pc = codes;
-	//Reg reg_[MAX_CALLSTACK_SIZE];
-	//Reg *reg = reg_;
 	GPerlEnv *callstack = createCallStack();
 	GPerlObject **argstack = createArgStack();
 	static char shared_buf[128] = {0};//TODO must be variable buffer
@@ -26,42 +24,32 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 		BREAK();
 	});
 	CASE(MOV, {
-		GPERL_MOV(pc->dst, pc->src);
+		GPERL_MOV(pc->dst, pc->v);
 		pc++;
 		BREAK();
 	});
-	CASE(iMOV, {
-		GPERL_iMOV(pc->dst, pc->src);
-		pc++;
-		BREAK();
-	});
-	CASE(dMOV, {
-		GPERL_dMOV(pc->dst, pc->src);
-		pc++;
-		BREAK();
-	});
-	CASE(sMOV, {
-		GPERL_sMOV(pc->dst, pc->name);
-		pc++;
-		BREAK();
-	});
-	CASE(oMOV, {
-		GPERL_oMOV(pc->dst, pc->src);
+	CASE(ARGMOV, {
+		GPERL_ARGMOV(pc->dst, pc->src);
 		pc++;
 		BREAK();
 	});
 	CASE(ADD, {
-		GPERL_ADD(pc->dst, pc->src);
+		int dst_type = TYPE_CHECK(callstack->reg[pc->dst]);
+		int src_type = TYPE_CHECK(callstack->reg[pc->src]);
+#ifdef STATIC_TYPING_MODE
+		pc->opnext = jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
+#else /* DYNAMIC_TYPING_MODE */
+		goto *jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
+#endif
+		BREAK();
+	});
+	CASE(dADD, {
+		GPERL_dADD(pc->dst, pc->src);
 		pc++;
 		BREAK();
 	});
 	CASE(iADD, {
 		GPERL_iADD(pc->dst, pc->src);
-		pc++;
-		BREAK();
-	});
-	CASE(dADD, {
-		GPERL_dADD(pc->dst, pc->src);
 		pc++;
 		BREAK();
 	});
@@ -75,18 +63,28 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 		pc++;
 		BREAK();
 	});
-	CASE(iADDC, {
-		GPERL_iADDC(pc->dst, pc->src);
-		pc++;
-		BREAK();
-	});
 	CASE(dADDC, {
 		GPERL_dADDC(pc->dst, pc->src);
 		pc++;
 		BREAK();
 	});
+	CASE(iADDC, {
+		GPERL_iADDC(pc->dst, pc->src);
+		pc++;
+		BREAK();
+	});
 	CASE(SUB, {
-		GPERL_SUB(pc->dst, pc->src);
+		int dst_type = TYPE_CHECK(callstack->reg[pc->dst]);
+		int src_type = TYPE_CHECK(callstack->reg[pc->src]);
+#ifdef STATIC_TYPING_MODE
+		pc->opnext = jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
+#else /* DYNAMIC_TYPING_MODE */
+		goto *jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
+#endif
+		BREAK();
+	});
+	CASE(dSUB, {
+		GPERL_dSUB(pc->dst, pc->src);
 		pc++;
 		BREAK();
 	});
@@ -95,18 +93,8 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 		pc++;
 		BREAK();
 	});
-	CASE(dSUB, {
-		GPERL_dSUB(pc->dst, pc->src);
-		pc++;
-		BREAK();
-	});
 	CASE(oSUB, {
 		GPERL_oSUB(pc->dst, pc->src);
-		pc++;
-		BREAK();
-	});
-	CASE(iSUBC, {
-		GPERL_iSUBC(pc->dst, pc->src);
 		pc++;
 		BREAK();
 	});
@@ -115,18 +103,28 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 		pc++;
 		BREAK();
 	});
+	CASE(iSUBC, {
+		GPERL_iSUBC(pc->dst, pc->src);
+		pc++;
+		BREAK();
+	});
 	CASE(MUL, {
-		GPERL_MUL(pc->dst, pc->src);
+		int dst_type = TYPE_CHECK(callstack->reg[pc->dst]);
+		int src_type = TYPE_CHECK(callstack->reg[pc->src]);
+#ifdef STATIC_TYPING_MODE
+		pc->opnext = jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
+#else /* DYNAMIC_TYPING_MODE */
+		goto *jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
+#endif
+		BREAK();
+	});
+	CASE(dMUL, {
+		GPERL_dMUL(pc->dst, pc->src);
 		pc++;
 		BREAK();
 	});
 	CASE(iMUL, {
 		GPERL_iMUL(pc->dst, pc->src);
-		pc++;
-		BREAK();
-	});
-	CASE(dMUL, {
-		GPERL_dMUL(pc->dst, pc->src);
 		pc++;
 		BREAK();
 	});
@@ -140,18 +138,28 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 		pc++;
 		BREAK();
 	});
-	CASE(iMULC, {
-		GPERL_iMULC(pc->dst, pc->src);
-		pc++;
-		BREAK();
-	});
 	CASE(dMULC, {
 		GPERL_dMULC(pc->dst, pc->src);
 		pc++;
 		BREAK();
 	});
+	CASE(iMULC, {
+		GPERL_iMULC(pc->dst, pc->src);
+		pc++;
+		BREAK();
+	});
 	CASE(DIV, {
-		GPERL_DIV(pc->dst, pc->src);
+		int dst_type = TYPE_CHECK(callstack->reg[pc->dst]);
+		int src_type = TYPE_CHECK(callstack->reg[pc->src]);
+#ifdef STATIC_TYPING_MODE
+		pc->opnext = jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
+#else /* DYNAMIC_TYPING_MODE */
+		goto *jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
+#endif
+		BREAK();
+	});
+	CASE(dDIV, {
+		GPERL_dDIV(pc->dst, pc->src);
 		pc++;
 		BREAK();
 	});
@@ -160,18 +168,8 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 		pc++;
 		BREAK();
 	});
-	CASE(dDIV, {
-		GPERL_dDIV(pc->dst, pc->src);
-		pc++;
-		BREAK();
-	});
 	CASE(oDIV, {
 		GPERL_oDIV(pc->dst, pc->src);
-		pc++;
-		BREAK();
-	});
-	CASE(iDIVC, {
-		GPERL_iDIVC(pc->dst, pc->src);
 		pc++;
 		BREAK();
 	});
@@ -180,238 +178,217 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 		pc++;
 		BREAK();
 	});
-	CASE(JG, {
-		GPERL_CMP_JMP(>, pc->dst, pc->src);
+	CASE(iDIVC, {
+		GPERL_iDIVC(pc->dst, pc->src);
 		pc++;
 		BREAK();
 	});
-	CASE(iJG, {
-		GPERL_iCMP_JMP(>, pc->dst, pc->src);
-		pc++;
+	CASE(JG, {
+		int dst_type = TYPE_CHECK(callstack->reg[pc->dst]);
+		int src_type = TYPE_CHECK(callstack->reg[pc->src]);
+#ifdef STATIC_TYPING_MODE
+		pc->opnext = jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
+#else /* DYNAMIC_TYPING_MODE */
+		goto *jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
+#endif
 		BREAK();
 	});
 	CASE(dJG, {
 		GPERL_dCMP_JMP(>, pc->dst, pc->src);
-		pc++;
+		BREAK();
+	});
+	CASE(iJG, {
+		GPERL_iCMP_JMP(>, pc->dst, pc->src);
 		BREAK();
 	});
 	CASE(sJG, {
 		GPERL_sCMP_JMP(>, pc->dst, pc->src);
-		pc++;
 		BREAK();
 	});
 	CASE(oJG, {
 		GPERL_oCMP_JMP(>, pc->dst, pc->src);
-		pc++;
-		BREAK();
-	});
-	CASE(iJGC, {
-		GPERL_iCMP_JMPC(>, pc->dst, pc->src);
-		pc++;
 		BREAK();
 	});
 	CASE(dJGC, {
 		GPERL_dCMP_JMPC(>, pc->dst, pc->src);
-		pc++;
+		BREAK();
+	});
+	CASE(iJGC, {
+		GPERL_iCMP_JMPC(>, pc->dst, pc->src);
 		BREAK();
 	});
 	CASE(JL, {
-		GPERL_CMP_JMP(<, pc->dst, pc->src);
-		pc++;
-		BREAK();
-	});
-	CASE(iJL, {
-		GPERL_iCMP_JMP(<, pc->dst, pc->src);
-		pc++;
+		int dst_type = TYPE_CHECK(callstack->reg[pc->dst]);
+		int src_type = TYPE_CHECK(callstack->reg[pc->src]);
+#ifdef STATIC_TYPING_MODE
+		pc->opnext = jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
+#else /* DYNAMIC_TYPING_MODE */
+		goto *jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
+#endif
 		BREAK();
 	});
 	CASE(dJL, {
 		GPERL_dCMP_JMP(<, pc->dst, pc->src);
-		pc++;
+		BREAK();
+	});
+	CASE(iJL, {
+		GPERL_iCMP_JMP(<, pc->dst, pc->src);
 		BREAK();
 	});
 	CASE(sJL, {
 		GPERL_sCMP_JMP(<, pc->dst, pc->src);
-		pc++;
 		BREAK();
 	});
 	CASE(oJL, {
 		GPERL_oCMP_JMP(<, pc->dst, pc->src);
-		pc++;
-		BREAK();
-	});
-	CASE(iJLC, {
-		GPERL_iCMP_JMPC(<, pc->dst, pc->src);
-		pc++;
 		BREAK();
 	});
 	CASE(dJLC, {
 		GPERL_dCMP_JMPC(<, pc->dst, pc->src);
-		pc++;
+		BREAK();
+	});
+	CASE(iJLC, {
+		GPERL_iCMP_JMPC(<, pc->dst, pc->src);
 		BREAK();
 	});
 	CASE(JGE, {
-		GPERL_CMP_JMP(>=, pc->dst, pc->src);
-		pc++;
-		BREAK();
-	});
-	CASE(iJGE, {
-		GPERL_iCMP_JMP(>=, pc->dst, pc->src);
-		pc++;
+		int dst_type = TYPE_CHECK(callstack->reg[pc->dst]);
+		int src_type = TYPE_CHECK(callstack->reg[pc->src]);
+#ifdef STATIC_TYPING_MODE
+		pc->opnext = jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
+#else /* DYNAMIC_TYPING_MODE */
+		goto *jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
+#endif
 		BREAK();
 	});
 	CASE(dJGE, {
 		GPERL_dCMP_JMP(>=, pc->dst, pc->src);
-		pc++;
+		BREAK();
+	});
+	CASE(iJGE, {
+		GPERL_iCMP_JMP(>=, pc->dst, pc->src);
 		BREAK();
 	});
 	CASE(sJGE, {
 		GPERL_sCMP_JMP(>=, pc->dst, pc->src);
-		pc++;
 		BREAK();
 	});
 	CASE(oJGE, {
 		GPERL_oCMP_JMP(>=, pc->dst, pc->src);
-		pc++;
-		BREAK();
-	});
-	CASE(iJGEC, {
-		GPERL_iCMP_JMPC(>=, pc->dst, pc->src);
-		pc++;
 		BREAK();
 	});
 	CASE(dJGEC, {
 		GPERL_dCMP_JMPC(>=, pc->dst, pc->src);
-		pc++;
+		BREAK();
+	});
+	CASE(iJGEC, {
+		GPERL_iCMP_JMPC(>=, pc->dst, pc->src);
 		BREAK();
 	});
 	CASE(JLE, {
-		GPERL_CMP_JMP(<=, pc->dst, pc->src);
-		pc++;
-		BREAK();
-	});
-	CASE(iJLE, {
-		GPERL_iCMP_JMP(<=, pc->dst, pc->src);
-		pc++;
+		int dst_type = TYPE_CHECK(callstack->reg[pc->dst]);
+		int src_type = TYPE_CHECK(callstack->reg[pc->src]);
+#ifdef STATIC_TYPING_MODE
+		pc->opnext = jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
+#else /* DYNAMIC_TYPING_MODE */
+		goto *jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
+#endif
 		BREAK();
 	});
 	CASE(dJLE, {
 		GPERL_dCMP_JMP(<=, pc->dst, pc->src);
-		pc++;
+		BREAK();
+	});
+	CASE(iJLE, {
+		GPERL_iCMP_JMP(<=, pc->dst, pc->src);
 		BREAK();
 	});
 	CASE(sJLE, {
 		GPERL_sCMP_JMP(<=, pc->dst, pc->src);
-		pc++;
 		BREAK();
 	});
 	CASE(oJLE, {
 		GPERL_oCMP_JMP(<=, pc->dst, pc->src);
-		pc++;
-		BREAK();
-	});
-	CASE(iJLEC, {
-		GPERL_iCMP_JMPC(<=, pc->dst, pc->src);
-		pc++;
 		BREAK();
 	});
 	CASE(dJLEC, {
 		GPERL_dCMP_JMPC(<=, pc->dst, pc->src);
-		pc++;
+		BREAK();
+	});
+	CASE(iJLEC, {
+		GPERL_iCMP_JMPC(<=, pc->dst, pc->src);
 		BREAK();
 	});
 	CASE(JE, {
-		GPERL_CMP_JMP(==, pc->dst, pc->src);
-		pc++;
-		BREAK();
-	});
-	CASE(iJE, {
-		GPERL_iCMP_JMP(==, pc->dst, pc->src);
-		pc++;
+		int dst_type = TYPE_CHECK(callstack->reg[pc->dst]);
+		int src_type = TYPE_CHECK(callstack->reg[pc->src]);
+#ifdef STATIC_TYPING_MODE
+		pc->opnext = jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
+#else /* DYNAMIC_TYPING_MODE */
+		goto *jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
+#endif
 		BREAK();
 	});
 	CASE(dJE, {
 		GPERL_dCMP_JMP(==, pc->dst, pc->src);
-		pc++;
+		BREAK();
+	});
+	CASE(iJE, {
+		GPERL_iCMP_JMP(==, pc->dst, pc->src);
 		BREAK();
 	});
 	CASE(sJE, {
 		GPERL_sCMP_JMP(==, pc->dst, pc->src);
-		pc++;
 		BREAK();
 	});
 	CASE(oJE, {
 		GPERL_oCMP_JMP(==, pc->dst, pc->src);
-		pc++;
-		BREAK();
-	});
-	CASE(iJEC, {
-		GPERL_iCMP_JMPC(==, pc->dst, pc->src);
-		pc++;
 		BREAK();
 	});
 	CASE(dJEC, {
 		GPERL_dCMP_JMPC(==, pc->dst, pc->src);
-		pc++;
+		BREAK();
+	});
+	CASE(iJEC, {
+		GPERL_iCMP_JMPC(==, pc->dst, pc->src);
 		BREAK();
 	});
 	CASE(JNE, {
-		GPERL_CMP_JMP(!=, pc->dst, pc->src);
-		pc++;
-		BREAK();
-	});
-	CASE(iJNE, {
-		GPERL_iCMP_JMP(!=, pc->dst, pc->src);
-		pc++;
+		int dst_type = TYPE_CHECK(callstack->reg[pc->dst]);
+		int src_type = TYPE_CHECK(callstack->reg[pc->src]);
+#ifdef STATIC_TYPING_MODE
+		pc->opnext = jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
+#else /* DYNAMIC_TYPING_MODE */
+		goto *jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
+#endif
 		BREAK();
 	});
 	CASE(dJNE, {
 		GPERL_dCMP_JMP(!=, pc->dst, pc->src);
-		pc++;
+		BREAK();
+	});
+	CASE(iJNE, {
+		GPERL_iCMP_JMP(!=, pc->dst, pc->src);
 		BREAK();
 	});
 	CASE(sJNE, {
 		GPERL_sCMP_JMP(!=, pc->dst, pc->src);
-		pc++;
 		BREAK();
 	});
 	CASE(oJNE, {
 		GPERL_oCMP_JMP(!=, pc->dst, pc->src);
-		pc++;
-		BREAK();
-	});
-	CASE(iJNEC, {
-		GPERL_iCMP_JMPC(!=, pc->dst, pc->src);
-		pc++;
 		BREAK();
 	});
 	CASE(dJNEC, {
 		GPERL_dCMP_JMPC(!=, pc->dst, pc->src);
-		pc++;
+		BREAK();
+	});
+	CASE(iJNEC, {
+		GPERL_iCMP_JMPC(!=, pc->dst, pc->src);
 		BREAK();
 	});
 	CASE(RET, {
 		GPERL_RET(pc->src);
-		pc++;
-		BREAK();
-	});
-	CASE(iRET, {
-		GPERL_iRET(pc->src);
-		pc++;
-		BREAK();
-	});
-	CASE(dRET, {
-		GPERL_dRET(pc->src);
-		pc++;
-		BREAK();
-	});
-	CASE(sRET, {
-		GPERL_sRET(pc->src);
-		pc++;
-		BREAK();
-	});
-	CASE(oRET, {
-		GPERL_oRET(pc->src);
 		pc++;
 		BREAK();
 	});
@@ -431,13 +408,13 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 		pc++;
 		BREAK();
 	});
-	CASE(iWRITE, {
-		GPERL_iWRITE(pc->dst);
+	CASE(dWRITE, {
+		GPERL_dWRITE(pc->dst);
 		pc++;
 		BREAK();
 	});
-	CASE(dWRITE, {
-		GPERL_dWRITE(pc->dst);
+	CASE(iWRITE, {
+		GPERL_iWRITE(pc->dst);
 		pc++;
 		BREAK();
 	});
@@ -481,48 +458,8 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 		pc++;
 		BREAK();
 	});
-	CASE(iCALL, {
-		GPERL_iCALL(pc->dst, pc->src, iCALL);
-		pc++;
-		BREAK();
-	});
-	CASE(dCALL, {
-		GPERL_dCALL(pc->dst, pc->src, dCALL);
-		pc++;
-		BREAK();
-	});
-	CASE(sCALL, {
-		GPERL_sCALL(pc->dst, pc->src, sCALL);
-		pc++;
-		BREAK();
-	});
-	CASE(oCALL, {
-		GPERL_oCALL(pc->dst, pc->src, oCALL);
-		pc++;
-		BREAK();
-	});
 	CASE(SELFCALL, {
 		GPERL_SELFCALL(pc->dst, SELFCALL);
-		pc++;
-		BREAK();
-	});
-	CASE(iSELFCALL, {
-		GPERL_iSELFCALL(pc->dst, iSELFCALL);
-		pc++;
-		BREAK();
-	});
-	CASE(dSELFCALL, {
-		GPERL_dSELFCALL(pc->dst, dSELFCALL);
-		pc++;
-		BREAK();
-	});
-	CASE(sSELFCALL, {
-		GPERL_sSELFCALL(pc->dst, sSELFCALL);
-		pc++;
-		BREAK();
-	});
-	CASE(oSELFCALL, {
-		GPERL_oSELFCALL(pc->dst, oSELFCALL);
 		pc++;
 		BREAK();
 	});
@@ -531,13 +468,13 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 		pc++;
 		BREAK();
 	});
-	CASE(iSHIFT, {
-		GPERL_iSHIFT(pc->src);
+	CASE(dSHIFT, {
+		GPERL_dSHIFT(pc->src);
 		pc++;
 		BREAK();
 	});
-	CASE(dSHIFT, {
-		GPERL_dSHIFT(pc->src);
+	CASE(iSHIFT, {
+		GPERL_iSHIFT(pc->src);
 		pc++;
 		BREAK();
 	});
@@ -553,26 +490,6 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 	});
 	CASE(PUSH, {
 		GPERL_PUSH(pc->dst, pc->src);
-		pc++;
-		BREAK();
-	});
-	CASE(iPUSH, {
-		GPERL_iPUSH(pc->dst, pc->src);
-		pc++;
-		BREAK();
-	});
-	CASE(dPUSH, {
-		GPERL_dPUSH(pc->dst, pc->src);
-		pc++;
-		BREAK();
-	});
-	CASE(sPUSH, {
-		GPERL_sPUSH(pc->dst, pc->src);
-		pc++;
-		BREAK();
-	});
-	CASE(oPUSH, {
-		GPERL_oPUSH(pc->dst, pc->src);
 		pc++;
 		BREAK();
 	});

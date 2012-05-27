@@ -33,22 +33,18 @@ sub get_inst_data {
             @fast_prefix = ("A", "B", "C", "D");
         }
         push(@inst_names, "${inst_name}");
-        if ($fast_type) {
-            foreach (@fast_prefix) {
-                push(@fast_inst_names, "${_}_${inst_name}");
-            }
-        }
         if ($type_flag) {# gen Int, Double, String, Object, (TypeInference)
-            push(@inst_names, "i${inst_name}");
             push(@inst_names, "d${inst_name}");
+            push(@inst_names, "i${inst_name}");
             if ($inst_name !~ /SUB/ && $inst_name !~ /DIV/) {
                 push(@inst_names, "s${inst_name}");
             }
             push(@inst_names, "o${inst_name}");
             if ($fast_type) {
 				foreach (@fast_prefix) {
-					push(@fast_inst_names, "${_}_i${inst_name}");
+					push(@fast_inst_names, "${_}_${inst_name}");
 					push(@fast_inst_names, "${_}_d${inst_name}");
+					push(@fast_inst_names, "${_}_i${inst_name}");
                     if ($inst_name !~ /SUB/ && $inst_name !~ /DIV/) {
                         push(@fast_inst_names, "${_}_s${inst_name}");
                     }
@@ -56,13 +52,14 @@ sub get_inst_data {
 				}
             }
             if ($const_flag) {
-                push(@inst_names, "i${inst_name}C");
                 push(@inst_names, "d${inst_name}C");
+                push(@inst_names, "i${inst_name}C");
                 if ($fast_type) {
 					@fast_prefix = ("A", "B", "C", "D");
 					foreach (@fast_prefix) {
-						push(@fast_inst_names, "${_}_i${inst_name}C");
+						push(@fast_inst_names, "${_}_${inst_name}C");
 						push(@fast_inst_names, "${_}_d${inst_name}C");
+						push(@fast_inst_names, "${_}_i${inst_name}C");
                         if ($inst_name !~ /SUB/ && $inst_name !~ /DIV/) {
                             push(@fast_inst_names, "${_}_s${inst_name}C");
                         }
@@ -83,7 +80,13 @@ sub get_inst_data {
                     push(@fast_inst_names, "${_}_${inst_name}C");
                 }
             }
-        }
+        } else {
+            if ($fast_type) {
+				foreach (@fast_prefix) {
+					push(@fast_inst_names, "${_}_${inst_name}");
+				}
+			}
+		}
         my %hash = (
             orig => $inst_name,
             inst_names => \@inst_names,
@@ -115,16 +118,16 @@ sub gen_enum_code {
     }
     $ret .= "} GPerlOpCode;\n";
     $ret .= "\n";
-    return $ret;
-}
-
-sub gen_info_code {
-    my $ret = "";
     $ret .=
 "typedef struct _GPerlCodeInfo {
 	GPerlOpCode code;
 	const char *name;
 } GPerlCodeInfo;\n\n";
+    return $ret;
+}
+
+sub gen_info_code {
+    my $ret = "";
     $ret .= "GPerlCodeInfo decl_codes[] = {\n";
     my $ref = shift;
     my @insts = @{$ref};
@@ -282,8 +285,6 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 {
 	static GPerlVirtualMachineCode *top;
 	GPerlVirtualMachineCode *pc = codes;
-	Reg reg_[MAX_CALLSTACK_SIZE];
-	Reg *reg = reg_;
 	GPerlEnv *callstack = createCallStack();
 	GPerlObject **argstack = createArgStack();
 	static char shared_buf[128] = {0};//TODO must be variable buffer
@@ -295,6 +296,15 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 
 ";
 
+my $type_check_code =
+"		int dst_type = TYPE_CHECK(callstack->reg[pc->dst]);
+		int src_type = TYPE_CHECK(callstack->reg[pc->src]);
+#ifdef STATIC_TYPING_MODE
+		pc->opnext = jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
+#else /* DYNAMIC_TYPING_MODE */
+		goto *jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
+#endif
+";
 sub gen_vm_run_code {
 	my $ret = $run_init;
     my $ref = shift;
@@ -328,12 +338,18 @@ sub gen_vm_run_code {
 				$prefix = "" if ($prefix =~ /J/);
 				if ($_ =~ /C$/) {
 					$ret .= "\t\tGPERL_${prefix}CMP_JMPC(" . $decl_args . ");\n";
+				} elsif($prefix eq "") {
+					$ret .= $type_check_code;
 				} else {
 					$ret .= "\t\tGPERL_${prefix}CMP_JMP(" . $decl_args . ");\n";
 				}
 			} elsif ($_ =~ /THCODE/) {
+			} elsif ($_ eq "ADD" || $_ eq "SUB" ||
+					 $_ eq "MUL" || $_ eq "DIV") {
+				$ret .= $type_check_code;
 			} else {
 				$ret .= "\t\tGPERL_${_}(" . $decl_args . ");\n";
+				$ret .= "\t\tpc++;\n";
 			}
 			if ($_ =~ /THCODE/) {
 				$ret .= "\t\tcreateDirectThreadingCode(codes, jmp_table);\n";
@@ -341,7 +357,6 @@ sub gen_vm_run_code {
 				$ret .= "\t\t//createSelectiveInliningCode(codes, jmp_table, block_table);\n";
 				$ret .= "\t\treturn 0;\n";
 			} else {
-				$ret .= "\t\tpc++;\n";
 				$ret .= "\t\tBREAK();\n";
 			}
 			$ret .= "\t});\n";
@@ -349,7 +364,7 @@ sub gen_vm_run_code {
 	}
 	$ret .= "#include \"gen_fast_vmcode.cpp\"\n\n";
 	$ret .= "\tDISPATCH_END();\n";
-	$ret .= "\treturn I(data)[0];\n";
+	$ret .= "\treturn I(0);\n";
 	$ret .= "}\n";
 	return $ret;
 }
@@ -448,13 +463,18 @@ sub gen_fast_vm_code {
 				$prefix = "" if ($prefix =~ /J/);
 				if ($_ =~ /C$/) {
 					$ret .= "\t\tGPERL_${prefix}CMP_JMPC(" . $decl_args . ");\n";
+				} elsif($prefix eq "") {
+					$ret .= $type_check_code;
 				} else {
 					$ret .= "\t\tGPERL_${prefix}CMP_JMP(" . $decl_args . ");\n";
 				}
+			} elsif ($_ eq "ADD" || $_ eq "SUB" ||
+					 $_ eq "MUL" || $_ eq "DIV") {
+				$ret .= $type_check_code;
 			} else {
 				$ret .= "\t\tGPERL_${_code[1]}(" . $decl_args . ");\n";
+				$ret .= "\t\tpc++;\n";
 			}
-			$ret .= "\t\tpc++;\n";
 			$ret .= "\t\tBREAK();\n";
 			$ret .= "\t});\n";
 		}

@@ -234,11 +234,12 @@ GPerlTokenInfo GPerlTokenizer::getTokenInfo(const char *name, const char *data)
 			if (dsize == tsize && !strncmp(token_data, data, dsize)) {
 				return decl_tokens[i];
 			} else if (type == Undefined) {
-				return decl_tokens[i];
+				break;
 			}
 			i++;
 		}
 	}
+	return decl_tokens[i];
 }
 
 void GPerlTokenizer::annotateTokens(vector<GPerlToken *> *tokens)

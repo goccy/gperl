@@ -8,7 +8,14 @@
  },
  {
 	 "code" : "MOV",
-	 "type" : 1,
+	 "type" : 0,
+	 "const" : 0,
+	 "fast_type" : 2,
+     "args" : [{"dst" : "pc->dst"}, {"src" : "pc->v"}]
+ },
+ {
+	 "code" : "ARGMOV",
+	 "type" : 0,
 	 "const" : 0,
 	 "fast_type" : 2,
      "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}]
@@ -85,7 +92,7 @@
  },
  {
 	 "code" : "RET",
-	 "type" : 1,
+	 "type" : 0,
 	 "const" : 0,
 	 "fast_type" : 2,
      "args" : [{"src" : "pc->src"}]
@@ -148,14 +155,14 @@
  },
  {
 	 "code" : "CALL",
-	 "type" : 1,
+	 "type" : 0,
 	 "const" : 0,
 	 "fast_type" : 2,
      "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}, {"NAME" : "callname"}]
  },
  {
 	 "code" : "SELFCALL",
-	 "type" : 1,
+	 "type" : 0,
 	 "const" : 0,
 	 "fast_type" : 2,
      "args" : [{"dst" : "pc->dst"}, {"NAME" : "callname"}]
@@ -169,7 +176,7 @@
  },
  {
 	 "code" : "PUSH",
-	 "type" : 1,
+	 "type" : 0,
 	 "const" : 0,
 	 "fast_type" : 2,
      "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}]

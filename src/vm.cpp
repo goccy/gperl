@@ -57,18 +57,17 @@ static void *gxmalloc(void)
 
 void GPerlVirtualMachine::createSelectiveInliningCode(GPerlVirtualMachineCode *c, void **jmp_tbl, InstBlock *block_tbl)
 {
-	GPerlVirtualMachineCode *pc = c;
-	pc++;//skip THCODE
-	for (; pc->op != UNDEF; pc++) {
-		//pc->code = gxmalloc();
-		//pos = 0;
-		InstBlock block = block_tbl[pc->op];
-		int len = (intptr_t)block.end - (intptr_t)block.start;
-		DBG_PL("len = [%d]", len);
-		if (pc->op == FUNCSET) {
-			createSelectiveInliningCode(pc->func, jmp_tbl, block_tbl);
-		}
-	}
+	(void)c; (void)jmp_tbl; (void)block_tbl;
+//	GPerlVirtualMachineCode *pc = c;
+//	pc++;//skip THCODE
+//	for (; pc->op != UNDEF; pc++) {
+//		InstBlock block = block_tbl[pc->op];
+//		int len = (intptr_t)block.end - (intptr_t)block.start;
+//		DBG_PL("len = [%d]", len);
+//		if (pc->op == FUNCSET) {
+//			createSelectiveInliningCode(pc->func, jmp_tbl, block_tbl);
+//		}
+//	}
 }
 
 /*
@@ -126,14 +125,9 @@ GPerlEnv *GPerlVirtualMachine::createCallStack(void)
 {
 	for (int i = 0; i < MAX_CALLSTACK_SIZE; i++) {
 		GPerlValue *reg = (GPerlValue *)malloc(sizeof(GPerlValue) * MAX_REG_SIZE);
-		GPerlObject **argstack = (GPerlObject **)malloc(sizeof(GPerlObject) * MAX_ARGSTACK_SIZE);
+		GPerlValue *argstack = (GPerlValue *)malloc(sizeof(GPerlValue) * MAX_ARGSTACK_SIZE);
 		env_[i].argstack = argstack;
 		env_[i].reg = reg;
-		//effect to FAST PROGRAM?? (fib(36) 0.38 => 0.35)
-		for (int j = 0; j < MAX_ARGSTACK_SIZE; j++) {
-			GPerlObject *o = new GPerlObject();
-			env_[i].argstack[j] = o;
-		}
 	}
 	int size = MAX_CALLSTACK_SIZE * sizeof(GPerlEnv);
 	GPerlEnv *callstack = (GPerlEnv *)malloc(size);

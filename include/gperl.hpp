@@ -11,6 +11,21 @@
 #define MAX_LINE_SIZE 128
 #define MAX_TOKEN_SIZE 4096
 #define MAX_SCRIPT_SIZE 4096 * 10
+#define NaN       (uint64_t)(0xFFF0000000000000)
+#define Mask      (uint64_t)(0x00000000FFFFFFFF)
+#define TYPE      (uint64_t)(0x000F000000000000)
+
+#define IntTag    (uint64_t)(0x0001000000000000)
+#define StringTag (uint64_t)(0x0002000000000000)
+#define ObjectTag (uint64_t)(0x0003000000000000)
+
+#define INT_init(o, idata) o.ivalue = idata; o.bytes = ((idata & Mask) | NaN | IntTag)
+#define DOUBLE_init(o, ddata) o.dvalue = ddata;
+#define STRING_init(o, ptr) o.svalue = ptr; o.bytes |= NaN | StringTag
+#define OBJECT_init(o, ptr) o.ovalue = ptr; o.bytes |= NaN | ObjectTag
+#define getString(o) (char *)(o.bytes ^ (NaN | StringTag))
+#define getObject(o) (o.bytes ^ (NaN | ObjectTag))
+#define TYPE_CHECK(T) ((T.bytes & NaN) == NaN) * ((T.bytes & TYPE) >> 48 )
 
 #define cstr(s) s.c_str()
 
@@ -28,142 +43,14 @@
 #endif
 
 #include <gen_token.hpp>
-
-typedef struct _GPerlTokenType {
-	GPerlT type;
-	const char *name;
-	const char *str;
-} GPerlTokenType;
-
 #include <gen_vmcode.hpp>
-
-typedef enum {
-	OPUNDEF,
-	OPMOV,
-	OPiMOV,
-	OPsMOV,
-	OPOMOV,
-	OPLMOV,
-	OPOiMOV,
-	OPADD,
-	OPiADD,
-	OPiADDC,
-	OPSUB,
-	OPiSUB,
-	OPiSUBC,
-	OPMUL,
-	OPiMUL,
-	OPiMULC,
-	OPDIV,
-	OPiDIV,
-	OPiDIVC,
-	OPJG,
-	OPiJG,
-	OPiJGC,
-	OPJL,
-	OPiJL,
-	OPiJLC,
-	OPJGE,
-	OPiJGE,
-	OPiJGEC,
-	OPJLE,
-	OPiJLE,
-	OPiJLEC,
-	OPJE,
-	OPiJE,
-	OPiJEC,
-	OPJNE,
-	OPiJNE,
-	OPiJNEC,
-	OPRET,
-	OPJRET,
-	OPTHCODE,
-	OPNOP,
-	OPiWRITE,
-	OPsWRITE,
-	OPoWRITE,
-	OPPRINT,
-	OPJMP,
-	OPLET,
-	OPSET,
-	OPFUNCSET,
-	OPCALL,
-	OPJCALL,
-	OPSELFCALL,
-	OPJSELFCALL,
-	OPSHIFT,
-	OPiPUSH,
-	OPsPUSH,
-	OPoPUSH,
-	OPARRAY_PUSH,
-	OPLIST_NEW,
-	/*------------final inst----------------*/
-	OPABADD,
-	OPACADD,
-	OPADADD,
-	OPBCADD,
-	OPBDADD,
-	OPCDADD,
-
-	OPAiSUBC,
-	OPBiSUBC,
-	OPCiSUBC,
-	OPDiSUBC,
-
-	OPAiJLC,
-	OPBiJLC,
-	OPCiJLC,
-	OPDiJLC,
-
-	OPAiPUSH,
-	OPBiPUSH,
-	OPCiPUSH,
-	OPDiPUSH,
-
-	OPAiMOV,
-	OPBiMOV,
-	OPCiMOV,
-	OPDiMOV,
-
-	OPAOMOV,
-	OPBOMOV,
-	OPCOMOV,
-	OPDOMOV,
-
-	OPASELFCALL,
-	OPBSELFCALL,
-	OPCSELFCALL,
-	OPDSELFCALL,
-
-	OPAJSELFCALL,
-	OPBJSELFCALL,
-	OPCJSELFCALL,
-	OPDJSELFCALL,
-
-	OPARET,
-	OPBRET,
-	OPCRET,
-	OPDRET,
-	OPAJRET,
-	OPBJRET,
-	OPCJRET,
-	OPDJRET,
-	OPSUPERCALL,
-} GPerlOpCodes;
 
 #define MAX_ARGSTACK_SIZE 8
 #define MAX_CALLSTACK_SIZE 128
 
-typedef struct _GPerlOpDef {
-	GPerlOpCodes code;
-	const char *name;
-} GPerlOpDef;
-
 #define DECL(T, S) {T, #T, S}
 extern GPerlTokenInfo decl_tokens[];
 extern GPerlCodeInfo decl_codes[];
-extern GPerlOpDef decl_opdef[];
-#define OpName(op) decl_opdef[op].name
 
 class GPerl {
 public:
@@ -339,12 +226,13 @@ typedef struct _GPerlVirtualMachineCode {
 	int dst;   /* register number */
 	int src;   /* src value or register number */
 	int code_num;
+	GPerlValue v;
 	union {
 		void *code;/* selective inlining code */
 		int jmp;   /* jmp register number */
 		GPerlObject **list;
 	};
-	const char *name; /* variable or function name */
+	const char *name;
 	struct _GPerlVirtualMachineCode *func;
 	void *opnext; /* for direct threading */
 } GPerlVirtualMachineCode;
@@ -421,7 +309,7 @@ typedef union {
 
 typedef struct _GPerlEnv {
 	GPerlValue *reg;
-	GPerlObject **argstack;
+	GPerlValue *argstack;
 	GPerlVirtualMachineCode *pc;
 	void *ret_addr;
 } GPerlEnv;
