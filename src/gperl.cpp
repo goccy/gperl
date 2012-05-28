@@ -1,4 +1,5 @@
 #include <gperl.hpp>
+using namespace std;
 
 GPerl::GPerl(int argc, char **argv)
 {

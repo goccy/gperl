@@ -6,6 +6,7 @@
 #include <vector>
 #include <string>
 #include <algorithm>
+#include <map>
 
 #define EOL '\0'
 #define MAX_LINE_SIZE 128
@@ -63,6 +64,7 @@ public:
 	GPerlT type;
 	GPerlTokenInfo info;
 	int idx;
+	int indent;
 	GPerlToken(std::string data_, int idx_ = 0);
 };
 
@@ -110,8 +112,11 @@ public:
 		char *sdata;
 		void *pdata; /* other Object */
 	} data;
+	int vidx; /* variable idx */
+	int indent;
 	GPerlCell(GPerlT type_);
 	GPerlCell(GPerlT type_, std::string name);
+	void setVariableIdx(int idx);
 };
 
 #ifdef USING_GRAPH_DEBUG
@@ -148,6 +153,10 @@ class GPerlParser {
 public:
 	int iterate_count;
 	int func_iterate_count;
+	int vidx; /* variable idx */
+	int vcount; /* variable count in scope block */
+	int indent;
+
 	std::vector<GPerlToken *>::iterator it;
 	std::vector<GPerlToken *>::iterator end;
 
@@ -253,6 +262,8 @@ public:
 	int variable_index;
 	int func_index;
 	int args_count;/* for shift */
+	std::map<std::string, int> local_vmap;
+	std::map<std::string, int> global_vmap;
 
 	GPerlCompiler(void);
 	GPerlVirtualMachineCode *compile(GPerlAST *ast);
@@ -335,5 +346,9 @@ public:
 	void createSelectiveInliningCode(GPerlVirtualMachineCode *codes, void **jmp_tbl, InstBlock *block_tbl);
 	int run(GPerlVirtualMachineCode *codes);
 };
+
+#define NAME_RESOLUTION_PREFIX "*"
+#define MAX_GLOBAL_MEMORY_SIZE 128
+extern GPerlObject *global_vmemory[MAX_GLOBAL_MEMORY_SIZE];
 
 void Array_push(GPerlValue *);

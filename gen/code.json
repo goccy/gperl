@@ -21,6 +21,13 @@
      "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}]
  },
  {
+	 "code" : "gMOV",
+	 "type" : 0,
+	 "const" : 0,
+	 "fast_type" : 2,
+     "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}]
+ },
+ {
 	 "code" : "ARGMOV",
 	 "type" : 0,
 	 "const" : 0,
@@ -141,6 +148,13 @@
  },
  {
 	 "code" : "LET",
+	 "type" : 0,
+	 "const" : 0,
+	 "fast_type" : 0,
+     "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}]
+ },
+ {
+	 "code" : "gLET",
 	 "type" : 0,
 	 "const" : 0,
 	 "fast_type" : 0,

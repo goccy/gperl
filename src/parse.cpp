@@ -2,7 +2,7 @@
 
 using namespace std;
 
-GPerlCell::GPerlCell(GPerlT type_) : type(type_)
+GPerlCell::GPerlCell(GPerlT type_) : type(type_), vidx(0)
 {
 	data.pdata = NULL;
 	left = NULL;
@@ -16,7 +16,7 @@ GPerlCell::GPerlCell(GPerlT type_) : type(type_)
 	argsize = 0;
 }
 
-GPerlCell::GPerlCell(GPerlT type_, string name) : type(type_)
+GPerlCell::GPerlCell(GPerlT type_, string name) : type(type_), vidx(0)
 {
 	data.pdata = NULL;
 	left = NULL;
@@ -56,12 +56,20 @@ GPerlCell::GPerlCell(GPerlT type_, string name) : type(type_)
 	rawstr = name;
 }
 
+void GPerlCell::setVariableIdx(int idx)
+{
+	vidx = idx;
+}
+
 GPerlParser::GPerlParser(vector<GPerlToken *> *tokens)
 {
 	it = tokens->begin();
 	end = tokens->end();
 	iterate_count = 0;
 	func_iterate_count = 0;
+	vidx = 0;
+	vcount = 0;
+	indent = 0;
 }
 
 GPerlNodes::GPerlNodes() : vector<GPerlNode *>()
@@ -118,17 +126,21 @@ void GPerlParser::parseValue(GPerlToken *t, GPerlNodes *blocks, GPerlScope *scop
 				}
 				block->argsize = scope->root->argsize;
 			} else {
-				blocks->pushNode(new GPerlCell(type, t->data));
+				GPerlCell *v = new GPerlCell(type, t->data);
+				v->indent = t->indent;
+				blocks->pushNode(v);
 			}
 		} else if (block->left == NULL) {
 			DBG_PL("[%s]:LAST BLOCK->left", cstr(t->data));
 			GPerlCell *b = (scope) ? scope->root->vargs[0] : new GPerlCell(type, t->data);
+			b->indent = t->indent;
 			block->left = b;
 			b->parent = block;
 			if (type == Call || type == BuiltinFunc) blocks->pushNode(b);
 		} else if (block->right == NULL) {
 			DBG_PL("[%s]:LAST BLOCK->right", cstr(t->data));
 			GPerlCell *b = (scope) ? scope->root->vargs[0] : new GPerlCell(type, t->data);
+			b->indent = indent;
 			block->right = b;
 			b->parent = block;
 			if (type == Call || type == BuiltinFunc) blocks->pushNode(b);
@@ -144,6 +156,7 @@ void GPerlParser::parseValue(GPerlToken *t, GPerlNodes *blocks, GPerlScope *scop
 		} else {
 			DBG_PL("[%s]:NEW BLOCK->BLOCKS", cstr(t->data));
 			GPerlCell *b = (scope) ? scope->root->vargs[0] : new GPerlCell(type, t->data);
+			b->indent = t->indent;
 			blocks->pushNode(b);
 		}
 	}
@@ -170,20 +183,42 @@ GPerlAST *GPerlParser::parse(void)
 		case LocalVar: case LocalArrayVar:
 			if (isVarDeclFlag) {
 				DBG_PL("[%s]:NEW BLOCK => BLOCKS", cstr(t->data));
-				blocks.pushNode(new GPerlCell(LocalVarDecl, t->data));
+				DBG_PL("vidx = [%d]\n", vidx);
+				string prefix = "";
+				for (int i = 0; i < indent; i++) {
+					prefix += string(NAME_RESOLUTION_PREFIX);
+				}
+				//DBG_PL("prefix = [%s]", cstr(prefix));
+				GPerlCell *var = new GPerlCell(LocalVarDecl, prefix + t->data);
+				var->setVariableIdx(vidx);
+				blocks.pushNode(var);
 				isVarDeclFlag = false;
+				vcount++;
+				vidx++;
 			} else {
 				fprintf(stderr, "ERROR:syntax error!!\n");
 			}
 			break;
 		case GlobalVar: case GlobalArrayVar: {
 			DBG_PL("[%s]:NEW BLOCK => BLOCKS", cstr(t->data));
-			blocks.pushNode(new GPerlCell(GlobalVarDecl, t->data));
+			DBG_PL("vidx = [%d]\n", vidx);
+			string prefix = "";
+			for (int i = 0; i < indent; i++) {
+				prefix += string(NAME_RESOLUTION_PREFIX);
+			}
+			//DBG_PL("prefix = [%s]", cstr(prefix));
+			GPerlCell *gvar = new GPerlCell(GlobalVarDecl, prefix + t->data);
+			gvar->setVariableIdx(vidx);
+			blocks.pushNode(gvar);
 			isVarDeclFlag = false;
+			vcount++;
+			vidx++;
 			break;
 		}
-		case Var: case ArrayVar: case Int: case String:
-		case Call: case BuiltinFunc: {
+		case Var: case ArrayVar: {
+			t->indent = indent;
+		}
+		case Int: case String: case Call: case BuiltinFunc: {
 			parseValue(t, &blocks, NULL);
 			break;
 		}
@@ -248,6 +283,8 @@ GPerlAST *GPerlParser::parse(void)
 		}
 		case LeftBrace: {
 			DBG_PL("LEFT BRACE:");
+			vcount = 0;
+			indent++;
 			if (funcFlag) {
 				MOVE_NEXT_TOKEN();
 				GPerlScope *body = parse();
@@ -272,11 +309,23 @@ GPerlAST *GPerlParser::parse(void)
 				GPerlScope *scope = parse();
 				root->false_stmt = scope;
 				elseStmtFlag = false;
+			} else {
+				//Block
+				MOVE_NEXT_TOKEN();
+				DBG_PL("-----------BlockScope------------");
+				GPerlScope *scope = parse();
+				GPerlCell *node = scope->root;
+				for (; node; node = node->next) {
+					ast->add(node);
+				}
 			}
 			break;
 		}
 		case RightBrace: {
 			DBG_PL("RIGHT BRACE:");
+			vidx -= vcount;
+			DBG_PL("vidx = [%d]\n", vidx);
+			indent--;
 			return ast;
 		}
 		case Comma: {

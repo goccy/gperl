@@ -2,7 +2,7 @@
 #include "gen_token_decl.cpp"
 using namespace std;
 
-GPerlToken::GPerlToken(string data_, int idx_) : data(data_), idx(idx_)
+GPerlToken::GPerlToken(string data_, int idx_) : data(data_), idx(idx_), indent(0)
 {
 	type = Undefined;
 }

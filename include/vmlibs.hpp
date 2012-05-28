@@ -25,7 +25,8 @@
 #define GPERL_UNDEF()
 
 #define GPERL_MOV(dst, v) callstack->reg[dst] = v
-#define GPERL_vMOV(dst, src) //callstack->reg[dst] = vmem[src]
+#define GPERL_vMOV(dst, src) //callstack->reg[dst] = *(esp+src)
+#define GPERL_gMOV(dst, src) callstack->reg[dst] = global_vmemory[src]->value;
 #define GPERL_ARGMOV(dst, src) callstack->reg[dst] = callstack->argstack[src]
 
 #define GPERL_iADD(dst, src) I(dst) += I(src)
@@ -114,7 +115,8 @@
 		outbuf = "";												\
 	}
 #define GPERL_JMP() pc += pc->jmp
-#define GPERL_LET(dst, src) variable_memory[dst]->value.ovalue = O(0)
+#define GPERL_LET(dst, src) //stack[dst] = callstack->reg[src]
+#define GPERL_gLET(dst, src) //global_vmemory[dst] = callstack->reg[src]
 #define GPERL_FUNCSET(func, dst) setToFuncMemory(func, dst)
 #define GPERL_SETv(name, dst) setToVariableMemory(name, dst)
 

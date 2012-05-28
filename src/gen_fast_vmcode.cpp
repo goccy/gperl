@@ -38,6 +38,26 @@
 		pc++;
 		BREAK();
 	});
+	CASE(A_gMOV, {
+		GPERL_gMOV(0, pc->src);
+		pc++;
+		BREAK();
+	});
+	CASE(B_gMOV, {
+		GPERL_gMOV(1, pc->src);
+		pc++;
+		BREAK();
+	});
+	CASE(C_gMOV, {
+		GPERL_gMOV(2, pc->src);
+		pc++;
+		BREAK();
+	});
+	CASE(D_gMOV, {
+		GPERL_gMOV(3, pc->src);
+		pc++;
+		BREAK();
+	});
 	CASE(A_ARGMOV, {
 		GPERL_ARGMOV(0, pc->src);
 		pc++;

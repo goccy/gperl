@@ -32,6 +32,7 @@ GPerlVirtualMachineCode *GPerlCompiler::compile(GPerlAST *ast)
 	addVMCode(ret);
 	GPerlVirtualMachineCode *undef = createUNDEF();//for threaded code
 	addVMCode(undef);
+	optimizeFuncCode(codes, "");
 	return getPureCodes(codes);
 }
 
@@ -134,6 +135,7 @@ void GPerlCompiler::genFunctionCallCode(GPerlCell *p)
 
 void GPerlCompiler::genFunctionCode(GPerlCell *path)
 {
+	local_vmap.clear();
 	GPerlVirtualMachineCode *code;
 	vector<GPerlVirtualMachineCode *> tmp;
 	vector<GPerlVirtualMachineCode *> *func_code = NULL;
@@ -243,8 +245,6 @@ void GPerlCompiler::addPushCode(int i, int dst_)
 void GPerlCompiler::optimizeFuncCode(vector<GPerlVirtualMachineCode *> *f, string fname)
 {
 	vector<GPerlVirtualMachineCode *>::iterator it = f->begin();
-	//int reg_n = 0;
-	//bool isOMOVCall = false;
 	while (it != f->end()) {
 		GPerlVirtualMachineCode *c = *it;
 		if (c->op == CALL && fname == c->name) {
@@ -262,23 +262,12 @@ void GPerlCompiler::optimizeFuncCode(vector<GPerlVirtualMachineCode *> *f, strin
 			code_num--;
 			it--;
 		} else if (c->op == LET) {
+			/*
 			it = f->erase(it);
 			code_num--;
 			it--;
-		} else if (c->op == MOV) {
-			/*
-			reg_n = c->dst;
-			if (isOMOVCall) {
-				//TODO
-				it = f->erase(it);
-				code_num--;
-				it--;
-				isOMOVCall = false;
-			} else {
-				//c->op = OPSUPERCALL;
-				isOMOVCall = true;
-			}
 			*/
+		} else if (c->op == MOV) {
 		}
 		it++;
 	}
@@ -494,29 +483,49 @@ GPerlVirtualMachineCode *GPerlCompiler::createVMCode(GPerlCell *c)
 	case IfStmt:
 		code->op = NOP;
 		break;
-	case LocalVarDecl: case VarDecl: case GlobalVarDecl: {
+	case LocalVarDecl: case VarDecl: {
 		code->op = SETv;
-		code->dst = variable_index;
+		code->dst = c->vidx;//variable_index;
 		code->src = 0;
 		const char *name = cstr(c->vname);
 		code->name = name;
-		setToVariableNames(name);
+		if (c->vname.find("*") != string::npos) {
+			local_vmap[c->vname] = c->vidx;
+		} else {
+			global_vmap[c->vname] = c->vidx;
+		}
 		declared_vname = name;
+		break;
+	}
+	case GlobalVarDecl: {
+		code->op = SETv;
+		code->dst = c->vidx;//variable_index;
+		code->src = 0;
+		code->name = cstr(c->vname);
+		global_vmap[c->vname] = c->vidx;
+		declared_vname = cstr(c->vname);
 		break;
 	}
 	case LocalVar: case Var: {
 		const char *name = cstr(c->vname);
-		int idx = getVariableIndex(name);
-		switch (variable_types[idx]) {
-		case Int:
-			code->op = MOV;
-			reg_type[dst] = Int;
-			break;
-		default:
-			code->op = ARGMOV;
-//			reg_type[dst] = Object;
-			break;
+		int idx;
+		for (int i = c->indent; i >= 0; i--) {
+			string prefix = "";
+			for (int j = 0; j < i; j++) {
+				prefix += string(NAME_RESOLUTION_PREFIX);
+			}
+			if (local_vmap.find(prefix + c->vname) != local_vmap.end()) {
+				idx = local_vmap[prefix + c->vname];//getVariableIndex(name);
+				code->op = vMOV;
+				goto BREAK;
+			} else if (global_vmap.find(prefix + c->vname) != global_vmap.end()) {
+				idx = global_vmap[prefix + c->vname];//getVariableIndex(name);
+				code->op = gMOV;
+				goto BREAK;
+			}
 		}
+		fprintf(stderr, "ERROR: cannot find variable name : [%s]", cstr(c->vname));
+		BREAK:;
 		code->dst = dst;
 		code->src = idx;
 		code->name = name;
@@ -600,7 +609,14 @@ GPerlVirtualMachineCode *GPerlCompiler::createVMCode(GPerlCell *c)
 		break;
 	case Assign: {
 		code->op = LET;
-		int idx = getVariableIndex(declared_vname);
+		int idx;
+		if (local_vmap.find(declared_vname) != local_vmap.end()) {
+			idx = local_vmap[declared_vname];//getVariableIndex(name);
+		} else if (global_vmap.find(declared_vname) != global_vmap.end()) {
+			idx = global_vmap[declared_vname];//getVariableIndex(name);
+		} else {
+			fprintf(stderr, "ERROR: cannot find variable name : [%s]", cstr(c->vname));
+		}
 		code->dst = idx;
 		code->src = 0;
 		code->name = declared_vname;
