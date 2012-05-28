@@ -25,6 +25,7 @@
 #define GPERL_UNDEF()
 
 #define GPERL_MOV(dst, v) callstack->reg[dst] = v
+#define GPERL_vMOV(dst, src) //callstack->reg[dst] = vmem[src]
 #define GPERL_ARGMOV(dst, src) callstack->reg[dst] = callstack->argstack[src]
 
 #define GPERL_iADD(dst, src) I(dst) += I(src)
@@ -150,3 +151,4 @@
 #define GPERL_oSHIFT(src) O(0) = (GPerlObject *)argstack[src]->value.ovalue
 #define GPERL_PUSH(dst, src) (callstack+1)->argstack[src] = callstack->reg[dst]
 #define GPERL_NEW()
+#define GPERL_ARRAY_PUSH(argstack) pc->push(argstack);

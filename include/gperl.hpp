@@ -230,7 +230,7 @@ typedef struct _GPerlVirtualMachineCode {
 	union {
 		void *code;/* selective inlining code */
 		int jmp;   /* jmp register number */
-		GPerlObject **list;
+		void (*push)(GPerlValue *);
 	};
 	const char *name;
 	struct _GPerlVirtualMachineCode *func;
@@ -271,9 +271,7 @@ public:
 	GPerlVirtualMachineCode *createiWRITE(void);
 	GPerlVirtualMachineCode *createsWRITE(void);
 	GPerlVirtualMachineCode *createoWRITE(void);
-	GPerlVirtualMachineCode *createiPUSH(int i, int dst_);
-	GPerlVirtualMachineCode *createsPUSH(int i, int dst_);
-	GPerlVirtualMachineCode *createoPUSH(int i, int dst_);
+	GPerlVirtualMachineCode *createPUSH(int i, int dst_);
 	GPerlVirtualMachineCode *createJMP(int jmp_num);
 	void addWriteCode(void);
 	void addPushCode(int i, int dst_);
@@ -337,3 +335,5 @@ public:
 	void createSelectiveInliningCode(GPerlVirtualMachineCode *codes, void **jmp_tbl, InstBlock *block_tbl);
 	int run(GPerlVirtualMachineCode *codes);
 };
+
+void Array_push(GPerlValue *);

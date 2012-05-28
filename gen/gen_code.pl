@@ -468,8 +468,8 @@ sub gen_fast_vm_code {
 				} else {
 					$ret .= "\t\tGPERL_${prefix}CMP_JMP(" . $decl_args . ");\n";
 				}
-			} elsif ($_ eq "ADD" || $_ eq "SUB" ||
-					 $_ eq "MUL" || $_ eq "DIV") {
+			} elsif ($_code[1] eq "ADD" || $_code[1] eq "SUB" ||
+					 $_code[1] eq "MUL" || $_code[1] eq "DIV") {
 				$ret .= $type_check_code;
 			} else {
 				$ret .= "\t\tGPERL_${_code[1]}(" . $decl_args . ");\n";

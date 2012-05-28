@@ -28,6 +28,11 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 		pc++;
 		BREAK();
 	});
+	CASE(vMOV, {
+		GPERL_vMOV(pc->dst, pc->src);
+		pc++;
+		BREAK();
+	});
 	CASE(ARGMOV, {
 		GPERL_ARGMOV(pc->dst, pc->src);
 		pc++;
@@ -495,6 +500,11 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 	});
 	CASE(NEW, {
 		GPERL_NEW();
+		pc++;
+		BREAK();
+	});
+	CASE(ARRAY_PUSH, {
+		GPERL_ARRAY_PUSH(callstack->argstack);
 		pc++;
 		BREAK();
 	});

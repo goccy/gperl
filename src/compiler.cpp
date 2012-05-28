@@ -235,29 +235,9 @@ void GPerlCompiler::addWriteCode(void)
 
 void GPerlCompiler::addPushCode(int i, int dst_)
 {
-	GPerlVirtualMachineCode *code;
-	switch (reg_type[i]) {
-	case Int:
-		code = createiPUSH(i, dst_);
-		addVMCode(code);
-		dumpVMCode(code);
-		break;
-	case String:
-		code = createsPUSH(i, dst_);
-		addVMCode(code);
-		dumpVMCode(code);
-		break;
-	case Array: case Object:
-		code = createoPUSH(i, dst_);
-		addVMCode(code);
-		dumpVMCode(code);
-		break;
-	default:
-		code = createiPUSH(i, dst_);
-		addVMCode(code);
-		dumpVMCode(code);
-		break;
-	}
+	GPerlVirtualMachineCode *code = createPUSH(i, dst_);
+	addVMCode(code);
+	dumpVMCode(code);
 }
 
 void GPerlCompiler::optimizeFuncCode(vector<GPerlVirtualMachineCode *> *f, string fname)
@@ -468,7 +448,6 @@ GPerlVirtualMachineCode *GPerlCompiler::createVMCode(GPerlCell *c)
 	switch (c->type) {
 	case Int:
 		code->dst = dst;
-		//code->src = c->data.idata;
 		INT_init(code->v, c->data.idata);
 		code->op = MOV;
 		reg_type[dst] = Int;
@@ -477,7 +456,6 @@ GPerlVirtualMachineCode *GPerlCompiler::createVMCode(GPerlCell *c)
 	case String:
 		code->dst = dst;
 		code->src = -1;
-		//code->name = c->data.sdata;
 		STRING_init(code->v, c->data.sdata);
 		code->op = MOV;
 		reg_type[dst] = String;
@@ -536,7 +514,6 @@ GPerlVirtualMachineCode *GPerlCompiler::createVMCode(GPerlCell *c)
 			break;
 		default:
 			code->op = ARGMOV;
-//			code->op = oMOV;
 //			reg_type[dst] = Object;
 			break;
 		}
@@ -550,7 +527,7 @@ GPerlVirtualMachineCode *GPerlCompiler::createVMCode(GPerlCell *c)
 		DBG_PL("ArrayVar");
 		const char *name = cstr(c->vname);
 		int idx = getVariableIndex(name);
-		//code->op = oMOV;
+		code->op = MOV;
 		reg_type[dst] = Array;
 		code->dst = dst;
 		code->src = idx;
@@ -567,7 +544,8 @@ GPerlVirtualMachineCode *GPerlCompiler::createVMCode(GPerlCell *c)
 			if (reg_type[0] != Array) {
 				fprintf(stderr, "COMPILE ERROR : must be Array 1st argument\n");
 			}
-			code->op = UNDEF;//ARRAY_PUSH;
+			code->op = ARRAY_PUSH;//ARRAY_PUSH;
+			code->push = Array_push;
 		}
 		break;
 	}
@@ -581,9 +559,10 @@ GPerlVirtualMachineCode *GPerlCompiler::createVMCode(GPerlCell *c)
 		break;
 	}
 	case List: {
+		DBG_PL("List");
 		size_t size = sizeof(GPerlObject) * (c->argsize + 1);
-		code->list = (GPerlObject **)malloc(size);
-		memset(code->list, 0, size);
+		GPerlObject **list = (GPerlObject **)malloc(size);
+		memset(list, 0, size);
 		for (int i = 0; i < c->argsize; i++) {
 			GPerlCell *v = c->vargs[i];
 			GPerlObject *o = new GPerlObject();//TODO : fetch from MMU
@@ -591,25 +570,24 @@ GPerlVirtualMachineCode *GPerlCompiler::createVMCode(GPerlCell *c)
 			case Int:
 				o->value.ivalue = v->data.idata;
 				o->type = Int;
-				code->list[i] = o;
 				break;
 			case String:
 				o->value.svalue = v->data.sdata;
 				o->type = String;
-				code->list[i] = o;
 				break;
 			case Object:
 				o->value.ovalue = v->data.pdata;
 				o->type = Object;
-				code->list[i] = o;
 				break;
 			default:
 				break;
 			}
+			list[i] = o;
 		}
 		code->dst = dst;
 		code->src = 0;
-		code->op = UNDEF;//LIST_NEW;/* List MOV */
+		OBJECT_init(code->v, list);
+		code->op = MOV;
 		reg_type[dst] = Object;
 		dst++;
 		break;
@@ -636,6 +614,9 @@ GPerlVirtualMachineCode *GPerlCompiler::createVMCode(GPerlCell *c)
 			break;
 		case String:
 			variable_types[idx] = String;
+			break;
+		case Object:
+			variable_types[idx] = Object;
 			break;
 		default:
 			break;
@@ -772,7 +753,7 @@ GPerlVirtualMachineCode *GPerlCompiler::createoWRITE(void)
 	return code;
 }
 
-GPerlVirtualMachineCode *GPerlCompiler::createiPUSH(int i, int dst_)
+GPerlVirtualMachineCode *GPerlCompiler::createPUSH(int i, int dst_)
 {
 	GPerlVirtualMachineCode *code = new GPerlVirtualMachineCode();
 	code->code_num = code_num;
@@ -781,28 +762,6 @@ GPerlVirtualMachineCode *GPerlCompiler::createiPUSH(int i, int dst_)
 	code->dst = dst_-1;
 	code_num++;
 	args_count++;
-	return code;
-}
-
-GPerlVirtualMachineCode *GPerlCompiler::createsPUSH(int i, int dst_)
-{
-	GPerlVirtualMachineCode *code = new GPerlVirtualMachineCode();
-	code->code_num = code_num;
-	code->op = PUSH;
-	code->src = i;
-	code->dst = dst_-1;
-	code_num++;
-	return code;
-}
-
-GPerlVirtualMachineCode *GPerlCompiler::createoPUSH(int i, int dst_)
-{
-	GPerlVirtualMachineCode *code = new GPerlVirtualMachineCode();
-	code->code_num = code_num;
-	code->op = PUSH;
-	code->src = i;
-	code->dst = dst_-1;
-	code_num++;
 	return code;
 }
 
