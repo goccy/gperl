@@ -13,7 +13,7 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 	GPerlObject **argstack = createArgStack();
 	static char shared_buf[128] = {0};//TODO must be variable buffer
 	static string outbuf = "";
-    GPerlValue stack[MAX_STACK_MEMORY_SIZE];
+    GPerlValue stack[MAX_STACK_MEMORY_SIZE] = {0};
     int esp = 0;
     int ebp = 0;
 #include "gen_label.cpp"
@@ -116,7 +116,7 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 		BREAK();
 	});
 	CASE(iSUBC, {
-		GPERL_iSUBC(pc->dst, pc->src);
+		GPERL_iSUBC(pc->dst, pc->v);
 		pc++;
 		BREAK();
 	});
@@ -222,11 +222,11 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 		BREAK();
 	});
 	CASE(dJGC, {
-		GPERL_dCMP_JMPC(>, pc->dst, pc->src);
+		GPERL_dCMP_JMPC(>, pc->dst, pc->v);
 		BREAK();
 	});
 	CASE(iJGC, {
-		GPERL_iCMP_JMPC(>, pc->dst, pc->src);
+		GPERL_iCMP_JMPC(>, pc->dst, pc->v);
 		BREAK();
 	});
 	CASE(JL, {
@@ -256,11 +256,11 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 		BREAK();
 	});
 	CASE(dJLC, {
-		GPERL_dCMP_JMPC(<, pc->dst, pc->src);
+		GPERL_dCMP_JMPC(<, pc->dst, pc->v);
 		BREAK();
 	});
 	CASE(iJLC, {
-		GPERL_iCMP_JMPC(<, pc->dst, pc->src);
+		GPERL_iCMP_JMPC(<, pc->dst, pc->v);
 		BREAK();
 	});
 	CASE(JGE, {
@@ -290,11 +290,11 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 		BREAK();
 	});
 	CASE(dJGEC, {
-		GPERL_dCMP_JMPC(>=, pc->dst, pc->src);
+		GPERL_dCMP_JMPC(>=, pc->dst, pc->v);
 		BREAK();
 	});
 	CASE(iJGEC, {
-		GPERL_iCMP_JMPC(>=, pc->dst, pc->src);
+		GPERL_iCMP_JMPC(>=, pc->dst, pc->v);
 		BREAK();
 	});
 	CASE(JLE, {
@@ -324,11 +324,11 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 		BREAK();
 	});
 	CASE(dJLEC, {
-		GPERL_dCMP_JMPC(<=, pc->dst, pc->src);
+		GPERL_dCMP_JMPC(<=, pc->dst, pc->v);
 		BREAK();
 	});
 	CASE(iJLEC, {
-		GPERL_iCMP_JMPC(<=, pc->dst, pc->src);
+		GPERL_iCMP_JMPC(<=, pc->dst, pc->v);
 		BREAK();
 	});
 	CASE(JE, {
@@ -358,11 +358,11 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 		BREAK();
 	});
 	CASE(dJEC, {
-		GPERL_dCMP_JMPC(==, pc->dst, pc->src);
+		GPERL_dCMP_JMPC(==, pc->dst, pc->v);
 		BREAK();
 	});
 	CASE(iJEC, {
-		GPERL_iCMP_JMPC(==, pc->dst, pc->src);
+		GPERL_iCMP_JMPC(==, pc->dst, pc->v);
 		BREAK();
 	});
 	CASE(JNE, {
@@ -392,11 +392,11 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 		BREAK();
 	});
 	CASE(dJNEC, {
-		GPERL_dCMP_JMPC(!=, pc->dst, pc->src);
+		GPERL_dCMP_JMPC(!=, pc->dst, pc->v);
 		BREAK();
 	});
 	CASE(iJNEC, {
-		GPERL_iCMP_JMPC(!=, pc->dst, pc->src);
+		GPERL_iCMP_JMPC(!=, pc->dst, pc->v);
 		BREAK();
 	});
 	CASE(RET, {

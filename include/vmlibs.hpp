@@ -43,7 +43,7 @@
 #define GPERL_dSUB(dst, src) D(dst) -= D(src)
 #define GPERL_oSUB(dst, src)
 #define GPERL_SUBC(dst, src)
-#define GPERL_iSUBC(dst, src) I(dst) -= src
+#define GPERL_iSUBC(dst, v) I(dst) -= v.ivalue
 #define GPERL_dSUBC(dst, src) D(dst) -= src
 
 #define GPERL_iMUL(dst, src) I(dst) *= I(src)
@@ -79,15 +79,15 @@
 #define GPERL_sCMP_JMP(op, dst, src) {}
 #define GPERL_oCMP_JMP(op, dst, src) {}
 #define GPERL_CMP_JMPC(op, dst, src)
-#define GPERL_iCMP_JMPC(op, dst, src) {			\
-		if (I(dst) op src) {					\
+#define GPERL_iCMP_JMPC(op, dst, v) {			\
+		if (I(dst) op v.ivalue) {				\
 			pc++;								\
 		} else {								\
 			pc += pc->jmp;						\
 		}										\
 	}
-#define GPERL_dCMP_JMPC(op, dst, src) {			\
-		if (D(dst) op src) {					\
+#define GPERL_dCMP_JMPC(op, dst, v) {			\
+		if (D(dst) op v.dvalue) {				\
 			pc++;								\
 		} else {								\
 			pc += pc->jmp;						\
@@ -122,10 +122,8 @@
 #define GPERL_CALL(dst, src, NAME) {							\
 		GPerlVirtualMachineCode *code = func_memory[src];		\
 		top = code;												\
-		callstack->esp = esp;									\
 		callstack->ebp = ebp;									\
 		ebp = esp;												\
-		esp = 0;												\
 		callstack++;											\
 		callstack->ret_addr = &&L_##NAME##AFTER;				\
 		callstack->pc = pc;										\
@@ -136,14 +134,12 @@
 		(callstack-1)->reg[dst] = callstack->reg[0];			\
 		callstack--;											\
 		ebp = callstack->ebp;									\
-		esp = callstack->esp;									\
+		esp = ebp;												\
 	}
 
 #define GPERL_SELFCALL(dst, NAME) {								\
-		callstack->esp = esp;									\
 		callstack->ebp = ebp;									\
 		ebp = esp;												\
-		esp = 0;												\
 		callstack++;											\
 		callstack->ret_addr = &&L_##NAME##AFTER;				\
 		callstack->pc = pc;										\
@@ -154,7 +150,7 @@
 		(callstack-1)->reg[dst] = callstack->reg[0];			\
 		callstack--;											\
 		ebp = callstack->ebp;									\
-		esp = callstack->esp;									\
+		esp = ebp;												\
 	}
 
 #define GPERL_SHIFT(src)

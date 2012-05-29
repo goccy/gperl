@@ -252,25 +252,10 @@ void GPerlCompiler::optimizeFuncCode(vector<GPerlVirtualMachineCode *> *f, strin
 		GPerlVirtualMachineCode *c = *it;
 		if (c->op == CALL && fname == c->name) {
 			c->op = SELFCALL;
-		} else if (c->op == NOP) {
+		} else if (c->op == NOP || c->op == SETv || c->op == SHIFT) {
 			it = f->erase(it);
 			code_num--;
 			it--;
-		} else if (c->op == SETv) {
-			it = f->erase(it);
-			code_num--;
-			it--;
-		} else if (c->op == SHIFT) {
-			it = f->erase(it);
-			code_num--;
-			it--;
-		} else if (c->op == LET) {
-			/*
-			it = f->erase(it);
-			code_num--;
-			it--;
-			*/
-		} else if (c->op == MOV) {
 		}
 		it++;
 	}
@@ -534,6 +519,7 @@ GPerlVirtualMachineCode *GPerlCompiler::createVMCode(GPerlCell *c)
 		BREAK:;
 		code->dst = dst;
 		code->src = idx;
+		reg_type[dst] = Object;
 		dst++;
 		break;
 	}
@@ -612,6 +598,8 @@ GPerlVirtualMachineCode *GPerlCompiler::createVMCode(GPerlCell *c)
 		code->dst = 0;
 		code->src = args_count;
 		args_count++;
+		reg_type[dst] = Object;
+		dst++;
 		break;
 	case Assign: {
 		int idx;
