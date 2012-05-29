@@ -23,10 +23,11 @@
 #define O(idx) callstack->reg[idx].ovalue
 
 #define GPERL_UNDEF()
-
+#define GPERL_LET(dst, src) stack[ebp + dst] = callstack->reg[src]; esp++
+#define GPERL_gLET(dst, src) global_vmemory[dst] = callstack->reg[src]
 #define GPERL_MOV(dst, v) callstack->reg[dst] = v
-#define GPERL_vMOV(dst, src) //callstack->reg[dst] = *(esp+src)
-#define GPERL_gMOV(dst, src) callstack->reg[dst] = global_vmemory[src]->value;
+#define GPERL_vMOV(dst, src) callstack->reg[dst] = stack[ebp + src]
+#define GPERL_gMOV(dst, src) callstack->reg[dst] = global_vmemory[src];
 #define GPERL_ARGMOV(dst, src) callstack->reg[dst] = callstack->argstack[src]
 
 #define GPERL_iADD(dst, src) I(dst) += I(src)
@@ -115,14 +116,16 @@
 		outbuf = "";												\
 	}
 #define GPERL_JMP() pc += pc->jmp
-#define GPERL_LET(dst, src) //stack[dst] = callstack->reg[src]
-#define GPERL_gLET(dst, src) //global_vmemory[dst] = callstack->reg[src]
 #define GPERL_FUNCSET(func, dst) setToFuncMemory(func, dst)
 #define GPERL_SETv(name, dst) setToVariableMemory(name, dst)
 
 #define GPERL_CALL(dst, src, NAME) {							\
 		GPerlVirtualMachineCode *code = func_memory[src];		\
 		top = code;												\
+		callstack->esp = esp;									\
+		callstack->ebp = ebp;									\
+		ebp = esp;												\
+		esp = 0;												\
 		callstack++;											\
 		callstack->ret_addr = &&L_##NAME##AFTER;				\
 		callstack->pc = pc;										\
@@ -132,18 +135,26 @@
 		pc = callstack->pc;										\
 		(callstack-1)->reg[dst] = callstack->reg[0];			\
 		callstack--;											\
+		ebp = callstack->ebp;									\
+		esp = callstack->esp;									\
 	}
 
-#define GPERL_SELFCALL(dst, NAME) {					\
-		callstack++;								\
-		callstack->ret_addr = &&L_##NAME##AFTER;	\
-		callstack->pc = pc;							\
-		pc = top;									\
-		GOTO_NEXTOP();								\
-	L_##NAME##AFTER:								\
-		pc = callstack->pc;							\
+#define GPERL_SELFCALL(dst, NAME) {								\
+		callstack->esp = esp;									\
+		callstack->ebp = ebp;									\
+		ebp = esp;												\
+		esp = 0;												\
+		callstack++;											\
+		callstack->ret_addr = &&L_##NAME##AFTER;				\
+		callstack->pc = pc;										\
+		pc = top;												\
+		GOTO_NEXTOP();											\
+	L_##NAME##AFTER:											\
+		pc = callstack->pc;										\
 		(callstack-1)->reg[dst] = callstack->reg[0];			\
 		callstack--;											\
+		ebp = callstack->ebp;									\
+		esp = callstack->esp;									\
 	}
 
 #define GPERL_SHIFT(src)

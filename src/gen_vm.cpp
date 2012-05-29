@@ -13,7 +13,9 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 	GPerlObject **argstack = createArgStack();
 	static char shared_buf[128] = {0};//TODO must be variable buffer
 	static string outbuf = "";
-
+    GPerlValue stack[MAX_STACK_MEMORY_SIZE];
+    int esp = 0;
+    int ebp = 0;
 #include "gen_label.cpp"
 
     DISPATCH_START();
@@ -414,8 +416,12 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 		BREAK();
 	});
 	CASE(WRITE, {
-		GPERL_WRITE(pc->dst);
-		pc++;
+		int type = TYPE_CHECK(callstack->reg[pc->dst]);
+#ifdef STATIC_TYPING_MODE
+		pc->opnext = jmp_table[pc->op + 1 + type];
+#else /* DYNAMIC_TYPING_MODE */
+		goto *jmp_table[pc->op + 1 + type];
+#endif
 		BREAK();
 	});
 	CASE(dWRITE, {

@@ -231,6 +231,9 @@ void GPerlCompiler::addWriteCode(void)
 		dumpVMCode(code);
 		break;
 	default:
+		code = createWRITE();
+		addVMCode(code);
+		dumpVMCode(code);
 		break;
 	}
 }
@@ -507,7 +510,6 @@ GPerlVirtualMachineCode *GPerlCompiler::createVMCode(GPerlCell *c)
 		break;
 	}
 	case LocalVar: case Var: {
-		const char *name = cstr(c->vname);
 		int idx;
 		for (int i = c->indent; i >= 0; i--) {
 			string prefix = "";
@@ -517,10 +519,14 @@ GPerlVirtualMachineCode *GPerlCompiler::createVMCode(GPerlCell *c)
 			if (local_vmap.find(prefix + c->vname) != local_vmap.end()) {
 				idx = local_vmap[prefix + c->vname];//getVariableIndex(name);
 				code->op = vMOV;
+				c->vname = prefix + c->vname;
+				code->name = cstr(c->vname);
 				goto BREAK;
 			} else if (global_vmap.find(prefix + c->vname) != global_vmap.end()) {
 				idx = global_vmap[prefix + c->vname];//getVariableIndex(name);
 				code->op = gMOV;
+				c->vname = prefix + c->vname;
+				code->name = cstr(c->vname);
 				goto BREAK;
 			}
 		}
@@ -528,7 +534,6 @@ GPerlVirtualMachineCode *GPerlCompiler::createVMCode(GPerlCell *c)
 		BREAK:;
 		code->dst = dst;
 		code->src = idx;
-		code->name = name;
 		dst++;
 		break;
 	}
@@ -602,24 +607,38 @@ GPerlVirtualMachineCode *GPerlCompiler::createVMCode(GPerlCell *c)
 		break;
 	}
 	case Shift:
-		code->op = SHIFT;
+		//code->op = SHIFT;
+		code->op = ARGMOV;
 		code->dst = 0;
 		code->src = args_count;
 		args_count++;
 		break;
 	case Assign: {
-		code->op = LET;
 		int idx;
-		if (local_vmap.find(declared_vname) != local_vmap.end()) {
-			idx = local_vmap[declared_vname];//getVariableIndex(name);
-		} else if (global_vmap.find(declared_vname) != global_vmap.end()) {
-			idx = global_vmap[declared_vname];//getVariableIndex(name);
-		} else {
-			fprintf(stderr, "ERROR: cannot find variable name : [%s]", cstr(c->vname));
+		for (int i = c->indent; i >= 0; i--) {
+			string prefix = "";
+			for (int j = 0; j < i; j++) {
+				prefix += string(NAME_RESOLUTION_PREFIX);
+			}
+			if (local_vmap.find(prefix + c->vname) != local_vmap.end()) {
+				idx = local_vmap[prefix + c->vname];//getVariableIndex(name);
+				c->vname = prefix + c->vname;
+				code->name = cstr(c->vname);
+				code->op = LET;
+				goto ASSIGN_BREAK;
+			} else if (global_vmap.find(prefix + c->vname) != global_vmap.end()) {
+				idx = global_vmap[prefix + c->vname];//getVariableIndex(name);
+				c->vname = prefix + c->vname;
+				code->name = cstr(c->vname);
+				code->op = gLET;
+				goto ASSIGN_BREAK;
+			}
 		}
+		fprintf(stderr, "ERROR: cannot find variable name : [%s]", cstr(c->vname));
+		ASSIGN_BREAK:;
 		code->dst = idx;
-		code->src = 0;
-		code->name = declared_vname;
+		code->src = dst-1;
+		code->name = cstr(c->vname);
 		/* ======= for Type Inference ======= */
 		switch (reg_type[0]) {
 		case Int:
@@ -736,6 +755,16 @@ GPerlVirtualMachineCode *GPerlCompiler::createUNDEF(void)
 	GPerlVirtualMachineCode *code = new GPerlVirtualMachineCode();
 	code->code_num = code_num;
 	code->op = UNDEF;
+	code_num++;
+	return code;
+}
+
+GPerlVirtualMachineCode *GPerlCompiler::createWRITE(void)
+{
+	GPerlVirtualMachineCode *code = new GPerlVirtualMachineCode();
+	code->code_num = code_num;
+	code->op = WRITE;
+	code->dst = dst-1;
 	code_num++;
 	return code;
 }

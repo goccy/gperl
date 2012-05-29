@@ -279,6 +279,7 @@ public:
 	GPerlVirtualMachineCode *createTHCODE(void);
 	GPerlVirtualMachineCode *createRET(void);
 	GPerlVirtualMachineCode *createUNDEF(void);
+	GPerlVirtualMachineCode *createWRITE(void);
 	GPerlVirtualMachineCode *createiWRITE(void);
 	GPerlVirtualMachineCode *createsWRITE(void);
 	GPerlVirtualMachineCode *createoWRITE(void);
@@ -321,6 +322,8 @@ typedef struct _GPerlEnv {
 	GPerlValue *argstack;
 	GPerlVirtualMachineCode *pc;
 	void *ret_addr;
+	int esp;
+	int ebp;
 } GPerlEnv;
 
 #include <sys/mman.h>
@@ -349,6 +352,7 @@ public:
 
 #define NAME_RESOLUTION_PREFIX "*"
 #define MAX_GLOBAL_MEMORY_SIZE 128
-extern GPerlObject *global_vmemory[MAX_GLOBAL_MEMORY_SIZE];
+#define MAX_STACK_MEMORY_SIZE 1024 * 8 /* 8M */
+extern GPerlValue global_vmemory[MAX_GLOBAL_MEMORY_SIZE];
 
 void Array_push(GPerlValue *);

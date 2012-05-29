@@ -256,6 +256,8 @@ GPerlAST *GPerlParser::parse(void)
 				fprintf(stderr, "ERROR:syntax error!!\n");
 			}
 			GPerlCell *assign = new GPerlCell(Assign, t->data);
+			assign->indent = indent;
+			assign->vname = block->vname;
 			block->parent = assign;
 			assign->left = block;
 			blocks.pushNode(assign);

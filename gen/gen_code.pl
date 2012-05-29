@@ -289,7 +289,9 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 	GPerlObject **argstack = createArgStack();
 	static char shared_buf[128] = {0};//TODO must be variable buffer
 	static string outbuf = \"\";
-
+    GPerlValue stack[MAX_STACK_MEMORY_SIZE];
+    int esp = 0;
+    int ebp = 0;
 #include \"gen_label.cpp\"
 
     DISPATCH_START();
@@ -305,6 +307,7 @@ my $type_check_code =
 		goto *jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
 #endif
 ";
+
 sub gen_vm_run_code {
 	my $ret = $run_init;
     my $ref = shift;
@@ -347,6 +350,15 @@ sub gen_vm_run_code {
 			} elsif ($_ eq "ADD" || $_ eq "SUB" ||
 					 $_ eq "MUL" || $_ eq "DIV") {
 				$ret .= $type_check_code;
+			} elsif ($_ eq "WRITE") {
+				$ret .=
+"		int type = TYPE_CHECK(callstack->reg[pc->dst]);
+#ifdef STATIC_TYPING_MODE
+		pc->opnext = jmp_table[pc->op + 1 + type];
+#else /* DYNAMIC_TYPING_MODE */
+		goto *jmp_table[pc->op + 1 + type];
+#endif
+";
 			} else {
 				$ret .= "\t\tGPERL_${_}(" . $decl_args . ");\n";
 				$ret .= "\t\tpc++;\n";

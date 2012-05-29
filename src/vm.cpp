@@ -1,12 +1,9 @@
 #include <gperl.hpp>
 
 using namespace std;
-GPerlObject *global_vmemory[MAX_GLOBAL_MEMORY_SIZE];
+GPerlValue global_vmemory[MAX_GLOBAL_MEMORY_SIZE];
 GPerlVirtualMachine::GPerlVirtualMachine(void)
 {
-	for (int i = 0; i < MAX_GLOBAL_MEMORY_SIZE; i++) {
-		global_vmemory[i] = NULL;
-	}
 }
 
 void GPerlVirtualMachine::setToVariableMemory(const char *name, int idx)
