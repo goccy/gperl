@@ -13,7 +13,7 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 	GPerlObject **argstack = createArgStack();
 	static char shared_buf[128] = {0};//TODO must be variable buffer
 	static string outbuf = "";
-    GPerlValue stack[MAX_STACK_MEMORY_SIZE] = {0};
+    GPerlValue stack[MAX_STACK_MEMORY_SIZE];
     int esp = 0;
     int ebp = 0;
 #include "gen_label.cpp"
@@ -76,12 +76,12 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 		BREAK();
 	});
 	CASE(dADDC, {
-		GPERL_dADDC(pc->dst, pc->src);
+		GPERL_dADDC(pc->dst, pc->v);
 		pc++;
 		BREAK();
 	});
 	CASE(iADDC, {
-		GPERL_iADDC(pc->dst, pc->src);
+		GPERL_iADDC(pc->dst, pc->v);
 		pc++;
 		BREAK();
 	});
@@ -111,7 +111,7 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 		BREAK();
 	});
 	CASE(dSUBC, {
-		GPERL_dSUBC(pc->dst, pc->src);
+		GPERL_dSUBC(pc->dst, pc->v);
 		pc++;
 		BREAK();
 	});
@@ -151,12 +151,12 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 		BREAK();
 	});
 	CASE(dMULC, {
-		GPERL_dMULC(pc->dst, pc->src);
+		GPERL_dMULC(pc->dst, pc->v);
 		pc++;
 		BREAK();
 	});
 	CASE(iMULC, {
-		GPERL_iMULC(pc->dst, pc->src);
+		GPERL_iMULC(pc->dst, pc->v);
 		pc++;
 		BREAK();
 	});
@@ -186,12 +186,12 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 		BREAK();
 	});
 	CASE(dDIVC, {
-		GPERL_dDIVC(pc->dst, pc->src);
+		GPERL_dDIVC(pc->dst, pc->v);
 		pc++;
 		BREAK();
 	});
 	CASE(iDIVC, {
-		GPERL_iDIVC(pc->dst, pc->src);
+		GPERL_iDIVC(pc->dst, pc->v);
 		pc++;
 		BREAK();
 	});

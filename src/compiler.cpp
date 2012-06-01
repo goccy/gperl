@@ -150,7 +150,7 @@ void GPerlCompiler::genFunctionCode(GPerlCell *path)
 	ADD_FUNCCODE_TO_CODES(codes);
 	COPY_CURRENT_CODE(codes, func_code);
 	optimizeFuncCode(func_code, path->fname);
-	//finalCompile(func_code);
+	finalCompile(func_code);
 	GPerlVirtualMachineCode *f = getPureCodes(func_code);
 	DBG_PL("========= DUMP FUNC CODE ==========");
 	dumpPureVMCode(f);
@@ -401,6 +401,7 @@ GPerlVirtualMachineCode *GPerlCompiler::getPureCodes(vector<GPerlVirtualMachineC
 			case Int:							\
 				code->op = INTC(T);				\
 				code->src = codes->back()->src;	\
+				code->v = codes->back()->v;		\
 				popVMCode();					\
 				code_num--;						\
 				code->code_num = code_num;		\

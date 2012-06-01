@@ -35,8 +35,8 @@
 #define GPERL_sADD(dst, src)
 #define GPERL_oADD(dst, src)
 #define GPERL_ADDC(dst, src)
-#define GPERL_iADDC(dst, src) I(dst) += src
-#define GPERL_dADDC(dst, src) D(dst) += src
+#define GPERL_iADDC(dst, v) I(dst) += v.ivalue
+#define GPERL_dADDC(dst, v) D(dst) += v.dvalue
 #define GPERL_sADDC(dst, src)
 
 #define GPERL_iSUB(dst, src) I(dst) -= I(src)
@@ -44,23 +44,23 @@
 #define GPERL_oSUB(dst, src)
 #define GPERL_SUBC(dst, src)
 #define GPERL_iSUBC(dst, v) I(dst) -= v.ivalue
-#define GPERL_dSUBC(dst, src) D(dst) -= src
+#define GPERL_dSUBC(dst, v) D(dst) -= v.dvalue
 
 #define GPERL_iMUL(dst, src) I(dst) *= I(src)
 #define GPERL_dMUL(dst, src) D(dst) *= D(src)
 #define GPERL_sMUL(dst, src)
 #define GPERL_oMUL(dst, src)
 #define GPERL_MULC(dst, src)
-#define GPERL_iMULC(dst, src) I(dst) *= src
-#define GPERL_dMULC(dst, src) D(dst) *= src
+#define GPERL_iMULC(dst, v) I(dst) *= v.ivalue
+#define GPERL_dMULC(dst, v) D(dst) *= v.dvalue
 #define GPERL_sMULC(dst, src)
 
 #define GPERL_iDIV(dst, src) I(dst) /= I(src)
 #define GPERL_dDIV(dst, src) D(dst) /= D(src)
 #define GPERL_oDIV(dst, src)
 #define GPERL_DIVC(dst, src)
-#define GPERL_iDIVC(dst, src) I(dst) /= src
-#define GPERL_dDIVC(dst, src) D(dst) /= src
+#define GPERL_iDIVC(dst, v) I(dst) /= v.ivalue
+#define GPERL_dDIVC(dst, v) D(dst) /= v.dvalue
 
 #define GPERL_iCMP_JMP(op, dst, src) {				\
 		if (I(dst) op I(src)) {						\

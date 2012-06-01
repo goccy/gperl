@@ -259,82 +259,82 @@
 		BREAK();
 	});
 	CASE(A_ADDC, {
-		GPERL_ADDC(0, pc->src);
+		GPERL_ADDC(0, pc->v);
 		pc++;
 		BREAK();
 	});
 	CASE(A_dADDC, {
-		GPERL_dADDC(0, pc->src);
+		GPERL_dADDC(0, pc->v);
 		pc++;
 		BREAK();
 	});
 	CASE(A_iADDC, {
-		GPERL_iADDC(0, pc->src);
+		GPERL_iADDC(0, pc->v);
 		pc++;
 		BREAK();
 	});
 	CASE(A_sADDC, {
-		GPERL_sADDC(0, pc->src);
+		GPERL_sADDC(0, pc->v);
 		pc++;
 		BREAK();
 	});
 	CASE(B_ADDC, {
-		GPERL_ADDC(1, pc->src);
+		GPERL_ADDC(1, pc->v);
 		pc++;
 		BREAK();
 	});
 	CASE(B_dADDC, {
-		GPERL_dADDC(1, pc->src);
+		GPERL_dADDC(1, pc->v);
 		pc++;
 		BREAK();
 	});
 	CASE(B_iADDC, {
-		GPERL_iADDC(1, pc->src);
+		GPERL_iADDC(1, pc->v);
 		pc++;
 		BREAK();
 	});
 	CASE(B_sADDC, {
-		GPERL_sADDC(1, pc->src);
+		GPERL_sADDC(1, pc->v);
 		pc++;
 		BREAK();
 	});
 	CASE(C_ADDC, {
-		GPERL_ADDC(2, pc->src);
+		GPERL_ADDC(2, pc->v);
 		pc++;
 		BREAK();
 	});
 	CASE(C_dADDC, {
-		GPERL_dADDC(2, pc->src);
+		GPERL_dADDC(2, pc->v);
 		pc++;
 		BREAK();
 	});
 	CASE(C_iADDC, {
-		GPERL_iADDC(2, pc->src);
+		GPERL_iADDC(2, pc->v);
 		pc++;
 		BREAK();
 	});
 	CASE(C_sADDC, {
-		GPERL_sADDC(2, pc->src);
+		GPERL_sADDC(2, pc->v);
 		pc++;
 		BREAK();
 	});
 	CASE(D_ADDC, {
-		GPERL_ADDC(3, pc->src);
+		GPERL_ADDC(3, pc->v);
 		pc++;
 		BREAK();
 	});
 	CASE(D_dADDC, {
-		GPERL_dADDC(3, pc->src);
+		GPERL_dADDC(3, pc->v);
 		pc++;
 		BREAK();
 	});
 	CASE(D_iADDC, {
-		GPERL_iADDC(3, pc->src);
+		GPERL_iADDC(3, pc->v);
 		pc++;
 		BREAK();
 	});
 	CASE(D_sADDC, {
-		GPERL_sADDC(3, pc->src);
+		GPERL_sADDC(3, pc->v);
 		pc++;
 		BREAK();
 	});
@@ -489,62 +489,62 @@
 		BREAK();
 	});
 	CASE(A_SUBC, {
-		GPERL_SUBC(0, pc->src);
+		GPERL_SUBC(0, pc->v);
 		pc++;
 		BREAK();
 	});
 	CASE(A_dSUBC, {
-		GPERL_dSUBC(0, pc->src);
+		GPERL_dSUBC(0, pc->v);
 		pc++;
 		BREAK();
 	});
 	CASE(A_iSUBC, {
-		GPERL_iSUBC(0, pc->src);
+		GPERL_iSUBC(0, pc->v);
 		pc++;
 		BREAK();
 	});
 	CASE(B_SUBC, {
-		GPERL_SUBC(1, pc->src);
+		GPERL_SUBC(1, pc->v);
 		pc++;
 		BREAK();
 	});
 	CASE(B_dSUBC, {
-		GPERL_dSUBC(1, pc->src);
+		GPERL_dSUBC(1, pc->v);
 		pc++;
 		BREAK();
 	});
 	CASE(B_iSUBC, {
-		GPERL_iSUBC(1, pc->src);
+		GPERL_iSUBC(1, pc->v);
 		pc++;
 		BREAK();
 	});
 	CASE(C_SUBC, {
-		GPERL_SUBC(2, pc->src);
+		GPERL_SUBC(2, pc->v);
 		pc++;
 		BREAK();
 	});
 	CASE(C_dSUBC, {
-		GPERL_dSUBC(2, pc->src);
+		GPERL_dSUBC(2, pc->v);
 		pc++;
 		BREAK();
 	});
 	CASE(C_iSUBC, {
-		GPERL_iSUBC(2, pc->src);
+		GPERL_iSUBC(2, pc->v);
 		pc++;
 		BREAK();
 	});
 	CASE(D_SUBC, {
-		GPERL_SUBC(3, pc->src);
+		GPERL_SUBC(3, pc->v);
 		pc++;
 		BREAK();
 	});
 	CASE(D_dSUBC, {
-		GPERL_dSUBC(3, pc->src);
+		GPERL_dSUBC(3, pc->v);
 		pc++;
 		BREAK();
 	});
 	CASE(D_iSUBC, {
-		GPERL_iSUBC(3, pc->src);
+		GPERL_iSUBC(3, pc->v);
 		pc++;
 		BREAK();
 	});
@@ -729,82 +729,82 @@
 		BREAK();
 	});
 	CASE(A_MULC, {
-		GPERL_MULC(0, pc->src);
+		GPERL_MULC(0, pc->v);
 		pc++;
 		BREAK();
 	});
 	CASE(A_dMULC, {
-		GPERL_dMULC(0, pc->src);
+		GPERL_dMULC(0, pc->v);
 		pc++;
 		BREAK();
 	});
 	CASE(A_iMULC, {
-		GPERL_iMULC(0, pc->src);
+		GPERL_iMULC(0, pc->v);
 		pc++;
 		BREAK();
 	});
 	CASE(A_sMULC, {
-		GPERL_sMULC(0, pc->src);
+		GPERL_sMULC(0, pc->v);
 		pc++;
 		BREAK();
 	});
 	CASE(B_MULC, {
-		GPERL_MULC(1, pc->src);
+		GPERL_MULC(1, pc->v);
 		pc++;
 		BREAK();
 	});
 	CASE(B_dMULC, {
-		GPERL_dMULC(1, pc->src);
+		GPERL_dMULC(1, pc->v);
 		pc++;
 		BREAK();
 	});
 	CASE(B_iMULC, {
-		GPERL_iMULC(1, pc->src);
+		GPERL_iMULC(1, pc->v);
 		pc++;
 		BREAK();
 	});
 	CASE(B_sMULC, {
-		GPERL_sMULC(1, pc->src);
+		GPERL_sMULC(1, pc->v);
 		pc++;
 		BREAK();
 	});
 	CASE(C_MULC, {
-		GPERL_MULC(2, pc->src);
+		GPERL_MULC(2, pc->v);
 		pc++;
 		BREAK();
 	});
 	CASE(C_dMULC, {
-		GPERL_dMULC(2, pc->src);
+		GPERL_dMULC(2, pc->v);
 		pc++;
 		BREAK();
 	});
 	CASE(C_iMULC, {
-		GPERL_iMULC(2, pc->src);
+		GPERL_iMULC(2, pc->v);
 		pc++;
 		BREAK();
 	});
 	CASE(C_sMULC, {
-		GPERL_sMULC(2, pc->src);
+		GPERL_sMULC(2, pc->v);
 		pc++;
 		BREAK();
 	});
 	CASE(D_MULC, {
-		GPERL_MULC(3, pc->src);
+		GPERL_MULC(3, pc->v);
 		pc++;
 		BREAK();
 	});
 	CASE(D_dMULC, {
-		GPERL_dMULC(3, pc->src);
+		GPERL_dMULC(3, pc->v);
 		pc++;
 		BREAK();
 	});
 	CASE(D_iMULC, {
-		GPERL_iMULC(3, pc->src);
+		GPERL_iMULC(3, pc->v);
 		pc++;
 		BREAK();
 	});
 	CASE(D_sMULC, {
-		GPERL_sMULC(3, pc->src);
+		GPERL_sMULC(3, pc->v);
 		pc++;
 		BREAK();
 	});
@@ -959,62 +959,62 @@
 		BREAK();
 	});
 	CASE(A_DIVC, {
-		GPERL_DIVC(0, pc->src);
+		GPERL_DIVC(0, pc->v);
 		pc++;
 		BREAK();
 	});
 	CASE(A_dDIVC, {
-		GPERL_dDIVC(0, pc->src);
+		GPERL_dDIVC(0, pc->v);
 		pc++;
 		BREAK();
 	});
 	CASE(A_iDIVC, {
-		GPERL_iDIVC(0, pc->src);
+		GPERL_iDIVC(0, pc->v);
 		pc++;
 		BREAK();
 	});
 	CASE(B_DIVC, {
-		GPERL_DIVC(1, pc->src);
+		GPERL_DIVC(1, pc->v);
 		pc++;
 		BREAK();
 	});
 	CASE(B_dDIVC, {
-		GPERL_dDIVC(1, pc->src);
+		GPERL_dDIVC(1, pc->v);
 		pc++;
 		BREAK();
 	});
 	CASE(B_iDIVC, {
-		GPERL_iDIVC(1, pc->src);
+		GPERL_iDIVC(1, pc->v);
 		pc++;
 		BREAK();
 	});
 	CASE(C_DIVC, {
-		GPERL_DIVC(2, pc->src);
+		GPERL_DIVC(2, pc->v);
 		pc++;
 		BREAK();
 	});
 	CASE(C_dDIVC, {
-		GPERL_dDIVC(2, pc->src);
+		GPERL_dDIVC(2, pc->v);
 		pc++;
 		BREAK();
 	});
 	CASE(C_iDIVC, {
-		GPERL_iDIVC(2, pc->src);
+		GPERL_iDIVC(2, pc->v);
 		pc++;
 		BREAK();
 	});
 	CASE(D_DIVC, {
-		GPERL_DIVC(3, pc->src);
+		GPERL_DIVC(3, pc->v);
 		pc++;
 		BREAK();
 	});
 	CASE(D_dDIVC, {
-		GPERL_dDIVC(3, pc->src);
+		GPERL_dDIVC(3, pc->v);
 		pc++;
 		BREAK();
 	});
 	CASE(D_iDIVC, {
-		GPERL_iDIVC(3, pc->src);
+		GPERL_iDIVC(3, pc->v);
 		pc++;
 		BREAK();
 	});
@@ -1123,83 +1123,83 @@
 		BREAK();
 	});
 	CASE(A_JGC, {
-		GPERL_CMP_JMPC(>, 0, pc->src);
+		GPERL_CMP_JMPC(>, 0, pc->v);
 		BREAK();
 	});
 	CASE(A_dJGC, {
-		GPERL_dCMP_JMPC(>, 0, pc->src);
+		GPERL_dCMP_JMPC(>, 0, pc->v);
 		BREAK();
 	});
 	CASE(A_iJGC, {
-		GPERL_iCMP_JMPC(>, 0, pc->src);
+		GPERL_iCMP_JMPC(>, 0, pc->v);
 		BREAK();
 	});
 	CASE(A_sJGC, {
-		GPERL_sCMP_JMPC(>, 0, pc->src);
+		GPERL_sCMP_JMPC(>, 0, pc->v);
 		BREAK();
 	});
 	CASE(A_oJGC, {
-		GPERL_oCMP_JMPC(>, 0, pc->src);
+		GPERL_oCMP_JMPC(>, 0, pc->v);
 		BREAK();
 	});
 	CASE(B_JGC, {
-		GPERL_CMP_JMPC(>, 1, pc->src);
+		GPERL_CMP_JMPC(>, 1, pc->v);
 		BREAK();
 	});
 	CASE(B_dJGC, {
-		GPERL_dCMP_JMPC(>, 1, pc->src);
+		GPERL_dCMP_JMPC(>, 1, pc->v);
 		BREAK();
 	});
 	CASE(B_iJGC, {
-		GPERL_iCMP_JMPC(>, 1, pc->src);
+		GPERL_iCMP_JMPC(>, 1, pc->v);
 		BREAK();
 	});
 	CASE(B_sJGC, {
-		GPERL_sCMP_JMPC(>, 1, pc->src);
+		GPERL_sCMP_JMPC(>, 1, pc->v);
 		BREAK();
 	});
 	CASE(B_oJGC, {
-		GPERL_oCMP_JMPC(>, 1, pc->src);
+		GPERL_oCMP_JMPC(>, 1, pc->v);
 		BREAK();
 	});
 	CASE(C_JGC, {
-		GPERL_CMP_JMPC(>, 2, pc->src);
+		GPERL_CMP_JMPC(>, 2, pc->v);
 		BREAK();
 	});
 	CASE(C_dJGC, {
-		GPERL_dCMP_JMPC(>, 2, pc->src);
+		GPERL_dCMP_JMPC(>, 2, pc->v);
 		BREAK();
 	});
 	CASE(C_iJGC, {
-		GPERL_iCMP_JMPC(>, 2, pc->src);
+		GPERL_iCMP_JMPC(>, 2, pc->v);
 		BREAK();
 	});
 	CASE(C_sJGC, {
-		GPERL_sCMP_JMPC(>, 2, pc->src);
+		GPERL_sCMP_JMPC(>, 2, pc->v);
 		BREAK();
 	});
 	CASE(C_oJGC, {
-		GPERL_oCMP_JMPC(>, 2, pc->src);
+		GPERL_oCMP_JMPC(>, 2, pc->v);
 		BREAK();
 	});
 	CASE(D_JGC, {
-		GPERL_CMP_JMPC(>, 3, pc->src);
+		GPERL_CMP_JMPC(>, 3, pc->v);
 		BREAK();
 	});
 	CASE(D_dJGC, {
-		GPERL_dCMP_JMPC(>, 3, pc->src);
+		GPERL_dCMP_JMPC(>, 3, pc->v);
 		BREAK();
 	});
 	CASE(D_iJGC, {
-		GPERL_iCMP_JMPC(>, 3, pc->src);
+		GPERL_iCMP_JMPC(>, 3, pc->v);
 		BREAK();
 	});
 	CASE(D_sJGC, {
-		GPERL_sCMP_JMPC(>, 3, pc->src);
+		GPERL_sCMP_JMPC(>, 3, pc->v);
 		BREAK();
 	});
 	CASE(D_oJGC, {
-		GPERL_oCMP_JMPC(>, 3, pc->src);
+		GPERL_oCMP_JMPC(>, 3, pc->v);
 		BREAK();
 	});
 	CASE(A_JL, {
@@ -1307,83 +1307,83 @@
 		BREAK();
 	});
 	CASE(A_JLC, {
-		GPERL_CMP_JMPC(<, 0, pc->src);
+		GPERL_CMP_JMPC(<, 0, pc->v);
 		BREAK();
 	});
 	CASE(A_dJLC, {
-		GPERL_dCMP_JMPC(<, 0, pc->src);
+		GPERL_dCMP_JMPC(<, 0, pc->v);
 		BREAK();
 	});
 	CASE(A_iJLC, {
-		GPERL_iCMP_JMPC(<, 0, pc->src);
+		GPERL_iCMP_JMPC(<, 0, pc->v);
 		BREAK();
 	});
 	CASE(A_sJLC, {
-		GPERL_sCMP_JMPC(<, 0, pc->src);
+		GPERL_sCMP_JMPC(<, 0, pc->v);
 		BREAK();
 	});
 	CASE(A_oJLC, {
-		GPERL_oCMP_JMPC(<, 0, pc->src);
+		GPERL_oCMP_JMPC(<, 0, pc->v);
 		BREAK();
 	});
 	CASE(B_JLC, {
-		GPERL_CMP_JMPC(<, 1, pc->src);
+		GPERL_CMP_JMPC(<, 1, pc->v);
 		BREAK();
 	});
 	CASE(B_dJLC, {
-		GPERL_dCMP_JMPC(<, 1, pc->src);
+		GPERL_dCMP_JMPC(<, 1, pc->v);
 		BREAK();
 	});
 	CASE(B_iJLC, {
-		GPERL_iCMP_JMPC(<, 1, pc->src);
+		GPERL_iCMP_JMPC(<, 1, pc->v);
 		BREAK();
 	});
 	CASE(B_sJLC, {
-		GPERL_sCMP_JMPC(<, 1, pc->src);
+		GPERL_sCMP_JMPC(<, 1, pc->v);
 		BREAK();
 	});
 	CASE(B_oJLC, {
-		GPERL_oCMP_JMPC(<, 1, pc->src);
+		GPERL_oCMP_JMPC(<, 1, pc->v);
 		BREAK();
 	});
 	CASE(C_JLC, {
-		GPERL_CMP_JMPC(<, 2, pc->src);
+		GPERL_CMP_JMPC(<, 2, pc->v);
 		BREAK();
 	});
 	CASE(C_dJLC, {
-		GPERL_dCMP_JMPC(<, 2, pc->src);
+		GPERL_dCMP_JMPC(<, 2, pc->v);
 		BREAK();
 	});
 	CASE(C_iJLC, {
-		GPERL_iCMP_JMPC(<, 2, pc->src);
+		GPERL_iCMP_JMPC(<, 2, pc->v);
 		BREAK();
 	});
 	CASE(C_sJLC, {
-		GPERL_sCMP_JMPC(<, 2, pc->src);
+		GPERL_sCMP_JMPC(<, 2, pc->v);
 		BREAK();
 	});
 	CASE(C_oJLC, {
-		GPERL_oCMP_JMPC(<, 2, pc->src);
+		GPERL_oCMP_JMPC(<, 2, pc->v);
 		BREAK();
 	});
 	CASE(D_JLC, {
-		GPERL_CMP_JMPC(<, 3, pc->src);
+		GPERL_CMP_JMPC(<, 3, pc->v);
 		BREAK();
 	});
 	CASE(D_dJLC, {
-		GPERL_dCMP_JMPC(<, 3, pc->src);
+		GPERL_dCMP_JMPC(<, 3, pc->v);
 		BREAK();
 	});
 	CASE(D_iJLC, {
-		GPERL_iCMP_JMPC(<, 3, pc->src);
+		GPERL_iCMP_JMPC(<, 3, pc->v);
 		BREAK();
 	});
 	CASE(D_sJLC, {
-		GPERL_sCMP_JMPC(<, 3, pc->src);
+		GPERL_sCMP_JMPC(<, 3, pc->v);
 		BREAK();
 	});
 	CASE(D_oJLC, {
-		GPERL_oCMP_JMPC(<, 3, pc->src);
+		GPERL_oCMP_JMPC(<, 3, pc->v);
 		BREAK();
 	});
 	CASE(A_JGE, {
@@ -1491,83 +1491,83 @@
 		BREAK();
 	});
 	CASE(A_JGEC, {
-		GPERL_CMP_JMPC(>=, 0, pc->src);
+		GPERL_CMP_JMPC(>=, 0, pc->v);
 		BREAK();
 	});
 	CASE(A_dJGEC, {
-		GPERL_dCMP_JMPC(>=, 0, pc->src);
+		GPERL_dCMP_JMPC(>=, 0, pc->v);
 		BREAK();
 	});
 	CASE(A_iJGEC, {
-		GPERL_iCMP_JMPC(>=, 0, pc->src);
+		GPERL_iCMP_JMPC(>=, 0, pc->v);
 		BREAK();
 	});
 	CASE(A_sJGEC, {
-		GPERL_sCMP_JMPC(>=, 0, pc->src);
+		GPERL_sCMP_JMPC(>=, 0, pc->v);
 		BREAK();
 	});
 	CASE(A_oJGEC, {
-		GPERL_oCMP_JMPC(>=, 0, pc->src);
+		GPERL_oCMP_JMPC(>=, 0, pc->v);
 		BREAK();
 	});
 	CASE(B_JGEC, {
-		GPERL_CMP_JMPC(>=, 1, pc->src);
+		GPERL_CMP_JMPC(>=, 1, pc->v);
 		BREAK();
 	});
 	CASE(B_dJGEC, {
-		GPERL_dCMP_JMPC(>=, 1, pc->src);
+		GPERL_dCMP_JMPC(>=, 1, pc->v);
 		BREAK();
 	});
 	CASE(B_iJGEC, {
-		GPERL_iCMP_JMPC(>=, 1, pc->src);
+		GPERL_iCMP_JMPC(>=, 1, pc->v);
 		BREAK();
 	});
 	CASE(B_sJGEC, {
-		GPERL_sCMP_JMPC(>=, 1, pc->src);
+		GPERL_sCMP_JMPC(>=, 1, pc->v);
 		BREAK();
 	});
 	CASE(B_oJGEC, {
-		GPERL_oCMP_JMPC(>=, 1, pc->src);
+		GPERL_oCMP_JMPC(>=, 1, pc->v);
 		BREAK();
 	});
 	CASE(C_JGEC, {
-		GPERL_CMP_JMPC(>=, 2, pc->src);
+		GPERL_CMP_JMPC(>=, 2, pc->v);
 		BREAK();
 	});
 	CASE(C_dJGEC, {
-		GPERL_dCMP_JMPC(>=, 2, pc->src);
+		GPERL_dCMP_JMPC(>=, 2, pc->v);
 		BREAK();
 	});
 	CASE(C_iJGEC, {
-		GPERL_iCMP_JMPC(>=, 2, pc->src);
+		GPERL_iCMP_JMPC(>=, 2, pc->v);
 		BREAK();
 	});
 	CASE(C_sJGEC, {
-		GPERL_sCMP_JMPC(>=, 2, pc->src);
+		GPERL_sCMP_JMPC(>=, 2, pc->v);
 		BREAK();
 	});
 	CASE(C_oJGEC, {
-		GPERL_oCMP_JMPC(>=, 2, pc->src);
+		GPERL_oCMP_JMPC(>=, 2, pc->v);
 		BREAK();
 	});
 	CASE(D_JGEC, {
-		GPERL_CMP_JMPC(>=, 3, pc->src);
+		GPERL_CMP_JMPC(>=, 3, pc->v);
 		BREAK();
 	});
 	CASE(D_dJGEC, {
-		GPERL_dCMP_JMPC(>=, 3, pc->src);
+		GPERL_dCMP_JMPC(>=, 3, pc->v);
 		BREAK();
 	});
 	CASE(D_iJGEC, {
-		GPERL_iCMP_JMPC(>=, 3, pc->src);
+		GPERL_iCMP_JMPC(>=, 3, pc->v);
 		BREAK();
 	});
 	CASE(D_sJGEC, {
-		GPERL_sCMP_JMPC(>=, 3, pc->src);
+		GPERL_sCMP_JMPC(>=, 3, pc->v);
 		BREAK();
 	});
 	CASE(D_oJGEC, {
-		GPERL_oCMP_JMPC(>=, 3, pc->src);
+		GPERL_oCMP_JMPC(>=, 3, pc->v);
 		BREAK();
 	});
 	CASE(A_JLE, {
@@ -1675,83 +1675,83 @@
 		BREAK();
 	});
 	CASE(A_JLEC, {
-		GPERL_CMP_JMPC(<=, 0, pc->src);
+		GPERL_CMP_JMPC(<=, 0, pc->v);
 		BREAK();
 	});
 	CASE(A_dJLEC, {
-		GPERL_dCMP_JMPC(<=, 0, pc->src);
+		GPERL_dCMP_JMPC(<=, 0, pc->v);
 		BREAK();
 	});
 	CASE(A_iJLEC, {
-		GPERL_iCMP_JMPC(<=, 0, pc->src);
+		GPERL_iCMP_JMPC(<=, 0, pc->v);
 		BREAK();
 	});
 	CASE(A_sJLEC, {
-		GPERL_sCMP_JMPC(<=, 0, pc->src);
+		GPERL_sCMP_JMPC(<=, 0, pc->v);
 		BREAK();
 	});
 	CASE(A_oJLEC, {
-		GPERL_oCMP_JMPC(<=, 0, pc->src);
+		GPERL_oCMP_JMPC(<=, 0, pc->v);
 		BREAK();
 	});
 	CASE(B_JLEC, {
-		GPERL_CMP_JMPC(<=, 1, pc->src);
+		GPERL_CMP_JMPC(<=, 1, pc->v);
 		BREAK();
 	});
 	CASE(B_dJLEC, {
-		GPERL_dCMP_JMPC(<=, 1, pc->src);
+		GPERL_dCMP_JMPC(<=, 1, pc->v);
 		BREAK();
 	});
 	CASE(B_iJLEC, {
-		GPERL_iCMP_JMPC(<=, 1, pc->src);
+		GPERL_iCMP_JMPC(<=, 1, pc->v);
 		BREAK();
 	});
 	CASE(B_sJLEC, {
-		GPERL_sCMP_JMPC(<=, 1, pc->src);
+		GPERL_sCMP_JMPC(<=, 1, pc->v);
 		BREAK();
 	});
 	CASE(B_oJLEC, {
-		GPERL_oCMP_JMPC(<=, 1, pc->src);
+		GPERL_oCMP_JMPC(<=, 1, pc->v);
 		BREAK();
 	});
 	CASE(C_JLEC, {
-		GPERL_CMP_JMPC(<=, 2, pc->src);
+		GPERL_CMP_JMPC(<=, 2, pc->v);
 		BREAK();
 	});
 	CASE(C_dJLEC, {
-		GPERL_dCMP_JMPC(<=, 2, pc->src);
+		GPERL_dCMP_JMPC(<=, 2, pc->v);
 		BREAK();
 	});
 	CASE(C_iJLEC, {
-		GPERL_iCMP_JMPC(<=, 2, pc->src);
+		GPERL_iCMP_JMPC(<=, 2, pc->v);
 		BREAK();
 	});
 	CASE(C_sJLEC, {
-		GPERL_sCMP_JMPC(<=, 2, pc->src);
+		GPERL_sCMP_JMPC(<=, 2, pc->v);
 		BREAK();
 	});
 	CASE(C_oJLEC, {
-		GPERL_oCMP_JMPC(<=, 2, pc->src);
+		GPERL_oCMP_JMPC(<=, 2, pc->v);
 		BREAK();
 	});
 	CASE(D_JLEC, {
-		GPERL_CMP_JMPC(<=, 3, pc->src);
+		GPERL_CMP_JMPC(<=, 3, pc->v);
 		BREAK();
 	});
 	CASE(D_dJLEC, {
-		GPERL_dCMP_JMPC(<=, 3, pc->src);
+		GPERL_dCMP_JMPC(<=, 3, pc->v);
 		BREAK();
 	});
 	CASE(D_iJLEC, {
-		GPERL_iCMP_JMPC(<=, 3, pc->src);
+		GPERL_iCMP_JMPC(<=, 3, pc->v);
 		BREAK();
 	});
 	CASE(D_sJLEC, {
-		GPERL_sCMP_JMPC(<=, 3, pc->src);
+		GPERL_sCMP_JMPC(<=, 3, pc->v);
 		BREAK();
 	});
 	CASE(D_oJLEC, {
-		GPERL_oCMP_JMPC(<=, 3, pc->src);
+		GPERL_oCMP_JMPC(<=, 3, pc->v);
 		BREAK();
 	});
 	CASE(A_JE, {
@@ -1859,83 +1859,83 @@
 		BREAK();
 	});
 	CASE(A_JEC, {
-		GPERL_CMP_JMPC(==, 0, pc->src);
+		GPERL_CMP_JMPC(==, 0, pc->v);
 		BREAK();
 	});
 	CASE(A_dJEC, {
-		GPERL_dCMP_JMPC(==, 0, pc->src);
+		GPERL_dCMP_JMPC(==, 0, pc->v);
 		BREAK();
 	});
 	CASE(A_iJEC, {
-		GPERL_iCMP_JMPC(==, 0, pc->src);
+		GPERL_iCMP_JMPC(==, 0, pc->v);
 		BREAK();
 	});
 	CASE(A_sJEC, {
-		GPERL_sCMP_JMPC(==, 0, pc->src);
+		GPERL_sCMP_JMPC(==, 0, pc->v);
 		BREAK();
 	});
 	CASE(A_oJEC, {
-		GPERL_oCMP_JMPC(==, 0, pc->src);
+		GPERL_oCMP_JMPC(==, 0, pc->v);
 		BREAK();
 	});
 	CASE(B_JEC, {
-		GPERL_CMP_JMPC(==, 1, pc->src);
+		GPERL_CMP_JMPC(==, 1, pc->v);
 		BREAK();
 	});
 	CASE(B_dJEC, {
-		GPERL_dCMP_JMPC(==, 1, pc->src);
+		GPERL_dCMP_JMPC(==, 1, pc->v);
 		BREAK();
 	});
 	CASE(B_iJEC, {
-		GPERL_iCMP_JMPC(==, 1, pc->src);
+		GPERL_iCMP_JMPC(==, 1, pc->v);
 		BREAK();
 	});
 	CASE(B_sJEC, {
-		GPERL_sCMP_JMPC(==, 1, pc->src);
+		GPERL_sCMP_JMPC(==, 1, pc->v);
 		BREAK();
 	});
 	CASE(B_oJEC, {
-		GPERL_oCMP_JMPC(==, 1, pc->src);
+		GPERL_oCMP_JMPC(==, 1, pc->v);
 		BREAK();
 	});
 	CASE(C_JEC, {
-		GPERL_CMP_JMPC(==, 2, pc->src);
+		GPERL_CMP_JMPC(==, 2, pc->v);
 		BREAK();
 	});
 	CASE(C_dJEC, {
-		GPERL_dCMP_JMPC(==, 2, pc->src);
+		GPERL_dCMP_JMPC(==, 2, pc->v);
 		BREAK();
 	});
 	CASE(C_iJEC, {
-		GPERL_iCMP_JMPC(==, 2, pc->src);
+		GPERL_iCMP_JMPC(==, 2, pc->v);
 		BREAK();
 	});
 	CASE(C_sJEC, {
-		GPERL_sCMP_JMPC(==, 2, pc->src);
+		GPERL_sCMP_JMPC(==, 2, pc->v);
 		BREAK();
 	});
 	CASE(C_oJEC, {
-		GPERL_oCMP_JMPC(==, 2, pc->src);
+		GPERL_oCMP_JMPC(==, 2, pc->v);
 		BREAK();
 	});
 	CASE(D_JEC, {
-		GPERL_CMP_JMPC(==, 3, pc->src);
+		GPERL_CMP_JMPC(==, 3, pc->v);
 		BREAK();
 	});
 	CASE(D_dJEC, {
-		GPERL_dCMP_JMPC(==, 3, pc->src);
+		GPERL_dCMP_JMPC(==, 3, pc->v);
 		BREAK();
 	});
 	CASE(D_iJEC, {
-		GPERL_iCMP_JMPC(==, 3, pc->src);
+		GPERL_iCMP_JMPC(==, 3, pc->v);
 		BREAK();
 	});
 	CASE(D_sJEC, {
-		GPERL_sCMP_JMPC(==, 3, pc->src);
+		GPERL_sCMP_JMPC(==, 3, pc->v);
 		BREAK();
 	});
 	CASE(D_oJEC, {
-		GPERL_oCMP_JMPC(==, 3, pc->src);
+		GPERL_oCMP_JMPC(==, 3, pc->v);
 		BREAK();
 	});
 	CASE(A_JNE, {
@@ -2043,83 +2043,83 @@
 		BREAK();
 	});
 	CASE(A_JNEC, {
-		GPERL_CMP_JMPC(!=, 0, pc->src);
+		GPERL_CMP_JMPC(!=, 0, pc->v);
 		BREAK();
 	});
 	CASE(A_dJNEC, {
-		GPERL_dCMP_JMPC(!=, 0, pc->src);
+		GPERL_dCMP_JMPC(!=, 0, pc->v);
 		BREAK();
 	});
 	CASE(A_iJNEC, {
-		GPERL_iCMP_JMPC(!=, 0, pc->src);
+		GPERL_iCMP_JMPC(!=, 0, pc->v);
 		BREAK();
 	});
 	CASE(A_sJNEC, {
-		GPERL_sCMP_JMPC(!=, 0, pc->src);
+		GPERL_sCMP_JMPC(!=, 0, pc->v);
 		BREAK();
 	});
 	CASE(A_oJNEC, {
-		GPERL_oCMP_JMPC(!=, 0, pc->src);
+		GPERL_oCMP_JMPC(!=, 0, pc->v);
 		BREAK();
 	});
 	CASE(B_JNEC, {
-		GPERL_CMP_JMPC(!=, 1, pc->src);
+		GPERL_CMP_JMPC(!=, 1, pc->v);
 		BREAK();
 	});
 	CASE(B_dJNEC, {
-		GPERL_dCMP_JMPC(!=, 1, pc->src);
+		GPERL_dCMP_JMPC(!=, 1, pc->v);
 		BREAK();
 	});
 	CASE(B_iJNEC, {
-		GPERL_iCMP_JMPC(!=, 1, pc->src);
+		GPERL_iCMP_JMPC(!=, 1, pc->v);
 		BREAK();
 	});
 	CASE(B_sJNEC, {
-		GPERL_sCMP_JMPC(!=, 1, pc->src);
+		GPERL_sCMP_JMPC(!=, 1, pc->v);
 		BREAK();
 	});
 	CASE(B_oJNEC, {
-		GPERL_oCMP_JMPC(!=, 1, pc->src);
+		GPERL_oCMP_JMPC(!=, 1, pc->v);
 		BREAK();
 	});
 	CASE(C_JNEC, {
-		GPERL_CMP_JMPC(!=, 2, pc->src);
+		GPERL_CMP_JMPC(!=, 2, pc->v);
 		BREAK();
 	});
 	CASE(C_dJNEC, {
-		GPERL_dCMP_JMPC(!=, 2, pc->src);
+		GPERL_dCMP_JMPC(!=, 2, pc->v);
 		BREAK();
 	});
 	CASE(C_iJNEC, {
-		GPERL_iCMP_JMPC(!=, 2, pc->src);
+		GPERL_iCMP_JMPC(!=, 2, pc->v);
 		BREAK();
 	});
 	CASE(C_sJNEC, {
-		GPERL_sCMP_JMPC(!=, 2, pc->src);
+		GPERL_sCMP_JMPC(!=, 2, pc->v);
 		BREAK();
 	});
 	CASE(C_oJNEC, {
-		GPERL_oCMP_JMPC(!=, 2, pc->src);
+		GPERL_oCMP_JMPC(!=, 2, pc->v);
 		BREAK();
 	});
 	CASE(D_JNEC, {
-		GPERL_CMP_JMPC(!=, 3, pc->src);
+		GPERL_CMP_JMPC(!=, 3, pc->v);
 		BREAK();
 	});
 	CASE(D_dJNEC, {
-		GPERL_dCMP_JMPC(!=, 3, pc->src);
+		GPERL_dCMP_JMPC(!=, 3, pc->v);
 		BREAK();
 	});
 	CASE(D_iJNEC, {
-		GPERL_iCMP_JMPC(!=, 3, pc->src);
+		GPERL_iCMP_JMPC(!=, 3, pc->v);
 		BREAK();
 	});
 	CASE(D_sJNEC, {
-		GPERL_sCMP_JMPC(!=, 3, pc->src);
+		GPERL_sCMP_JMPC(!=, 3, pc->v);
 		BREAK();
 	});
 	CASE(D_oJNEC, {
-		GPERL_oCMP_JMPC(!=, 3, pc->src);
+		GPERL_oCMP_JMPC(!=, 3, pc->v);
 		BREAK();
 	});
 	CASE(A_RET, {

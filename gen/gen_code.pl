@@ -340,6 +340,7 @@ sub gen_vm_run_code {
 				my $prefix = substr($_, 0, 1);
 				$prefix = "" if ($prefix =~ /J/);
 				if ($_ =~ /C$/) {
+                    $decl_args =~ s/pc->src/pc->v/;
 					$ret .= "\t\tGPERL_${prefix}CMP_JMPC(" . $decl_args . ");\n";
 				} elsif($prefix eq "") {
 					$ret .= $type_check_code;
@@ -349,7 +350,12 @@ sub gen_vm_run_code {
 			} elsif ($_ =~ /THCODE/) {
 			} elsif ($_ eq "ADD" || $_ eq "SUB" ||
 					 $_ eq "MUL" || $_ eq "DIV") {
-				$ret .= $type_check_code;
+                $ret .= $type_check_code;
+            } elsif ($_ =~ /ADDC/ || $_ =~ /SUBC/ ||
+                       $_ =~ /MULC/ || $_ =~ /DIVC/) {
+                $decl_args =~ s/pc->src/pc->v/;
+                $ret .= "\t\tGPERL_${_}(" . $decl_args . ");\n";
+                $ret .= "\t\tpc++;\n";
 			} elsif ($_ eq "WRITE") {
 				$ret .=
 "		int type = TYPE_CHECK(callstack->reg[pc->dst]);
@@ -474,6 +480,7 @@ sub gen_fast_vm_code {
 				my $prefix = substr($_code[1], 0, 1);
 				$prefix = "" if ($prefix =~ /J/);
 				if ($_ =~ /C$/) {
+                    $decl_args =~ s/pc->src/pc->v/;
 					$ret .= "\t\tGPERL_${prefix}CMP_JMPC(" . $decl_args . ");\n";
 				} elsif($prefix eq "") {
 					$ret .= $type_check_code;
@@ -483,6 +490,11 @@ sub gen_fast_vm_code {
 			} elsif ($_code[1] eq "ADD" || $_code[1] eq "SUB" ||
 					 $_code[1] eq "MUL" || $_code[1] eq "DIV") {
 				$ret .= $type_check_code;
+            } elsif ($_code[1] =~ /ADDC/ || $_code[1] =~ /SUBC/ ||
+                     $_code[1] =~ /MULC/ || $_code[1] =~ /DIVC/) {
+                $decl_args =~ s/pc->src/pc->v/;
+                $ret .= "\t\tGPERL_${_code[1]}(" . $decl_args . ");\n";
+                $ret .= "\t\tpc++;\n";
 			} else {
 				$ret .= "\t\tGPERL_${_code[1]}(" . $decl_args . ");\n";
 				$ret .= "\t\tpc++;\n";
