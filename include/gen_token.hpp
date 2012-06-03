@@ -26,6 +26,7 @@ typedef enum {
 	RightBracket,
 	Shift,
 	CallDecl,
+	WhileStmt,
 	FieldDecl,
 	TypeRef,
 	LabelRef,

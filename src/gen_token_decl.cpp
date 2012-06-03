@@ -27,6 +27,7 @@ GPerlTokenInfo decl_tokens[] = {
 	{RightBracket, "RightBracket", "]"},
 	{Shift, "Shift", "shift"},
 	{CallDecl, "CallDecl", "&"},
+	{WhileStmt, "WhileStmt", "while"},
 	{FieldDecl, "FieldDecl", ""},
 	{TypeRef, "TypeRef", ""},
 	{LabelRef, "LabelRef", ""},
@@ -50,3 +51,4 @@ GPerlTokenInfo decl_tokens[] = {
 	{List, "List", ""},
 	{Undefined, "Undefined", ""},
 };
+

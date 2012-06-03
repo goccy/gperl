@@ -140,6 +140,11 @@
 	 "parse_func" : ""
  },
  {
+	 "type" : "WhileStmt",
+	 "data" : "while",
+	 "parse_func" : ""
+ },
+ {
 	 "type" : "FieldDecl",
 	 "data" : "",
 	 "parse_func" : ""

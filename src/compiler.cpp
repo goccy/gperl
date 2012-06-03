@@ -42,6 +42,7 @@ GPerlVirtualMachineCode *GPerlCompiler::compile(GPerlAST *ast)
 
 void GPerlCompiler::compile_(GPerlCell *path)
 {
+	if (path->type == WhileStmt) loop_start_num = code_num;
 	GOTO_LEFT_LEAFNODE(path);
 	genVMCode(path);
 	while (path->parent) {
@@ -66,6 +67,8 @@ void GPerlCompiler::genVMCode(GPerlCell *path) {
 		genFunctionCallCode(path);
 	} else if (path->type == IfStmt) {
 		genIfStmtCode(path);
+	} else if (path->type == WhileStmt) {
+		genWhileStmtCode(path);
 	} else if (path->type == Function) {
 		genFunctionCode(path);
 		return;
@@ -166,11 +169,9 @@ void GPerlCompiler::genIfStmtCode(GPerlCell *path)
 {
 	dst = 0;//reset dst number
 	GPerlCell *true_stmt = path->true_stmt->root;
-	//DBG_P("code_num = [%d], codes->size() = [%d]", code_num, codes->size());
 	GPerlVirtualMachineCode *jmp = codes->at(code_num - 1);
-	//DBG_PL("jmp = [%d]", jmp->op);
 	int cond_code_num = code_num;
-	//DBG_PL("-------------TRUE STMT--------------");
+	DBG_PL("-------------TRUE STMT--------------");
 	for (; true_stmt; true_stmt = true_stmt->next) {
 		GPerlCell *path = true_stmt;
 		compile_(path);
@@ -178,7 +179,6 @@ void GPerlCompiler::genIfStmtCode(GPerlCell *path)
 	}
 	jmp->jmp = code_num - cond_code_num + 2/*OPNOP + OPJMP + 1*/;
 	int cur_code_num = code_num;
-	//fprintf(stderr, "cur_code_num = [%d]\n", cur_code_num);
 	jmp = createJMP(1);
 	addVMCode(jmp);
 	dumpVMCode(jmp);
@@ -194,6 +194,28 @@ void GPerlCompiler::genIfStmtCode(GPerlCell *path)
 	}
 	jmp->jmp = code_num - cur_code_num;
 	DBG_PL("------------------------------------");
+}
+
+void GPerlCompiler::genWhileStmtCode(GPerlCell *path)
+{
+	dst = 0;//reset dst number
+	DBG_PL("-------------genWhileStmtCode------------------");
+	int loop_start = loop_start_num;
+	GPerlCell *true_stmt = path->true_stmt->root;
+	GPerlVirtualMachineCode *jmp = codes->at(code_num - 1);
+	int cond_code_num = code_num;
+	DBG_PL("-------------TRUE STMT--------------");
+	for (; true_stmt; true_stmt = true_stmt->next) {
+		GPerlCell *path = true_stmt;
+		compile_(path);
+		dst = 0;//reset dst number
+	}
+	jmp->jmp = code_num - cond_code_num + 2/*OPNOP + OPJMP + 1*/;
+	int cur_code_num = code_num;
+	jmp = createJMP(1);
+	addVMCode(jmp);
+	dumpVMCode(jmp);
+	jmp->jmp = loop_start - cur_code_num;
 }
 
 void GPerlCompiler::addVMCode(GPerlVirtualMachineCode *code)
@@ -465,7 +487,7 @@ GPerlVirtualMachineCode *GPerlCompiler::createVMCode(GPerlCell *c)
 	case NotEqual:
 		SET_OPCODE(JNE);
 		break;
-	case IfStmt:
+	case IfStmt: case WhileStmt:
 		code->op = NOP;
 		break;
 	case LocalVarDecl: case VarDecl: {
@@ -500,13 +522,23 @@ GPerlVirtualMachineCode *GPerlCompiler::createVMCode(GPerlCell *c)
 			}
 			if (local_vmap.find(prefix + c->vname) != local_vmap.end()) {
 				idx = local_vmap[prefix + c->vname];//getVariableIndex(name);
-				code->op = vMOV;
+				if (c->parent && c->parent->type == Assign) {
+					code->op = NOP;
+					return code;
+				} else {
+					code->op = vMOV;
+				}
 				c->vname = prefix + c->vname;
 				code->name = cstr(c->vname);
 				goto BREAK;
 			} else if (global_vmap.find(prefix + c->vname) != global_vmap.end()) {
 				idx = global_vmap[prefix + c->vname];//getVariableIndex(name);
-				code->op = gMOV;
+				if (c->parent && c->parent->type == Assign) {
+					code->op = NOP;
+					return code;
+				} else {
+					code->op = gMOV;
+				}
 				c->vname = prefix + c->vname;
 				code->name = cstr(c->vname);
 				goto BREAK;

@@ -280,6 +280,7 @@ public:
 	int dst;
 	int src;
 	int code_num;
+	int loop_start_num;
 	GPerlT reg_type[MAX_REG_SIZE];
 	std::vector<GPerlVirtualMachineCode *> *codes;
 	std::vector<GPerlVirtualMachineCode *> *func_code;
@@ -319,6 +320,7 @@ public:
 	void genFunctionCallCode(GPerlCell *p);
 	void genFunctionCode(GPerlCell *path);
 	void genIfStmtCode(GPerlCell *path);
+	void genWhileStmtCode(GPerlCell *path);
 	void genVMCode(GPerlCell *path);
 	void addVMCode(GPerlVirtualMachineCode *code);
 	void popVMCode(void);

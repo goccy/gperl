@@ -171,6 +171,7 @@ GPerlAST *GPerlParser::parse(void)
 	bool ifStmtFlag = false;
 	bool elseStmtFlag = false;
 	bool funcFlag = false;
+	bool whileStmtFlag = false;
 
 	while (it != end) {
 		GPerlToken *t = (GPerlToken *)*it;
@@ -270,6 +271,12 @@ GPerlAST *GPerlParser::parse(void)
 			ifStmtFlag = true;
 			break;
 		}
+		case WhileStmt: {
+			root = new GPerlCell(WhileStmt, t->data);
+			ast->add(root);
+			whileStmtFlag = true;
+			break;
+		}
 		case Function: {
 			blocks.pushNode(new GPerlCell(Function, t->data));
 			funcFlag = true;
@@ -311,6 +318,16 @@ GPerlAST *GPerlParser::parse(void)
 				GPerlScope *scope = parse();
 				root->false_stmt = scope;
 				elseStmtFlag = false;
+			} else if (whileStmtFlag) {
+				GPerlCell *cond = blocks.lastNode();
+				blocks.popNode();
+				root->cond = cond;
+				cond->parent = root;
+				MOVE_NEXT_TOKEN();
+				DBG_PL("-----------whilestmt------------");
+				GPerlScope *scope = parse();
+				root->true_stmt = scope;
+				whileStmtFlag = false;
 			} else {
 				//Block
 				MOVE_NEXT_TOKEN();

@@ -13,7 +13,7 @@ GPerlArray *new_GPerlArray(GPerlValue *list, size_t asize)
 		a->write = Array_write;
 		return a;
 	} else {
-		DBG_PL("GROW FREELIST!!");
+		DBG_PL("GC START!!");
 	}
 	return NULL;
 }
