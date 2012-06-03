@@ -109,7 +109,10 @@
 		outbuf += string(shared_buf);					\
 	}
 #define GPERL_sWRITE(dst) outbuf += string(getString(callstack->reg[dst]))
-#define GPERL_oWRITE(dst)
+#define GPERL_oWRITE(dst) {									\
+		GPerlObject *o = (GPerlObject *)getObject(callstack->reg[dst]);	\
+		o->write(callstack->reg[dst]);						\
+	}
 
 #define GPERL_FLUSH() {												\
 		fprintf(stderr, "%s", cstr(outbuf));						\
@@ -117,7 +120,7 @@
 	}
 #define GPERL_JMP() pc += pc->jmp
 #define GPERL_FUNCSET(func, dst) setToFuncMemory(func, dst)
-#define GPERL_SETv(name, dst) setToVariableMemory(name, dst)
+#define GPERL_SETv(name, dst)
 
 #define GPERL_CALL(dst, src, NAME) {							\
 		GPerlVirtualMachineCode *code = func_memory[src];		\
@@ -154,10 +157,10 @@
 	}
 
 #define GPERL_SHIFT(src)
-#define GPERL_iSHIFT(src) I(0) = argstack[src]->value.ivalue
-#define GPERL_dSHIFT(src) D(0) = argstack[src]->value.dvalue
-#define GPERL_sSHIFT(src) S(0) = argstack[src]->value.svalue
-#define GPERL_oSHIFT(src) O(0) = (GPerlObject *)argstack[src]->value.ovalue
+#define GPERL_iSHIFT(src)
+#define GPERL_dSHIFT(src)
+#define GPERL_sSHIFT(src)
+#define GPERL_oSHIFT(src)
 #define GPERL_PUSH(dst, src) (callstack+1)->argstack[src] = callstack->reg[dst]
 #define GPERL_NEW()
-#define GPERL_ARRAY_PUSH(argstack) pc->push(argstack);
+#define GPERL_ARRAY_PUSH(argstack) callstack++; pc->push(argstack);

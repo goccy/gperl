@@ -7,6 +7,7 @@
 #include <string>
 #include <algorithm>
 #include <map>
+#include <new>
 
 #define EOL '\0'
 #define MAX_LINE_SIZE 128
@@ -224,11 +225,38 @@ typedef union {
 	void *ovalue; /* other Object */
 } GPerlValue;
 
+struct _GPerlObject;
+
+class GPerlMemoryManager {
+public:
+	_GPerlObject *freeList;
+	GPerlMemoryManager(void);
+};
+
+typedef struct _GPerlObjectHeader {
+	int type;
+	int mark_flag;
+	_GPerlObject *next;
+} GPerlObjectHeader;
+
 typedef struct _GPerlObject {
-	GPerlT type;
-	GPerlValue value;
-	const char *name;
+	GPerlObjectHeader h;
+	void *slot1;
+	void *slot2;
+	void (*write)(GPerlValue v);
+	void *slot4;
+	void *slot5;
 } GPerlObject;
+
+typedef struct _GPerlArray {
+public:
+	GPerlObjectHeader h;
+	int size;
+	GPerlValue *list;
+	void (*write)(GPerlValue v);
+	void *slot4;
+	void *slot5;
+} GPerlArray;
 
 typedef struct _GPerlVirtualMachineCode {
 	GPerlOpCode op; /* operation code */
@@ -240,6 +268,7 @@ typedef struct _GPerlVirtualMachineCode {
 		void *code;/* selective inlining code */
 		int jmp;   /* jmp register number */
 		void (*push)(GPerlValue *);
+		void (*write)(GPerlValue );
 	};
 	const char *name;
 	struct _GPerlVirtualMachineCode *func;
@@ -339,9 +368,7 @@ public:
 	GPerlVirtualMachineCode *func_memory[MAX_FUNC_NUM];
 
 	GPerlVirtualMachine();
-	void setToVariableMemory(const char *name, int idx);
 	void setToFuncMemory(GPerlVirtualMachineCode *func, int idx);
-	GPerlObject *getFromVariableMemory(int idx);
 	GPerlVirtualMachineCode *getFromFuncMemory(int idx);
 	GPerlEnv *createCallStack(void);
 	GPerlObject **createArgStack(void);
@@ -350,9 +377,17 @@ public:
 	int run(GPerlVirtualMachineCode *codes);
 };
 
+#define PAGE_SIZE 4096
+#define VOID_PTR sizeof(void*)
+#define OBJECT_SIZE (VOID_PTR * 8)
+#define MEMORY_POOL_SIZE (OBJECT_SIZE * PAGE_SIZE)
 #define NAME_RESOLUTION_PREFIX "*"
 #define MAX_GLOBAL_MEMORY_SIZE 128
 #define MAX_STACK_MEMORY_SIZE 1024 * 8 /* 8M */
 extern GPerlValue global_vmemory[MAX_GLOBAL_MEMORY_SIZE];
-
+extern GPerlMemoryManager *mm;
+extern char shared_buf[128];
+extern std::string outbuf;
+GPerlArray *new_GPerlArray(GPerlValue *list, size_t asize);
 void Array_push(GPerlValue *);
+void Array_write(GPerlValue );

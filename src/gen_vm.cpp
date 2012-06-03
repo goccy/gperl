@@ -4,15 +4,14 @@
 #include <vmlibs.hpp>
 
 using namespace std;
+char shared_buf[128] = {0};//TODO must be variable buffer
+string outbuf = "";
 
 int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 {
 	static GPerlVirtualMachineCode *top;
 	GPerlVirtualMachineCode *pc = codes;
 	GPerlEnv *callstack = createCallStack();
-	GPerlObject **argstack = createArgStack();
-	static char shared_buf[128] = {0};//TODO must be variable buffer
-	static string outbuf = "";
     GPerlValue stack[MAX_STACK_MEMORY_SIZE];
     int esp = 0;
     int ebp = 0;

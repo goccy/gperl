@@ -11,6 +11,7 @@ objs = build/main.o \
 	build/ast.o \
 	build/graph.o \
 	build/compiler.o\
+	build/memory.o\
 	build/vm.o \
 	build/gen_vm.o\
 	build/array.o
@@ -40,6 +41,9 @@ build/graph.o : src/graph.cpp
 	$(CC) $(CFLAGS) -o $@ -c $^
 
 build/compiler.o : src/compiler.cpp
+	$(CC) $(CFLAGS) -o $@ -c $^
+
+build/memory.o : src/memory.cpp
 	$(CC) $(CFLAGS) -o $@ -c $^
 
 build/vm.o : src/vm.cpp

@@ -2242,6 +2242,26 @@
 		pc++;
 		BREAK();
 	});
+	CASE(A_LET, {
+		GPERL_LET(0, pc->src);
+		pc++;
+		BREAK();
+	});
+	CASE(B_LET, {
+		GPERL_LET(1, pc->src);
+		pc++;
+		BREAK();
+	});
+	CASE(C_LET, {
+		GPERL_LET(2, pc->src);
+		pc++;
+		BREAK();
+	});
+	CASE(D_LET, {
+		GPERL_LET(3, pc->src);
+		pc++;
+		BREAK();
+	});
 	CASE(A_CALL, {
 		GPERL_CALL(0, pc->src, A_CALL);
 		pc++;

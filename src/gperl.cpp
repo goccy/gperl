@@ -1,6 +1,8 @@
 #include <gperl.hpp>
 using namespace std;
 
+GPerlMemoryManager *mm;
+
 GPerl::GPerl(int argc, char **argv)
 {
 	if (argc < 2) exit(1);
@@ -16,6 +18,7 @@ GPerl::GPerl(int argc, char **argv)
 		snprintf(tmp, line_size + 1, "%s\n", line);
 		tmp += line_size;
 	}
+	mm = new GPerlMemoryManager();
 	GPerlTokenizer t;
 	std::vector<GPerlToken *> *tokens = t.tokenize(script);
 	t.annotateTokens(tokens);

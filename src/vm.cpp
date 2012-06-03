@@ -6,21 +6,9 @@ GPerlVirtualMachine::GPerlVirtualMachine(void)
 {
 }
 
-void GPerlVirtualMachine::setToVariableMemory(const char *name, int idx)
-{
-	GPerlObject *o = new GPerlObject();//TODO fetch from memory manage unit
-	o->name = name;
-	variable_memory[idx] = o;
-}
-
 void GPerlVirtualMachine::setToFuncMemory(GPerlVirtualMachineCode *func, int idx)
 {
 	func_memory[idx] = func;
-}
-
-inline GPerlObject *GPerlVirtualMachine::getFromVariableMemory(int idx)
-{
-	return variable_memory[idx];
 }
 
 inline GPerlVirtualMachineCode *GPerlVirtualMachine::getFromFuncMemory(int idx)
