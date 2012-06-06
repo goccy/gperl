@@ -76,6 +76,9 @@ void GPerlCompiler::genVMCode(GPerlCell *path) {
 	code = createVMCode(path);
 	addVMCode(code);
 	dumpVMCode(code);
+	if (path->type == Inc) {
+
+	}
 }
 
 void GPerlCompiler::genFunctionCallCode(GPerlCell *p)
@@ -486,6 +489,9 @@ GPerlVirtualMachineCode *GPerlCompiler::createVMCode(GPerlCell *c)
 		break;
 	case NotEqual:
 		SET_OPCODE(JNE);
+		break;
+	case Inc:
+		code->op = INC;
 		break;
 	case IfStmt: case WhileStmt:
 		code->op = NOP;

@@ -35,6 +35,26 @@
 	 "parse_func" : ""
  },
  {
+ 	 "type" : "AddEqual",
+	 "data" : "+=",
+	 "parse_func" : ""
+ },
+ {
+ 	 "type" : "SubEqual",
+	 "data" : "-=",
+	 "parse_func" : ""
+ },
+ {
+ 	 "type" : "MulEqual",
+	 "data" : "*=",
+	 "parse_func" : ""
+ },
+ {
+ 	 "type" : "DivEqual",
+	 "data" : "/=",
+	 "parse_func" : ""
+ },
+ {
 	 "type" : "GreaterEqual",
 	 "data" : ">=",
 	 "parse_func" : ""
@@ -52,6 +72,16 @@
  {
 	 "type" : "NotEqual",
 	 "data" : "!=",
+	 "parse_func" : ""
+ },
+ {
+ 	 "type" : "Inc",
+	 "data" : "++",
+	 "parse_func" : ""
+ },
+ {
+ 	 "type" : "Dec",
+	 "data" : "--",
 	 "parse_func" : ""
  },
  {

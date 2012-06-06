@@ -184,7 +184,7 @@ GPerlAST *GPerlParser::parse(void)
 		case LocalVar: case LocalArrayVar:
 			if (isVarDeclFlag) {
 				DBG_PL("[%s]:NEW BLOCK => BLOCKS", cstr(t->data));
-				DBG_PL("vidx = [%d]\n", vidx);
+				DBG_PL("vidx = [%d]", vidx);
 				string prefix = "";
 				for (int i = 0; i < indent; i++) {
 					prefix += string(NAME_RESOLUTION_PREFIX);
@@ -202,7 +202,7 @@ GPerlAST *GPerlParser::parse(void)
 			break;
 		case GlobalVar: case GlobalArrayVar: {
 			DBG_PL("[%s]:NEW BLOCK => BLOCKS", cstr(t->data));
-			DBG_PL("vidx = [%d]\n", vidx);
+			DBG_PL("vidx = [%d]", vidx);
 			string prefix = "";
 			for (int i = 0; i < indent; i++) {
 				prefix += string(NAME_RESOLUTION_PREFIX);
@@ -238,7 +238,7 @@ GPerlAST *GPerlParser::parse(void)
 			}
 			break;
 		case Add: case Sub: case Mul: case Div: case Greater: case Less:
-		case GreaterEqual: case LessEqual: case EqualEqual: case NotEqual: {
+		case GreaterEqual: case LessEqual: case EqualEqual: case NotEqual: case Inc: {
 			DBG_PL("[%s]:LAST BLOCK->PARENT", cstr(t->data));
 			GPerlCell *block = blocks.lastNode();
 			GPerlCell *b = new GPerlCell(t->info.type, t->data);

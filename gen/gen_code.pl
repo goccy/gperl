@@ -274,21 +274,21 @@ sub gen_inst_body {
     return $ret;
 }
 
-my $run_init = "
-#include <gperl.hpp>
+my $run_init =
+"#include <gperl.hpp>
 #include \"gen_decl_code.cpp\"
 #include <vmlibs.hpp>
 
 using namespace std;
+
+char shared_buf[128] = {0};//TODO must be variable buffer
+string outbuf = \"\";
 
 int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 {
 	static GPerlVirtualMachineCode *top;
 	GPerlVirtualMachineCode *pc = codes;
 	GPerlEnv *callstack = createCallStack();
-	GPerlObject **argstack = createArgStack();
-	static char shared_buf[128] = {0};//TODO must be variable buffer
-	static string outbuf = \"\";
     GPerlValue stack[MAX_STACK_MEMORY_SIZE];
     int esp = 0;
     int ebp = 0;
@@ -356,7 +356,7 @@ sub gen_vm_run_code {
                 $decl_args =~ s/pc->src/pc->v/;
                 $ret .= "\t\tGPERL_${_}(" . $decl_args . ");\n";
                 $ret .= "\t\tpc++;\n";
-			} elsif ($_ eq "WRITE") {
+			} elsif ($_ eq "WRITE" || $_ eq "INC" || $_ eq "DEC") {
 				$ret .=
 "		int type = TYPE_CHECK(callstack->reg[pc->dst]);
 #ifdef STATIC_TYPING_MODE

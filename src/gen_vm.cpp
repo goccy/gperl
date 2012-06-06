@@ -1,9 +1,9 @@
-
 #include <gperl.hpp>
 #include "gen_decl_code.cpp"
 #include <vmlibs.hpp>
 
 using namespace std;
+
 char shared_buf[128] = {0};//TODO must be variable buffer
 string outbuf = "";
 
@@ -396,6 +396,64 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 	});
 	CASE(iJNEC, {
 		GPERL_iCMP_JMPC(!=, pc->dst, pc->v);
+		BREAK();
+	});
+	CASE(INC, {
+		int type = TYPE_CHECK(callstack->reg[pc->dst]);
+#ifdef STATIC_TYPING_MODE
+		pc->opnext = jmp_table[pc->op + 1 + type];
+#else /* DYNAMIC_TYPING_MODE */
+		goto *jmp_table[pc->op + 1 + type];
+#endif
+		BREAK();
+	});
+	CASE(dINC, {
+		GPERL_dINC(pc->src);
+		pc++;
+		BREAK();
+	});
+	CASE(iINC, {
+		GPERL_iINC(pc->src);
+		pc++;
+		BREAK();
+	});
+	CASE(sINC, {
+		GPERL_sINC(pc->src);
+		pc++;
+		BREAK();
+	});
+	CASE(oINC, {
+		GPERL_oINC(pc->src);
+		pc++;
+		BREAK();
+	});
+	CASE(DEC, {
+		int type = TYPE_CHECK(callstack->reg[pc->dst]);
+#ifdef STATIC_TYPING_MODE
+		pc->opnext = jmp_table[pc->op + 1 + type];
+#else /* DYNAMIC_TYPING_MODE */
+		goto *jmp_table[pc->op + 1 + type];
+#endif
+		BREAK();
+	});
+	CASE(dDEC, {
+		GPERL_dDEC(pc->src);
+		pc++;
+		BREAK();
+	});
+	CASE(iDEC, {
+		GPERL_iDEC(pc->src);
+		pc++;
+		BREAK();
+	});
+	CASE(sDEC, {
+		GPERL_sDEC(pc->src);
+		pc++;
+		BREAK();
+	});
+	CASE(oDEC, {
+		GPERL_oDEC(pc->src);
+		pc++;
 		BREAK();
 	});
 	CASE(RET, {

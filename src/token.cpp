@@ -135,12 +135,19 @@ vector<GPerlToken *> *GPerlTokenizer::tokenize(char *script)
 				tokens->push_back(new GPerlToken(string(tmp)));
 				mdOperationFlag = false;
 			}
-			if (i + 1 < script_size &&
-				(script[i] == '<' || script[i] == '>' || script[i] == '=') &&
-				script[i + 1] == '=') {
-				//DBG_PL("token = [%c=]", script[i]);
-				tmp[0] = script[i];
-				tokens->push_back(new GPerlToken(string(tmp) + "="));
+			if ((i + 1 < script_size) &&
+				((script[i] == '<' || script[i] == '>' || script[i] == '=' ||
+				  script[i] == '+' || script[i] == '-' || script[i] == '*' || script[i] == '/') &&
+				 (script[i + 1] == '='))) {
+					//DBG_PL("token = [%c=]", script[i]);
+					tmp[0] = script[i];
+					tokens->push_back(new GPerlToken(string(tmp) + "="));
+					i++;
+			} else if ((i + 1 < script_size) && script[i] == '+' && script[i + 1] == '+') {
+				tokens->push_back(new GPerlToken("++"));
+				i++;
+			} else if ((i + 1 < script_size) && script[i] == '-' && script[i + 1] == '-') {
+				tokens->push_back(new GPerlToken("--"));
 				i++;
 			} else {
 				//DBG_PL("token = [%c]", script[i]);
@@ -254,6 +261,8 @@ void GPerlTokenizer::annotateTokens(vector<GPerlToken *> *tokens)
 		if (data == "+"     || data == "-"    || data == "*"     || data == "/"  ||
 			data == "<"     || data == ">"    || data == "<="    || data == ">=" ||
 			data == "=="    || data == "!="   || data == "="     ||
+			data == "+="    || data == "-="   || data == "*="    || data == "/=" ||
+			data == "++"    || data == "--"   ||
 			data == ";"     || data == ","    || data == ","     || data == "&"  ||
 			data == "("     || data == ")"    || data == "{"     || data == "}"  ||
 			data == "print" || data == "push" || data == "if"    || data == "else"  ||

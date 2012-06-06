@@ -96,6 +96,17 @@
 #define GPERL_sCMP_JMPC(op, dst, src) {}
 #define GPERL_oCMP_JMPC(op, dst, src) {}
 
+#define GPERL_INC(src) {}
+#define GPERL_iINC(src) I(src)++
+#define GPERL_dINC(src) D(src)++
+#define GPERL_sINC(src)
+#define GPERL_oINC(src) {}
+#define GPERL_DEC(src)
+#define GPERL_iDEC(src) I(src)--
+#define GPERL_dDEC(src) D(src)--
+#define GPERL_sDEC(src)
+#define GPERL_oDEC(src) {}
+
 #define GPERL_RET(src) callstack->reg[0] = callstack->reg[src]; RETURN();
 #define GPERL_NOP()
 

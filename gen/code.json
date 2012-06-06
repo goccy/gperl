@@ -105,6 +105,20 @@
      "args" : [{"op" : "!="}, {"dst" : "pc->dst"}, {"src" : "pc->src"}]
  },
  {
+	 "code" : "INC",
+	 "type" : 1,
+	 "const" : 0,
+	 "fast_type" : 0,
+     "args" : [{"src" : "pc->src"}]
+ },
+ {
+	 "code" : "DEC",
+	 "type" : 1,
+	 "const" : 0,
+	 "fast_type" : 0,
+     "args" : [{"src" : "pc->src"}]
+ },
+ {
 	 "code" : "RET",
 	 "type" : 0,
 	 "const" : 0,
