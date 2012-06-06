@@ -1,5 +1,5 @@
 my $i = 0;
-while ($i < 100000000) {
+while ($i < 10) {
 	$i = $i + 1;
 }
 print ($i, "\n");

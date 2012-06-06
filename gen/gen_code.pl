@@ -347,6 +347,8 @@ sub gen_vm_run_code {
 				} else {
 					$ret .= "\t\tGPERL_${prefix}CMP_JMP(" . $decl_args . ");\n";
 				}
+            } elsif ($_ =~ /JMP/) {
+				$ret .= "\t\tGPERL_${_}(" . $decl_args . ");\n";
 			} elsif ($_ =~ /THCODE/) {
 			} elsif ($_ eq "ADD" || $_ eq "SUB" ||
 					 $_ eq "MUL" || $_ eq "DIV") {

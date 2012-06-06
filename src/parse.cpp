@@ -127,13 +127,13 @@ void GPerlParser::parseValue(GPerlToken *t, GPerlNodes *blocks, GPerlScope *scop
 				block->argsize = scope->root->argsize;
 			} else {
 				GPerlCell *v = new GPerlCell(type, t->data);
-				v->indent = t->indent;
+				v->indent = indent;
 				blocks->pushNode(v);
 			}
 		} else if (block->left == NULL) {
 			DBG_PL("[%s]:LAST BLOCK->left", cstr(t->data));
 			GPerlCell *b = (scope) ? scope->root->vargs[0] : new GPerlCell(type, t->data);
-			b->indent = t->indent;
+			b->indent = indent;
 			block->left = b;
 			b->parent = block;
 			if (type == Call || type == BuiltinFunc) blocks->pushNode(b);
@@ -156,12 +156,16 @@ void GPerlParser::parseValue(GPerlToken *t, GPerlNodes *blocks, GPerlScope *scop
 		} else if (scope && scope->size > 1) {
 			DBG_PL("cond @forstmt");
 			GPerlCell *b = scope->root;
-			b->indent = t->indent;
+			b->indent = indent;
+			blocks->pushNode(b);
+		} else if (scope && scope->root->argsize == 0) {
+			GPerlCell *b = scope->root;
+			b->indent = indent;
 			blocks->pushNode(b);
 		} else {
 			DBG_PL("[%s]:NEW BLOCK->BLOCKS", cstr(t->data));
 			GPerlCell *b = (scope) ? scope->root->vargs[0] : new GPerlCell(type, t->data);
-			b->indent = t->indent;
+			b->indent = indent;
 			blocks->pushNode(b);
 		}
 	}
@@ -178,6 +182,8 @@ GPerlAST *GPerlParser::parse(void)
 	bool funcFlag = false;
 	bool whileStmtFlag = false;
 	bool forStmtFlag = false;
+	bool condIndentFlag = false;
+	GPerlT prev_type;
 
 	while (it != end) {
 		GPerlToken *t = (GPerlToken *)*it;
@@ -222,10 +228,9 @@ GPerlAST *GPerlParser::parse(void)
 			vidx++;
 			break;
 		}
-		case Var: case ArrayVar: {
-			t->indent = indent;
-		}
+		case Var: case ArrayVar:
 		case Int: case String: case Call: case BuiltinFunc: {
+			DBG_PL("INDENT ==== [%d]", indent);
 			parseValue(t, &blocks, NULL);
 			break;
 		}
@@ -379,8 +384,18 @@ GPerlAST *GPerlParser::parse(void)
 			break;
 		}
 		case LeftParenthesis: {
+			if (prev_type != BuiltinFunc && prev_type != Call) {
+				condIndentFlag = true;
+				vcount = 0;
+				indent++;
+			}
 			MOVE_NEXT_TOKEN();
 			GPerlScope *scope = parse();
+			if (condIndentFlag) {
+				vidx -= vcount;
+				indent--;
+				condIndentFlag = false;
+			}
 			parseValue(t, &blocks, scope);
 			break;
 		}
@@ -442,6 +457,7 @@ GPerlAST *GPerlParser::parse(void)
 		default:
 			break;
 		}
+		prev_type = t->info.type;
 		MOVE_NEXT_TOKEN();
 	}
 	DBG_PL("ast size = [%d]", ast->size);

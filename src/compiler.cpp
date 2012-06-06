@@ -581,7 +581,7 @@ GPerlVirtualMachineCode *GPerlCompiler::createVMCode(GPerlCell *c)
 			}
 			if (local_vmap.find(prefix + c->vname) != local_vmap.end()) {
 				idx = local_vmap[prefix + c->vname];//getVariableIndex(name);
-				if (c->parent && (c->parent->type == Assign || c->parent->type == Inc)) {
+				if (c->parent && c->parent->left == c && (c->parent->type == Assign || c->parent->type == Inc)) {
 					code->op = NOP;
 					return code;
 				} else {
@@ -592,7 +592,7 @@ GPerlVirtualMachineCode *GPerlCompiler::createVMCode(GPerlCell *c)
 				goto BREAK;
 			} else if (global_vmap.find(prefix + c->vname) != global_vmap.end()) {
 				idx = global_vmap[prefix + c->vname];//getVariableIndex(name);
-				if (c->parent && (c->parent->type == Assign || c->parent->type == Inc)) {
+				if (c->parent && c->parent->left == c && (c->parent->type == Assign || c->parent->type == Inc)) {
 					code->op = NOP;
 					return code;
 				} else {
@@ -604,6 +604,7 @@ GPerlVirtualMachineCode *GPerlCompiler::createVMCode(GPerlCell *c)
 			}
 		}
 		fprintf(stderr, "ERROR: cannot find variable name : [%s]", cstr(c->vname));
+		code->op = MOV;
 		BREAK:;
 		code->dst = dst;
 		code->src = idx;

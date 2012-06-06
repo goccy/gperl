@@ -399,7 +399,7 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 		BREAK();
 	});
 	CASE(INC, {
-		int type = TYPE_CHECK(callstack->reg[pc->dst]);
+		int type = TYPE_CHECK(stack[ebp + pc->dst]);
 #ifdef STATIC_TYPING_MODE
 		pc->opnext = jmp_table[pc->op + 1 + type];
 #else /* DYNAMIC_TYPING_MODE */
@@ -428,7 +428,7 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 		BREAK();
 	});
 	CASE(gINC, {
-		int type = TYPE_CHECK(callstack->reg[pc->dst]);
+		int type = TYPE_CHECK(global_vmemory[pc->dst]);
 #ifdef STATIC_TYPING_MODE
 		pc->opnext = jmp_table[pc->op + 1 + type];
 #else /* DYNAMIC_TYPING_MODE */
@@ -537,7 +537,6 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 	});
 	CASE(JMP, {
 		GPERL_JMP();
-		pc++;
 		BREAK();
 	});
 	CASE(LET, {
