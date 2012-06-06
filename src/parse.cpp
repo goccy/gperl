@@ -120,11 +120,14 @@ void GPerlParser::parseValue(GPerlToken *t, GPerlNodes *blocks, GPerlScope *scop
 		DBG_PL("%s", block->info.name);
 		if (block->type == Call || block->type == BuiltinFunc) {
 			DBG_PL("[%s]:NEW BLOCK->BLOCKS", cstr(t->data));
-			if (scope) {
+			if (scope && scope->root->argsize > 0) {
 				for (int i = 0; i < scope->root->argsize; i++) {
 					block->vargs[i] = scope->root->vargs[i];
 				}
 				block->argsize = scope->root->argsize;
+			} else if (scope && scope->size == 1) {
+				block->vargs[0] = scope->root;
+				block->argsize = 1;
 			} else {
 				GPerlCell *v = new GPerlCell(type, t->data);
 				v->indent = indent;
@@ -230,7 +233,6 @@ GPerlAST *GPerlParser::parse(void)
 		}
 		case Var: case ArrayVar:
 		case Int: case String: case Call: case BuiltinFunc: {
-			DBG_PL("INDENT ==== [%d]", indent);
 			parseValue(t, &blocks, NULL);
 			break;
 		}
