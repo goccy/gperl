@@ -33,6 +33,8 @@ typedef enum {
 	Shift,
 	CallDecl,
 	WhileStmt,
+	ForStmt,
+	ForeachStmt,
 	FieldDecl,
 	TypeRef,
 	LabelRef,

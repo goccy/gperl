@@ -175,6 +175,16 @@
 	 "parse_func" : ""
  },
  {
+	 "type" : "ForStmt",
+	 "data" : "for",
+	 "parse_func" : ""
+ },
+ {
+	 "type" : "ForeachStmt",
+	 "data" : "foreach",
+	 "parse_func" : ""
+ },
+ {
 	 "type" : "FieldDecl",
 	 "data" : "",
 	 "parse_func" : ""

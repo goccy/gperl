@@ -153,6 +153,11 @@ void GPerlParser::parseValue(GPerlToken *t, GPerlNodes *blocks, GPerlScope *scop
 			DBG_PL("List");
 			scope->root->type = List;
 			blocks->pushNode(scope->root);
+		} else if (scope && scope->size > 1) {
+			DBG_PL("cond @forstmt");
+			GPerlCell *b = scope->root;
+			b->indent = t->indent;
+			blocks->pushNode(b);
 		} else {
 			DBG_PL("[%s]:NEW BLOCK->BLOCKS", cstr(t->data));
 			GPerlCell *b = (scope) ? scope->root->vargs[0] : new GPerlCell(type, t->data);
@@ -172,6 +177,7 @@ GPerlAST *GPerlParser::parse(void)
 	bool elseStmtFlag = false;
 	bool funcFlag = false;
 	bool whileStmtFlag = false;
+	bool forStmtFlag = false;
 
 	while (it != end) {
 		GPerlToken *t = (GPerlToken *)*it;
@@ -277,6 +283,12 @@ GPerlAST *GPerlParser::parse(void)
 			whileStmtFlag = true;
 			break;
 		}
+		case ForStmt: {
+			root = new GPerlCell(ForStmt, t->data);
+			ast->add(root);
+			forStmtFlag = true;
+			break;
+		}
 		case Function: {
 			blocks.pushNode(new GPerlCell(Function, t->data));
 			funcFlag = true;
@@ -328,6 +340,16 @@ GPerlAST *GPerlParser::parse(void)
 				GPerlScope *scope = parse();
 				root->true_stmt = scope;
 				whileStmtFlag = false;
+			} else if (forStmtFlag) {
+				GPerlCell *cond = blocks.lastNode();
+				blocks.popNode();
+				root->cond = cond;
+				cond->parent = root;
+				MOVE_NEXT_TOKEN();
+				DBG_PL("-----------forstmt------------");
+				GPerlScope *scope = parse();
+				root->true_stmt = scope;
+				forStmtFlag = false;
 			} else {
 				//Block
 				MOVE_NEXT_TOKEN();
@@ -375,7 +397,7 @@ GPerlAST *GPerlParser::parse(void)
 			DBG_PL("BLOCKS SIZE = [%d]", size);
 			if (size == 1) {
 				GPerlCell *stmt = blocks.at(0);
-				if (root->vargs) {
+				if (root->argsize > 0) {
 					GPerlCell *v = root;
 					v->vargs[v->argsize] = stmt;
 					v->argsize++;

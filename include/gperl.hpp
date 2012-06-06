@@ -145,6 +145,7 @@ public:
 	void show(void);
 	void draw(GraphvizGraph *graph, GPerlCell *c, GraphvizNode *node);
 	void drawStmt(GraphvizGraph *graph, GraphvizNode *node, GPerlScope *stmt, const char *stmt_name, const char *color);
+	void drawCondStmt(GraphvizGraph *graph, GPerlCell *stmt, const char *stmt_name, const char *color);
 	GraphvizNode *createNode(GraphvizGraph *graph, const char *name);
 	void drawEdge(GraphvizGraph *graph, GraphvizNode *from, GraphvizNode *to, const char *label);
 #endif
@@ -321,6 +322,7 @@ public:
 	void genFunctionCode(GPerlCell *path);
 	void genIfStmtCode(GPerlCell *path);
 	void genWhileStmtCode(GPerlCell *path);
+	void genForStmtCode(GPerlCell *path);
 	void genVMCode(GPerlCell *path);
 	void addVMCode(GPerlVirtualMachineCode *code);
 	void popVMCode(void);

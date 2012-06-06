@@ -34,6 +34,8 @@ GPerlTokenInfo decl_tokens[] = {
 	{Shift, "Shift", "shift"},
 	{CallDecl, "CallDecl", "&"},
 	{WhileStmt, "WhileStmt", "while"},
+	{ForStmt, "ForStmt", "for"},
+	{ForeachStmt, "ForeachStmt", "foreach"},
 	{FieldDecl, "FieldDecl", ""},
 	{TypeRef, "TypeRef", ""},
 	{LabelRef, "LabelRef", ""},

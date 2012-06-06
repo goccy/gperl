@@ -266,7 +266,8 @@ void GPerlTokenizer::annotateTokens(vector<GPerlToken *> *tokens)
 			data == ";"     || data == ","    || data == ","     || data == "&"  ||
 			data == "("     || data == ")"    || data == "{"     || data == "}"  ||
 			data == "print" || data == "push" || data == "if"    || data == "else"  ||
-			data == "my"    || data == "sub"  || data == "shift" || data == "while" ||
+			data == "my"    || data == "sub"  || data == "shift" ||
+			data == "while" || data == "for"  || data == "foreach" ||
 			data == "return") {
 			t->info = getTokenInfo(NULL, cstr(data));
 			cur_type = t->info.type;

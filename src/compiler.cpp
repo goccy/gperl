@@ -42,7 +42,9 @@ GPerlVirtualMachineCode *GPerlCompiler::compile(GPerlAST *ast)
 
 void GPerlCompiler::compile_(GPerlCell *path)
 {
-	if (path->type == WhileStmt) loop_start_num = code_num;
+	if (path->type == WhileStmt) {
+		loop_start_num = code_num;
+	}
 	GOTO_LEFT_LEAFNODE(path);
 	genVMCode(path);
 	while (path->parent) {
@@ -69,6 +71,8 @@ void GPerlCompiler::genVMCode(GPerlCell *path) {
 		genIfStmtCode(path);
 	} else if (path->type == WhileStmt) {
 		genWhileStmtCode(path);
+	} else if (path->type == ForStmt) {
+		genForStmtCode(path);
 	} else if (path->type == Function) {
 		genFunctionCode(path);
 		return;
@@ -210,6 +214,35 @@ void GPerlCompiler::genWhileStmtCode(GPerlCell *path)
 		compile_(path);
 		dst = 0;//reset dst number
 	}
+	jmp->jmp = code_num - cond_code_num + 2/*OPNOP + OPJMP + 1*/;
+	int cur_code_num = code_num;
+	jmp = createJMP(1);
+	addVMCode(jmp);
+	dumpVMCode(jmp);
+	jmp->jmp = loop_start - cur_code_num;
+}
+
+void GPerlCompiler::genForStmtCode(GPerlCell *path)
+{
+	dst = 0;//reset dst number
+	DBG_PL("-------------genForStmtCode------------------");
+	GPerlCell *cond = (path->left->next) ? path->left->next : NULL;
+	if (!cond) fprintf(stderr, "SYNTAX ERROR : for stmt\n");
+	int loop_start = code_num;
+	compile_(cond);
+	dst = 0;
+	GPerlCell *true_stmt = path->true_stmt->root;
+	GPerlVirtualMachineCode *jmp = codes->at(code_num - 1);
+	int cond_code_num = code_num;
+	DBG_PL("-------------TRUE STMT--------------");
+	for (; true_stmt; true_stmt = true_stmt->next) {
+		GPerlCell *path = true_stmt;
+		compile_(path);
+		dst = 0;//reset dst number
+	}
+	GPerlCell *step = (cond->next) ? cond->next : NULL;
+	if (!step) fprintf(stderr, "SYNTAX ERROR : for stmt\n");
+	compile_(step);
 	jmp->jmp = code_num - cond_code_num + 2/*OPNOP + OPJMP + 1*/;
 	int cur_code_num = code_num;
 	jmp = createJMP(1);
@@ -513,7 +546,7 @@ GPerlVirtualMachineCode *GPerlCompiler::createVMCode(GPerlCell *c)
 		code->dst = idx;
 		break;
 	}
-	case IfStmt: case WhileStmt:
+	case IfStmt: case WhileStmt: case ForStmt:
 		code->op = NOP;
 		break;
 	case LocalVarDecl: case VarDecl: {
