@@ -408,22 +408,51 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 		BREAK();
 	});
 	CASE(dINC, {
-		GPERL_dINC(pc->src);
+		GPERL_dINC(pc->dst);
 		pc++;
 		BREAK();
 	});
 	CASE(iINC, {
-		GPERL_iINC(pc->src);
+		GPERL_iINC(pc->dst);
 		pc++;
 		BREAK();
 	});
 	CASE(sINC, {
-		GPERL_sINC(pc->src);
+		GPERL_sINC(pc->dst);
 		pc++;
 		BREAK();
 	});
 	CASE(oINC, {
-		GPERL_oINC(pc->src);
+		GPERL_oINC(pc->dst);
+		pc++;
+		BREAK();
+	});
+	CASE(gINC, {
+		int type = TYPE_CHECK(callstack->reg[pc->dst]);
+#ifdef STATIC_TYPING_MODE
+		pc->opnext = jmp_table[pc->op + 1 + type];
+#else /* DYNAMIC_TYPING_MODE */
+		goto *jmp_table[pc->op + 1 + type];
+#endif
+		BREAK();
+	});
+	CASE(dgINC, {
+		GPERL_dgINC(pc->dst);
+		pc++;
+		BREAK();
+	});
+	CASE(igINC, {
+		GPERL_igINC(pc->dst);
+		pc++;
+		BREAK();
+	});
+	CASE(sgINC, {
+		GPERL_sgINC(pc->dst);
+		pc++;
+		BREAK();
+	});
+	CASE(ogINC, {
+		GPERL_ogINC(pc->dst);
 		pc++;
 		BREAK();
 	});

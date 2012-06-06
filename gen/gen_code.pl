@@ -356,7 +356,7 @@ sub gen_vm_run_code {
                 $decl_args =~ s/pc->src/pc->v/;
                 $ret .= "\t\tGPERL_${_}(" . $decl_args . ");\n";
                 $ret .= "\t\tpc++;\n";
-			} elsif ($_ eq "WRITE" || $_ eq "INC" || $_ eq "DEC") {
+			} elsif ($_ eq "WRITE" || $_ eq "INC" || $_ eq "gINC" || $_ eq "DEC") {
 				$ret .=
 "		int type = TYPE_CHECK(callstack->reg[pc->dst]);
 #ifdef STATIC_TYPING_MODE

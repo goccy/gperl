@@ -96,11 +96,15 @@
 #define GPERL_sCMP_JMPC(op, dst, src) {}
 #define GPERL_oCMP_JMPC(op, dst, src) {}
 
-#define GPERL_INC(src) {}
-#define GPERL_iINC(src) I(src)++
-#define GPERL_dINC(src) D(src)++
-#define GPERL_sINC(src)
-#define GPERL_oINC(src) {}
+#define GPERL_iINC(dst) stack[ebp + dst].ivalue++
+#define GPERL_dINC(dst) stack[ebp + dst].dvalue++
+#define GPERL_sINC(dst)
+#define GPERL_oINC(dst)
+#define GPERL_igINC(dst) global_vmemory[dst].ivalue++
+#define GPERL_dgINC(dst) global_vmemory[dst].dvalue++
+#define GPERL_sgINC(dst)
+#define GPERL_ogINC(dst)
+
 #define GPERL_DEC(src)
 #define GPERL_iDEC(src) I(src)--
 #define GPERL_dDEC(src) D(src)--

@@ -76,9 +76,6 @@ void GPerlCompiler::genVMCode(GPerlCell *path) {
 	code = createVMCode(path);
 	addVMCode(code);
 	dumpVMCode(code);
-	if (path->type == Inc) {
-
-	}
 }
 
 void GPerlCompiler::genFunctionCallCode(GPerlCell *p)
@@ -490,9 +487,32 @@ GPerlVirtualMachineCode *GPerlCompiler::createVMCode(GPerlCell *c)
 	case NotEqual:
 		SET_OPCODE(JNE);
 		break;
-	case Inc:
-		code->op = INC;
+	case Inc: {
+		int idx = 0;
+		for (int i = c->left->indent; i >= 0; i--) {
+			string prefix = "";
+			for (int j = 0; j < i; j++) {
+				prefix += string(NAME_RESOLUTION_PREFIX);
+			}
+			if (local_vmap.find(prefix + c->left->vname) != local_vmap.end()) {
+				idx = local_vmap[prefix + c->left->vname];//getVariableIndex(name);
+				c->left->vname = prefix + c->left->vname;
+				code->name = cstr(c->left->vname);
+				code->op = INC;
+				goto INC_BREAK;
+			} else if (global_vmap.find(prefix + c->left->vname) != global_vmap.end()) {
+				idx = global_vmap[prefix + c->left->vname];//getVariableIndex(name);
+				c->left->vname = prefix + c->left->vname;
+				code->name = cstr(c->left->vname);
+				code->op = gINC;
+				goto INC_BREAK;
+			}
+		}
+		fprintf(stderr, "ERROR: cannot find variable name : [%s]", cstr(c->left->vname));
+		INC_BREAK:;
+		code->dst = idx;
 		break;
+	}
 	case IfStmt: case WhileStmt:
 		code->op = NOP;
 		break;
@@ -528,7 +548,7 @@ GPerlVirtualMachineCode *GPerlCompiler::createVMCode(GPerlCell *c)
 			}
 			if (local_vmap.find(prefix + c->vname) != local_vmap.end()) {
 				idx = local_vmap[prefix + c->vname];//getVariableIndex(name);
-				if (c->parent && c->parent->type == Assign) {
+				if (c->parent && (c->parent->type == Assign || c->parent->type == Inc)) {
 					code->op = NOP;
 					return code;
 				} else {
@@ -539,7 +559,7 @@ GPerlVirtualMachineCode *GPerlCompiler::createVMCode(GPerlCell *c)
 				goto BREAK;
 			} else if (global_vmap.find(prefix + c->vname) != global_vmap.end()) {
 				idx = global_vmap[prefix + c->vname];//getVariableIndex(name);
-				if (c->parent && c->parent->type == Assign) {
+				if (c->parent && (c->parent->type == Assign || c->parent->type == Inc)) {
 					code->op = NOP;
 					return code;
 				} else {
