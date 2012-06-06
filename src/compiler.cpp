@@ -633,9 +633,26 @@ GPerlVirtualMachineCode *GPerlCompiler::createVMCode(GPerlCell *c)
 	case Call: {
 		const char *name = cstr(c->fname);
 		int idx = getFuncIndex(name);
+		int ebp_num = 0;
+		map<string, int>::iterator it = local_vmap.begin();
+		while (it != local_vmap.end()) {
+			string key = it->first;
+			string prefix = "";
+			//cout << key << endl;
+			for (int i = 1; i < c->indent; i++) {
+				prefix += string(NAME_RESOLUTION_PREFIX);
+				//cout << prefix << endl;
+				if (!strncmp(cstr(prefix), cstr(key), i)) {
+					ebp_num++;
+				}
+			}
+			it++;
+		}
+		//DBG_PL("ebp_num = [%d]", ebp_num);
 		code->op = CALL;
 		code->dst = dst-1;
 		code->src = idx;
+		code->ebp = ebp_num;
 		code->name = name;
 		break;
 	}

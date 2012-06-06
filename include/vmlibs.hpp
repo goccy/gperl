@@ -1,3 +1,5 @@
+int callstack_count = 0;
+
 #define L(op) L_##op
 #define DISPATCH_START() {						\
 		callstack->ret_addr = &&L_RETURN;		\
@@ -23,7 +25,7 @@
 #define O(idx) callstack->reg[idx].ovalue
 
 #define GPERL_UNDEF()
-#define GPERL_LET(dst, src) stack[ebp + dst] = callstack->reg[src]; esp++
+#define GPERL_LET(dst, src) stack[ebp + dst] = callstack->reg[src];
 #define GPERL_gLET(dst, src) global_vmemory[dst] = callstack->reg[src]
 #define GPERL_MOV(dst, v) callstack->reg[dst] = v
 #define GPERL_vMOV(dst, src) callstack->reg[dst] = stack[ebp + src]
@@ -140,6 +142,7 @@
 #define GPERL_CALL(dst, src, NAME) {							\
 		GPerlVirtualMachineCode *code = func_memory[src];		\
 		top = code;												\
+		esp += pc->ebp;											\
 		callstack->ebp = ebp;									\
 		ebp = esp;												\
 		callstack++;											\
@@ -156,9 +159,11 @@
 	}
 
 #define GPERL_SELFCALL(dst, NAME) {								\
+		esp += pc->ebp;											\
 		callstack->ebp = ebp;									\
 		ebp = esp;												\
 		callstack++;											\
+		callstack_count++;										\
 		callstack->ret_addr = &&L_##NAME##AFTER;				\
 		callstack->pc = pc;										\
 		pc = top;												\
@@ -167,6 +172,7 @@
 		pc = callstack->pc;										\
 		(callstack-1)->reg[dst] = callstack->reg[0];			\
 		callstack--;											\
+		callstack_count--;										\
 		ebp = callstack->ebp;									\
 		esp = ebp;												\
 	}

@@ -268,6 +268,7 @@ typedef struct _GPerlVirtualMachineCode {
 	union {
 		void *code;/* selective inlining code */
 		int jmp;   /* jmp register number */
+		int ebp;
 		void (*push)(GPerlValue *);
 		void (*write)(GPerlValue );
 	};
