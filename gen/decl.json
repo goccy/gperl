@@ -160,6 +160,11 @@
 	 "parse_func" : ""
  },
  {
+	 "type" : "ArrayDereference",
+	 "data" : "@{",
+	 "parse_func" : ""
+ },
+ {
 	 "type" : "Shift",
 	 "data" : "shift",
 	 "parse_func" : ""
@@ -266,6 +271,11 @@
  },
  {
 	 "type" : "GlobalArrayVar",
+	 "data" : "",
+	 "parse_func" : ""
+ },
+ {
+	 "type" : "ArrayRef",
 	 "data" : "",
 	 "parse_func" : ""
  },

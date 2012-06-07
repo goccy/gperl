@@ -115,7 +115,8 @@ vector<GPerlToken *> *GPerlTokenizer::tokenize(char *script)
 			//through
 		case ',': case ':': case ';': case '=': case '+':
 		case '<': case '>': case '&':
-		case '(': case ')': case '{': case '}': {
+		case '(': case ')': case '{': case '}':
+		case '[': case ']': {
 			if (isStringStarted) {
 				token[token_idx] = script[i];
 				token_idx++;
@@ -123,8 +124,16 @@ vector<GPerlToken *> *GPerlTokenizer::tokenize(char *script)
 			}
 			if (token[0] != EOL) {
 				//DBG_PL("token = [%s]", token);
-				tokens->push_back(new GPerlToken(string(token)));
-				memset(token, 0, MAX_TOKEN_SIZE);
+				if (token[0] == '@' && script[i] == '{') {
+					tokens->push_back(new GPerlToken("@{"));
+					memset(token, 0, MAX_TOKEN_SIZE);
+					token_idx = 0;
+					escapeFlag = false;
+					break;
+				} else {
+					tokens->push_back(new GPerlToken(string(token)));
+					memset(token, 0, MAX_TOKEN_SIZE);
+				}
 			}
 			char tmp[2] = {0};
 			if (mdOperationFlag &&
@@ -265,6 +274,7 @@ void GPerlTokenizer::annotateTokens(vector<GPerlToken *> *tokens)
 			data == "++"    || data == "--"   ||
 			data == ";"     || data == ","    || data == ","     || data == "&"  ||
 			data == "("     || data == ")"    || data == "{"     || data == "}"  ||
+			data == "["     || data == "]"    || data == "@{"    ||
 			data == "print" || data == "push" || data == "if"    || data == "else"  ||
 			data == "my"    || data == "sub"  || data == "shift" ||
 			data == "while" || data == "for"  || data == "foreach" ||

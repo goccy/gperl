@@ -90,7 +90,6 @@ void GPerlAST::drawCondStmt(GraphvizGraph *graph, GPerlCell *stmt_, const char *
 	stmt_graph->set("label", buf);
 	stmt_graph->set("fontsize", "24");
 	snprintf(buf, 32, "%s : [%p]", stmt_root_name, stmt);
-	GraphvizNode *stmt_node = createNode(graph, (const char *)buf);
 	GraphvizNode *prev_node = NULL;
 	for (; stmt; stmt = stmt->next) {
 		const char *root_name = stmt->rawstr.c_str();

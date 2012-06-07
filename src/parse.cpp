@@ -135,14 +135,28 @@ void GPerlParser::parseValue(GPerlToken *t, GPerlNodes *blocks, GPerlScope *scop
 			}
 		} else if (block->left == NULL) {
 			DBG_PL("[%s]:LAST BLOCK->left", cstr(t->data));
-			GPerlCell *b = (scope) ? scope->root->vargs[0] : new GPerlCell(type, t->data);
+			GPerlCell *b = NULL;
+			if (scope && scope->size > 0 && !scope->root->vargs[0]) {
+				b = scope->root;
+			} else if (scope) {
+				b = scope->root->vargs[0];
+			} else {
+				b = new GPerlCell(type, t->data);
+			}
 			b->indent = indent;
 			block->left = b;
 			b->parent = block;
 			if (type == Call || type == BuiltinFunc) blocks->pushNode(b);
 		} else if (block->right == NULL) {
 			DBG_PL("[%s]:LAST BLOCK->right", cstr(t->data));
-			GPerlCell *b = (scope) ? scope->root->vargs[0] : new GPerlCell(type, t->data);
+			GPerlCell *b = NULL;
+			if (scope && scope->size > 0 && !scope->root->vargs[0]) {
+				b = scope->root;
+			} else if (scope) {
+				b = scope->root->vargs[0];
+			} else {
+				b = new GPerlCell(type, t->data);
+			}
 			b->indent = indent;
 			block->right = b;
 			b->parent = block;
@@ -152,9 +166,13 @@ void GPerlParser::parseValue(GPerlToken *t, GPerlNodes *blocks, GPerlScope *scop
 		}
 	} else {
 		//first var
-		if (scope && scope->root->argsize > 1) {
+		if (scope && scope->root->argsize > 1 && type == LeftParenthesis) {
 			DBG_PL("List");
 			scope->root->type = List;
+			blocks->pushNode(scope->root);
+		} else if (scope && scope->root->argsize > 1 && type == LeftBracket) {
+			DBG_PL("ArrayRef");
+			scope->root->type = ArrayRef;
 			blocks->pushNode(scope->root);
 		} else if (scope && scope->size > 1) {
 			DBG_PL("cond @forstmt");
@@ -186,7 +204,7 @@ GPerlAST *GPerlParser::parse(void)
 	bool whileStmtFlag = false;
 	bool forStmtFlag = false;
 	bool condIndentFlag = false;
-	GPerlT prev_type;
+	GPerlT prev_type = Undefined;
 
 	while (it != end) {
 		GPerlToken *t = (GPerlToken *)*it;
@@ -369,21 +387,29 @@ GPerlAST *GPerlParser::parse(void)
 			}
 			break;
 		}
+		case ArrayDereference: {
+			MOVE_NEXT_TOKEN();
+			DBG_PL("-----------ArrayDereference------------");
+			GPerlScope *scope = parse();
+			GPerlCell *block = scope->root;
+			DBG_PL("[%s]:LAST BLOCK->PARENT", cstr(t->data));
+			GPerlCell *b = new GPerlCell(t->info.type, t->data);
+			block->parent = b;
+			b->left = block;
+			blocks.pushNode(b);
+			asm("int3");
+			break;
+		}
 		case RightBrace: {
 			DBG_PL("RIGHT BRACE:");
 			vidx -= vcount;
 			DBG_PL("vidx = [%d]\n", vidx);
 			indent--;
+			if (ast->size == 0 && blocks.block_num == 1) {
+				//for {Array/Hash}Dereference
+				ast->add(blocks.lastNode());
+			}
 			return ast;
-		}
-		case Comma: {
-			DBG_PL("VARGS[] = STMT & CLEAR BLOCKS");
-			GPerlCell *stmt = blocks.at(0);
-			GPerlCell *v = root;
-			v->vargs[v->argsize] = stmt;
-			v->argsize++;
-			blocks.clearNodes();
-			break;
 		}
 		case LeftParenthesis: {
 			if (prev_type != BuiltinFunc && prev_type != Call) {
@@ -401,7 +427,7 @@ GPerlAST *GPerlParser::parse(void)
 			parseValue(t, &blocks, scope);
 			break;
 		}
-		case RightParenthesis: {
+		case RightParenthesis: case RightBracket: {
 			if (blocks.block_num > 1) {
 				DBG_PL("[)]:CONNECT BLOCK <=> BLOCK");
 				GPerlCell *to = blocks.lastNode();
@@ -424,6 +450,21 @@ GPerlAST *GPerlParser::parse(void)
 			}
 			ast->add(root);
 			return ast;
+		}
+		case LeftBracket: {
+			MOVE_NEXT_TOKEN();
+			GPerlScope *scope = parse();
+			parseValue(t, &blocks, scope);
+			break;
+		}
+		case Comma: {
+			DBG_PL("VARGS[] = STMT & CLEAR BLOCKS");
+			GPerlCell *stmt = blocks.at(0);
+			GPerlCell *v = root;
+			v->vargs[v->argsize] = stmt;
+			v->argsize++;
+			blocks.clearNodes();
+			break;
 		}
 		case SemiColon: {
 			int size = blocks.size();
