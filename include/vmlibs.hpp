@@ -118,8 +118,8 @@
 #define GPERL_SETv(name, dst) setToVariableMemory(name, dst)
 
 #define GPERL_CALL(dst, src, NAME) {							\
-		GPerlVirtualMachineCode *code = func_memory[src];		\
-		top = code;												\
+		code_ = func_memory[src];		\
+		top   = code_;												\
 		callstack++;											\
 		callstack->ret_addr = &&L_##NAME##AFTER;				\
 		callstack->pc = pc;										\
