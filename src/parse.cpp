@@ -397,7 +397,6 @@ GPerlAST *GPerlParser::parse(void)
 			block->parent = b;
 			b->left = block;
 			blocks.pushNode(b);
-			asm("int3");
 			break;
 		}
 		case RightBrace: {
@@ -454,7 +453,17 @@ GPerlAST *GPerlParser::parse(void)
 		case LeftBracket: {
 			MOVE_NEXT_TOKEN();
 			GPerlScope *scope = parse();
-			parseValue(t, &blocks, scope);
+			if (scope && scope->size == 1 && scope->root->type == Int) {
+				DBG_PL("ARRAY_AT:");
+				GPerlCell *ivalue = scope->root;
+				GPerlCell *b = new GPerlCell(ArrayAt, "[" + ivalue->rawstr + "]");
+				GPerlCell *block = blocks.lastNode();
+				block->parent = b;
+				b->left = block;
+				blocks.swapLastNode(b);
+			} else {
+				parseValue(t, &blocks, scope);
+			}
 			break;
 		}
 		case Comma: {

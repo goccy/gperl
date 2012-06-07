@@ -55,6 +55,7 @@ GPerlTokenInfo decl_tokens[] = {
 	{GlobalVar, "GlobalVar", ""},
 	{GlobalArrayVar, "GlobalArrayVar", ""},
 	{ArrayRef, "ArrayRef", ""},
+	{ArrayAt, "ArrayAt", ""},
 	{Function, "Function", ""},
 	{Call, "Call", ""},
 	{Argument, "Argument", ""},
