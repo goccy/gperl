@@ -359,7 +359,7 @@ sub gen_vm_run_code {
                 $ret .= "\t\tGPERL_${_}(" . $decl_args . ");\n";
                 $ret .= "\t\tpc++;\n";
 			} elsif ($_ eq "WRITE" || $_ eq "INC" || $_ eq "gINC" || $_ eq "DEC") {
-				$ret .=
+				my $check_code .=
 "		int type = TYPE_CHECK(callstack->reg[pc->dst]);
 #ifdef STATIC_TYPING_MODE
 		pc->opnext = jmp_table[pc->op + 1 + type];
@@ -367,6 +367,9 @@ sub gen_vm_run_code {
 		goto *jmp_table[pc->op + 1 + type];
 #endif
 ";
+				$check_code =~ s/callstack\-\>reg\[pc\-\>dst\]/stack[ebp + pc->dst]/ if ($_ eq "INC");
+				$check_code =~ s/callstack\-\>reg\[pc\-\>dst\]/global_vmemory[pc->dst]/ if ($_ eq "gINC");
+				$ret .= $check_code;
 			} else {
 				$ret .= "\t\tGPERL_${_}(" . $decl_args . ");\n";
 				$ret .= "\t\tpc++;\n";

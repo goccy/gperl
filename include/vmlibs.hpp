@@ -185,3 +185,19 @@ int callstack_count = 0;
 #define GPERL_PUSH(dst, src) (callstack+1)->argstack[src] = callstack->reg[dst]
 #define GPERL_NEW()
 #define GPERL_ARRAY_PUSH(argstack) callstack++; pc->push(argstack);
+#define GPERL_ARRAY_AT(dst, src, idx) do {								\
+		GPerlArray *a = (GPerlArray *)getObject(stack[ebp + src]);		\
+		callstack->reg[dst] = a->list[I(idx)];							\
+	} while (0);
+
+#define GPERL_ARRAY_gAT(dst, src, idx) do {								\
+		GPerlArray *a = (GPerlArray *)getObject(global_vmemory[src]);	\
+		callstack->reg[dst] = a->list[I(idx)];							\
+	} while (0);
+
+
+#define GPERL_ARRAY_DREF(dst, src) do {									\
+		GPerlArray *a = (GPerlArray *)getObject(callstack->reg[src]);	\
+		GPerlArray *deref_a = new_GPerlArray(a->list, a->size);			\
+		OBJECT_init(callstack->reg[dst], deref_a);						\
+	} while (0);

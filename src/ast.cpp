@@ -152,7 +152,6 @@ void GPerlAST::draw(GraphvizGraph *graph, GPerlCell *c, GraphvizNode *node)
 		const char *to_name = c->left->rawstr.c_str();
 		snprintf(buf, 32, "%s : [%p]", to_name, c->left);
 		left = createNode(graph, (const char *)buf);
-		fprintf(stderr, "%p\n", c->left);
 		drawEdge(graph, node, left, "left");
 		draw(graph, c->left, left);
 	}

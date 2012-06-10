@@ -609,6 +609,21 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 		pc++;
 		BREAK();
 	});
+	CASE(ARRAY_AT, {
+		GPERL_ARRAY_AT(pc->dst, pc->src, pc->idx);
+		pc++;
+		BREAK();
+	});
+	CASE(ARRAY_gAT, {
+		GPERL_ARRAY_gAT(pc->dst, pc->src, pc->idx);
+		pc++;
+		BREAK();
+	});
+	CASE(ARRAY_DREF, {
+		GPERL_ARRAY_DREF(pc->dst, pc->src);
+		pc++;
+		BREAK();
+	});
 #include "gen_fast_vmcode.cpp"
 
 	DISPATCH_END();

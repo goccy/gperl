@@ -6,8 +6,9 @@ GPerlArray *new_GPerlArray(GPerlValue *list, size_t asize)
 	GPerlObject *freeList = mm->freeList;
 	GPerlObject *head = freeList;
 	if (freeList->h.next != NULL) {
-		freeList = freeList->h.next;
+		mm->freeList = freeList->h.next;
 		GPerlArray *a = (GPerlArray *)head;
+		a->h.type = Array;
 		a->list = list;
 		a->size = asize;
 		a->write = Array_write;
@@ -34,23 +35,28 @@ void Array_push(GPerlValue *argstack)
 void Array_write(GPerlValue o)
 {
 	GPerlArray *a = (GPerlArray *)getObject(o);
-	size_t size = a->size;
-	GPerlValue *list = a->list;
-	for (size_t i = 0; i < size; i++) {
-		GPerlValue v = list[i];
-		switch (TYPE_CHECK(v)) {
-		case 0: /* Double */
-			sprintf(shared_buf, "%f", v.dvalue);
-			outbuf += string(shared_buf);
-			break;
-		case 1: /* Int */
-			sprintf(shared_buf, "%d", v.ivalue);
-			outbuf += string(shared_buf);
-			break;
-		case 2: /* String */
-			break;
-		default: /* Object */
-			break;
+	if (a->h.type == ArrayRef) {
+		sprintf(shared_buf, "ARRAY(%p)", a->list);
+		outbuf += string(shared_buf);
+	} else {
+		size_t size = a->size;
+		GPerlValue *list = a->list;
+		for (size_t i = 0; i < size; i++) {
+			GPerlValue v = list[i];
+			switch (TYPE_CHECK(v)) {
+			case 0: /* Double */
+				sprintf(shared_buf, "%f", v.dvalue);
+				outbuf += string(shared_buf);
+				break;
+			case 1: /* Int */
+				sprintf(shared_buf, "%d", v.ivalue);
+				outbuf += string(shared_buf);
+				break;
+			case 2: /* String */
+				break;
+			default: /* Object */
+				break;
+			}
 		}
 	}
 }

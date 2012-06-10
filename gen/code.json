@@ -236,5 +236,26 @@
 	 "const" : 0,
 	 "fast_type" : 0,
      "args" : [{"argstack" : "callstack->argstack"}]
+ },
+ {
+	 "code" : "ARRAY_AT",
+	 "type" : 0,
+	 "const" : 0,
+	 "fast_type" : 0,
+     "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}, {"idx" : "pc->idx"}]
+ },
+ {
+	 "code" : "ARRAY_gAT",
+	 "type" : 0,
+	 "const" : 0,
+	 "fast_type" : 0,
+     "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}, {"idx" : "pc->idx"}]
+ },
+ {
+	 "code" : "ARRAY_DREF",
+	 "type" : 0,
+	 "const" : 0,
+	 "fast_type" : 0,
+     "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}]
  }
 ]

@@ -268,7 +268,8 @@ typedef struct _GPerlVirtualMachineCode {
 	union {
 		void *code;/* selective inlining code */
 		int jmp;   /* jmp register number */
-		int ebp;
+		int ebp;   /* stack base pointer */
+		int idx;   /* array[idx] */
 		void (*push)(GPerlValue *);
 		void (*write)(GPerlValue );
 	};
@@ -308,6 +309,18 @@ public:
 	int getVariableIndex(const char *name);
 	int getFuncIndex(const char *name);
 	GPerlVirtualMachineCode *createVMCode(GPerlCell *c);
+	void setInstByVMap(GPerlVirtualMachineCode *code, GPerlCell *c, GPerlOpCode lop, GPerlOpCode gop, int *idx);
+	void setMOV(GPerlVirtualMachineCode *code, GPerlCell *c);
+	void setVMOV(GPerlVirtualMachineCode *code, GPerlCell *c);
+	void setINC(GPerlVirtualMachineCode *code, GPerlCell *c);
+	void setLET(GPerlVirtualMachineCode *code, GPerlCell *c);
+	void setSETv(GPerlVirtualMachineCode *code, GPerlCell *c);
+	void setCALL(GPerlVirtualMachineCode *code, GPerlCell *c);
+	void setBFUNC(GPerlVirtualMachineCode *code, GPerlCell *c);
+	void setFUNC(GPerlVirtualMachineCode *code, GPerlCell *c);
+	void setARGMOV(GPerlVirtualMachineCode *code, GPerlCell *c);
+	void setArrayAt(GPerlVirtualMachineCode *code, GPerlCell *c);
+	void setArrayDereference(GPerlVirtualMachineCode *code, GPerlCell *c);
 	GPerlVirtualMachineCode *createTHCODE(void);
 	GPerlVirtualMachineCode *createRET(void);
 	GPerlVirtualMachineCode *createUNDEF(void);

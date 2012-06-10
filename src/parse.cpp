@@ -169,10 +169,12 @@ void GPerlParser::parseValue(GPerlToken *t, GPerlNodes *blocks, GPerlScope *scop
 		if (scope && scope->root->argsize > 1 && type == LeftParenthesis) {
 			DBG_PL("List");
 			scope->root->type = List;
+			scope->root->indent = indent;
 			blocks->pushNode(scope->root);
 		} else if (scope && scope->root->argsize > 1 && type == LeftBracket) {
 			DBG_PL("ArrayRef");
 			scope->root->type = ArrayRef;
+			scope->root->indent = indent;
 			blocks->pushNode(scope->root);
 		} else if (scope && scope->size > 1) {
 			DBG_PL("cond @forstmt");
@@ -224,6 +226,7 @@ GPerlAST *GPerlParser::parse(void)
 				}
 				//DBG_PL("prefix = [%s]", cstr(prefix));
 				GPerlCell *var = new GPerlCell(LocalVarDecl, prefix + t->data);
+				var->indent = indent;
 				var->setVariableIdx(vidx);
 				blocks.pushNode(var);
 				isVarDeclFlag = false;
@@ -242,6 +245,8 @@ GPerlAST *GPerlParser::parse(void)
 			}
 			//DBG_PL("prefix = [%s]", cstr(prefix));
 			GPerlCell *gvar = new GPerlCell(GlobalVarDecl, prefix + t->data);
+			DBG_PL("INDENT = [%d]", indent);
+			gvar->indent = indent;
 			gvar->setVariableIdx(vidx);
 			blocks.pushNode(gvar);
 			isVarDeclFlag = false;
@@ -389,11 +394,13 @@ GPerlAST *GPerlParser::parse(void)
 		}
 		case ArrayDereference: {
 			MOVE_NEXT_TOKEN();
+			indent++;
 			DBG_PL("-----------ArrayDereference------------");
 			GPerlScope *scope = parse();
 			GPerlCell *block = scope->root;
 			DBG_PL("[%s]:LAST BLOCK->PARENT", cstr(t->data));
 			GPerlCell *b = new GPerlCell(t->info.type, t->data);
+			b->indent = indent;
 			block->parent = b;
 			b->left = block;
 			blocks.pushNode(b);
@@ -455,11 +462,15 @@ GPerlAST *GPerlParser::parse(void)
 			GPerlScope *scope = parse();
 			if (scope && scope->size == 1 && scope->root->type == Int) {
 				DBG_PL("ARRAY_AT:");
-				GPerlCell *ivalue = scope->root;
-				GPerlCell *b = new GPerlCell(ArrayAt, "[" + ivalue->rawstr + "]");
+				GPerlCell *idx = scope->root;
+				idx->indent = indent;
+				GPerlCell *b = new GPerlCell(ArrayAt, "[]");
+				b->indent = indent;
 				GPerlCell *block = blocks.lastNode();
 				block->parent = b;
+				idx->parent = b;
 				b->left = block;
+				b->right = idx;
 				blocks.swapLastNode(b);
 			} else {
 				parseValue(t, &blocks, scope);
