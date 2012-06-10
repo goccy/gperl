@@ -1,7 +1,7 @@
 CC = g++
 CFLAGS = -O2 -Wall -g3 -W -I./include/ -I/opt/local/include/ -DSTATIC_TYPING_MODE #-DDEBUG_MODE #-DUSING_GRAPH_DEBUG
-#CFLAGS = -O0 -g3 -gdwarf-2 -Wall -W -fpermissive -I./include/ -I/opt/local/include/ -DSTATIC_TYPING_MODE -DDEBUG_MODE #-DUSING_GRAPH_DEBUG
-LDLIBS = `pkg-config libgvc --libs`
+#CFLAGS = -O0 -g3 -gdwarf-2 -Wall -W -fpermissive -I./include/ -I/opt/local/include/ -DSTATIC_TYPING_MODE -DDEBUG_MODE -DUSING_GRAPH_DEBUG
+LDLIBS = `pkg-config libgvc --libs` -lpthread
 target = gperl
 
 objs = build/main.o \
@@ -11,8 +11,10 @@ objs = build/main.o \
 	build/ast.o \
 	build/graph.o \
 	build/compiler.o\
+	build/memory.o\
 	build/vm.o \
-	build/gen_vm.o
+	build/gen_vm.o\
+	build/array.o
 
 .PHONY: all
 all: $(target)
@@ -41,10 +43,16 @@ build/graph.o : src/graph.cpp
 build/compiler.o : src/compiler.cpp
 	$(CC) $(CFLAGS) -o $@ -c $^
 
+build/memory.o : src/memory.cpp
+	$(CC) $(CFLAGS) -o $@ -c $^
+
 build/vm.o : src/vm.cpp
 	$(CC) $(CFLAGS) -o $@ -c $^
 
 build/gen_vm.o : src/gen_vm.cpp
+	$(CC) $(CFLAGS) -o $@ -c $^
+
+build/array.o : src/array.cpp
 	$(CC) $(CFLAGS) -o $@ -c $^
 
 .PHONY: clean

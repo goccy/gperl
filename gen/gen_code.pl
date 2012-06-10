@@ -274,22 +274,24 @@ sub gen_inst_body {
     return $ret;
 }
 
-my $run_init = "
-#include <gperl.hpp>
+my $run_init =
+"#include <gperl.hpp>
 #include \"gen_decl_code.cpp\"
 #include <vmlibs.hpp>
 
 using namespace std;
+
+char shared_buf[128] = {0};//TODO must be variable buffer
+string outbuf = \"\";
 
 int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 {
 	static GPerlVirtualMachineCode *top;
 	GPerlVirtualMachineCode *pc = codes;
 	GPerlEnv *callstack = createCallStack();
-	GPerlObject **argstack = createArgStack();
-	static char shared_buf[128] = {0};//TODO must be variable buffer
-	static string outbuf = \"\";
-
+    GPerlValue stack[MAX_STACK_MEMORY_SIZE];
+    int esp = 0;
+    int ebp = 0;
 #include \"gen_label.cpp\"
 
     DISPATCH_START();
@@ -305,6 +307,7 @@ my $type_check_code =
 		goto *jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
 #endif
 ";
+
 sub gen_vm_run_code {
 	my $ret = $run_init;
     my $ref = shift;
@@ -337,16 +340,36 @@ sub gen_vm_run_code {
 				my $prefix = substr($_, 0, 1);
 				$prefix = "" if ($prefix =~ /J/);
 				if ($_ =~ /C$/) {
+                    $decl_args =~ s/pc->src/pc->v/;
 					$ret .= "\t\tGPERL_${prefix}CMP_JMPC(" . $decl_args . ");\n";
 				} elsif($prefix eq "") {
 					$ret .= $type_check_code;
 				} else {
 					$ret .= "\t\tGPERL_${prefix}CMP_JMP(" . $decl_args . ");\n";
 				}
+            } elsif ($_ =~ /JMP/) {
+				$ret .= "\t\tGPERL_${_}(" . $decl_args . ");\n";
 			} elsif ($_ =~ /THCODE/) {
 			} elsif ($_ eq "ADD" || $_ eq "SUB" ||
 					 $_ eq "MUL" || $_ eq "DIV") {
-				$ret .= $type_check_code;
+                $ret .= $type_check_code;
+            } elsif ($_ =~ /ADDC/ || $_ =~ /SUBC/ ||
+                       $_ =~ /MULC/ || $_ =~ /DIVC/) {
+                $decl_args =~ s/pc->src/pc->v/;
+                $ret .= "\t\tGPERL_${_}(" . $decl_args . ");\n";
+                $ret .= "\t\tpc++;\n";
+			} elsif ($_ eq "WRITE" || $_ eq "INC" || $_ eq "gINC" || $_ eq "DEC") {
+				my $check_code .=
+"		int type = TYPE_CHECK(callstack->reg[pc->dst]);
+#ifdef STATIC_TYPING_MODE
+		pc->opnext = jmp_table[pc->op + 1 + type];
+#else /* DYNAMIC_TYPING_MODE */
+		goto *jmp_table[pc->op + 1 + type];
+#endif
+";
+				$check_code =~ s/callstack\-\>reg\[pc\-\>dst\]/stack[ebp + pc->dst]/ if ($_ eq "INC");
+				$check_code =~ s/callstack\-\>reg\[pc\-\>dst\]/global_vmemory[pc->dst]/ if ($_ eq "gINC");
+				$ret .= $check_code;
 			} else {
 				$ret .= "\t\tGPERL_${_}(" . $decl_args . ");\n";
 				$ret .= "\t\tpc++;\n";
@@ -462,6 +485,7 @@ sub gen_fast_vm_code {
 				my $prefix = substr($_code[1], 0, 1);
 				$prefix = "" if ($prefix =~ /J/);
 				if ($_ =~ /C$/) {
+                    $decl_args =~ s/pc->src/pc->v/;
 					$ret .= "\t\tGPERL_${prefix}CMP_JMPC(" . $decl_args . ");\n";
 				} elsif ($prefix eq "") {
 					$ret .= $type_check_code;
@@ -471,6 +495,11 @@ sub gen_fast_vm_code {
 			} elsif ($_code[1] eq "ADD" || $_code[1] eq "SUB" ||
 					 $_code[1] eq "MUL" || $_code[1] eq "DIV") {
 				$ret .= $type_check_code;
+            } elsif ($_code[1] =~ /ADDC/ || $_code[1] =~ /SUBC/ ||
+                     $_code[1] =~ /MULC/ || $_code[1] =~ /DIVC/) {
+                $decl_args =~ s/pc->src/pc->v/;
+                $ret .= "\t\tGPERL_${_code[1]}(" . $decl_args . ");\n";
+                $ret .= "\t\tpc++;\n";
 			} else {
 				$ret .= "\t\tGPERL_${_code[1]}(" . $decl_args . ");\n";
 				$ret .= "\t\tpc++;\n";

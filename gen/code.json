@@ -14,6 +14,20 @@
      "args" : [{"dst" : "pc->dst"}, {"src" : "pc->v"}]
  },
  {
+	 "code" : "vMOV",
+	 "type" : 0,
+	 "const" : 0,
+	 "fast_type" : 2,
+     "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}]
+ },
+ {
+	 "code" : "gMOV",
+	 "type" : 0,
+	 "const" : 0,
+	 "fast_type" : 2,
+     "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}]
+ },
+ {
 	 "code" : "ARGMOV",
 	 "type" : 0,
 	 "const" : 0,
@@ -91,6 +105,27 @@
      "args" : [{"op" : "!="}, {"dst" : "pc->dst"}, {"src" : "pc->src"}]
  },
  {
+	 "code" : "INC",
+	 "type" : 1,
+	 "const" : 0,
+	 "fast_type" : 0,
+     "args" : [{"dst" : "pc->dst"}]
+ },
+ {
+	 "code" : "gINC",
+	 "type" : 1,
+	 "const" : 0,
+	 "fast_type" : 0,
+     "args" : [{"dst" : "pc->dst"}]
+ },
+ {
+	 "code" : "DEC",
+	 "type" : 1,
+	 "const" : 0,
+	 "fast_type" : 0,
+     "args" : [{"src" : "pc->src"}]
+ },
+ {
 	 "code" : "RET",
 	 "type" : 0,
 	 "const" : 0,
@@ -134,6 +169,13 @@
  },
  {
 	 "code" : "LET",
+	 "type" : 0,
+	 "const" : 0,
+	 "fast_type" : 2,
+     "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}]
+ },
+ {
+	 "code" : "gLET",
 	 "type" : 0,
 	 "const" : 0,
 	 "fast_type" : 0,
@@ -187,5 +229,33 @@
 	 "const" : 0,
 	 "fast_type" : 0,
      "args" : []
+ },
+ {
+	 "code" : "ARRAY_PUSH",
+	 "type" : 0,
+	 "const" : 0,
+	 "fast_type" : 0,
+     "args" : [{"argstack" : "callstack->argstack"}]
+ },
+ {
+	 "code" : "ARRAY_AT",
+	 "type" : 0,
+	 "const" : 0,
+	 "fast_type" : 0,
+     "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}, {"idx" : "pc->idx"}]
+ },
+ {
+	 "code" : "ARRAY_gAT",
+	 "type" : 0,
+	 "const" : 0,
+	 "fast_type" : 0,
+     "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}, {"idx" : "pc->idx"}]
+ },
+ {
+	 "code" : "ARRAY_DREF",
+	 "type" : 0,
+	 "const" : 0,
+	 "fast_type" : 0,
+     "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}]
  }
 ]

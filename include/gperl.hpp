@@ -6,6 +6,8 @@
 #include <vector>
 #include <string>
 #include <algorithm>
+#include <map>
+#include <new>
 
 #define EOL '\0'
 #define MAX_LINE_SIZE 128
@@ -63,6 +65,7 @@ public:
 	GPerlT type;
 	GPerlTokenInfo info;
 	int idx;
+	int indent;
 	GPerlToken(std::string data_, int idx_ = 0);
 };
 
@@ -110,8 +113,11 @@ public:
 		char *sdata;
 		void *pdata; /* other Object */
 	} data;
+	int vidx; /* variable idx */
+	int indent;
 	GPerlCell(GPerlT type_);
 	GPerlCell(GPerlT type_, std::string name);
+	void setVariableIdx(int idx);
 };
 
 #ifdef USING_GRAPH_DEBUG
@@ -139,6 +145,7 @@ public:
 	void show(void);
 	void draw(GraphvizGraph *graph, GPerlCell *c, GraphvizNode *node);
 	void drawStmt(GraphvizGraph *graph, GraphvizNode *node, GPerlScope *stmt, const char *stmt_name, const char *color);
+	void drawCondStmt(GraphvizGraph *graph, GPerlCell *stmt, const char *stmt_name, const char *color);
 	GraphvizNode *createNode(GraphvizGraph *graph, const char *name);
 	void drawEdge(GraphvizGraph *graph, GraphvizNode *from, GraphvizNode *to, const char *label);
 #endif
@@ -148,6 +155,10 @@ class GPerlParser {
 public:
 	int iterate_count;
 	int func_iterate_count;
+	int vidx; /* variable idx */
+	int vcount; /* variable count in scope block */
+	int indent;
+
 	std::vector<GPerlToken *>::iterator it;
 	std::vector<GPerlToken *>::iterator end;
 
@@ -215,11 +226,38 @@ typedef union {
 	void *ovalue; /* other Object */
 } GPerlValue;
 
+struct _GPerlObject;
+
+class GPerlMemoryManager {
+public:
+	_GPerlObject *freeList;
+	GPerlMemoryManager(void);
+};
+
+typedef struct _GPerlObjectHeader {
+	int type;
+	int mark_flag;
+	_GPerlObject *next;
+} GPerlObjectHeader;
+
 typedef struct _GPerlObject {
-	GPerlT type;
-	GPerlValue value;
-	const char *name;
+	GPerlObjectHeader h;
+	void *slot1;
+	void *slot2;
+	void (*write)(GPerlValue v);
+	void *slot4;
+	void *slot5;
 } GPerlObject;
+
+typedef struct _GPerlArray {
+public:
+	GPerlObjectHeader h;
+	int size;
+	GPerlValue *list;
+	void (*write)(GPerlValue v);
+	void *slot4;
+	void *slot5;
+} GPerlArray;
 
 typedef struct _GPerlVirtualMachineCode {
 	GPerlOpCode op; /* operation code */
@@ -230,7 +268,10 @@ typedef struct _GPerlVirtualMachineCode {
 	union {
 		void *code;/* selective inlining code */
 		int jmp;   /* jmp register number */
-		GPerlObject **list;
+		int ebp;   /* stack base pointer */
+		int idx;   /* array[idx] */
+		void (*push)(GPerlValue *);
+		void (*write)(GPerlValue );
 	};
 	const char *name;
 	struct _GPerlVirtualMachineCode *func;
@@ -242,6 +283,7 @@ public:
 	int dst;
 	int src;
 	int code_num;
+	int loop_start_num;
 	GPerlT reg_type[MAX_REG_SIZE];
 	std::vector<GPerlVirtualMachineCode *> *codes;
 	std::vector<GPerlVirtualMachineCode *> *func_code;
@@ -253,6 +295,8 @@ public:
 	int variable_index;
 	int func_index;
 	int args_count;/* for shift */
+	std::map<std::string, int> local_vmap;
+	std::map<std::string, int> global_vmap;
 
 	GPerlCompiler(void);
 	GPerlVirtualMachineCode *compile(GPerlAST *ast);
@@ -265,9 +309,22 @@ public:
 	int getVariableIndex(const char *name);
 	int getFuncIndex(const char *name);
 	GPerlVirtualMachineCode *createVMCode(GPerlCell *c);
+	void setInstByVMap(GPerlVirtualMachineCode *code, GPerlCell *c, GPerlOpCode lop, GPerlOpCode gop, int *idx);
+	void setMOV(GPerlVirtualMachineCode *code, GPerlCell *c);
+	void setVMOV(GPerlVirtualMachineCode *code, GPerlCell *c);
+	void setINC(GPerlVirtualMachineCode *code, GPerlCell *c);
+	void setLET(GPerlVirtualMachineCode *code, GPerlCell *c);
+	void setSETv(GPerlVirtualMachineCode *code, GPerlCell *c);
+	void setCALL(GPerlVirtualMachineCode *code, GPerlCell *c);
+	void setBFUNC(GPerlVirtualMachineCode *code, GPerlCell *c);
+	void setFUNC(GPerlVirtualMachineCode *code, GPerlCell *c);
+	void setARGMOV(GPerlVirtualMachineCode *code, GPerlCell *c);
+	void setArrayAt(GPerlVirtualMachineCode *code, GPerlCell *c);
+	void setArrayDereference(GPerlVirtualMachineCode *code, GPerlCell *c);
 	GPerlVirtualMachineCode *createTHCODE(void);
 	GPerlVirtualMachineCode *createRET(void);
 	GPerlVirtualMachineCode *createUNDEF(void);
+	GPerlVirtualMachineCode *createWRITE(void);
 	GPerlVirtualMachineCode *createiWRITE(void);
 	GPerlVirtualMachineCode *createsWRITE(void);
 	GPerlVirtualMachineCode *createoWRITE(void);
@@ -278,6 +335,8 @@ public:
 	void genFunctionCallCode(GPerlCell *p);
 	void genFunctionCode(GPerlCell *path);
 	void genIfStmtCode(GPerlCell *path);
+	void genWhileStmtCode(GPerlCell *path);
+	void genForStmtCode(GPerlCell *path);
 	void genVMCode(GPerlCell *path);
 	void addVMCode(GPerlVirtualMachineCode *code);
 	void popVMCode(void);
@@ -302,6 +361,8 @@ typedef struct _GPerlEnv {
 	GPerlValue *argstack;
 	GPerlVirtualMachineCode *pc;
 	void *ret_addr;
+	int esp;
+	int ebp;
 } GPerlEnv;
 
 #include <sys/mman.h>
@@ -317,9 +378,7 @@ public:
 	GPerlVirtualMachineCode *func_memory[MAX_FUNC_NUM];
 
 	GPerlVirtualMachine();
-	void setToVariableMemory(const char *name, int idx);
 	void setToFuncMemory(GPerlVirtualMachineCode *func, int idx);
-	GPerlObject *getFromVariableMemory(int idx);
 	GPerlVirtualMachineCode *getFromFuncMemory(int idx);
 	GPerlEnv *createCallStack(void);
 	GPerlObject **createArgStack(void);
@@ -327,3 +386,18 @@ public:
 	void createSelectiveInliningCode(GPerlVirtualMachineCode *codes, void **jmp_tbl, InstBlock *block_tbl);
 	int run(GPerlVirtualMachineCode *codes);
 };
+
+#define PAGE_SIZE 4096
+#define VOID_PTR sizeof(void*)
+#define OBJECT_SIZE (VOID_PTR * 8)
+#define MEMORY_POOL_SIZE (OBJECT_SIZE * PAGE_SIZE)
+#define NAME_RESOLUTION_PREFIX "*"
+#define MAX_GLOBAL_MEMORY_SIZE 128
+#define MAX_STACK_MEMORY_SIZE 1024 * 8 /* 8M */
+extern GPerlValue global_vmemory[MAX_GLOBAL_MEMORY_SIZE];
+extern GPerlMemoryManager *mm;
+extern char shared_buf[128];
+extern std::string outbuf;
+GPerlArray *new_GPerlArray(GPerlValue *list, size_t asize);
+void Array_push(GPerlValue *);
+void Array_write(GPerlValue );

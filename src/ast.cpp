@@ -76,15 +76,51 @@ void GPerlAST::drawStmt(GraphvizGraph *graph, GraphvizNode *if_node,
 	}
 }
 
+void GPerlAST::drawCondStmt(GraphvizGraph *graph, GPerlCell *stmt_, const char *stmt_name, const char *color)
+{
+	char buf[32] = {0};
+	snprintf(buf, 32, "cluster%d", cluster_num);
+	GraphvizGraph *stmt_graph = graph->makeSubGraph(buf);
+	GPerlCell *stmt = stmt_;
+	const char *stmt_root_name = stmt->rawstr.c_str();
+	cluster_num++;
+	stmt_graph->set("fillcolor", color);
+	stmt_graph->set("style","filled");
+	snprintf(buf, 32, "%s stmt: [%p]", stmt_name, stmt_);
+	stmt_graph->set("label", buf);
+	stmt_graph->set("fontsize", "24");
+	snprintf(buf, 32, "%s : [%p]", stmt_root_name, stmt);
+	GraphvizNode *prev_node = NULL;
+	for (; stmt; stmt = stmt->next) {
+		const char *root_name = stmt->rawstr.c_str();
+		snprintf(buf, 32, "%s : [%p]", root_name, stmt);
+		GraphvizNode *root_node = createNode(stmt_graph, (const char *)buf);
+		this->root_node = root_node;
+		if (prev_node) {
+			drawEdge(graph, prev_node, root_node, "next");
+		}
+		draw(stmt_graph, stmt, root_node);
+		prev_node = root_node;
+	}
+}
+
 void GPerlAST::draw(GraphvizGraph *graph, GPerlCell *c, GraphvizNode *node)
 {
 	GraphvizNode *left;
 	GraphvizNode *right;
 	char buf[32] = {0};
-	if (c->type == IfStmt) {
+	if (c->type == IfStmt || c->type == WhileStmt ||
+		c->type == ForStmt) {
 		GraphvizNode *if_node = root_node;
 		drawStmt(graph, if_node, c->true_stmt, "true", "#e0ffff");
 		if (c->false_stmt) drawStmt(graph, if_node, c->false_stmt, "false", "#fff0f5");
+		if (c->type == ForStmt) {
+			const char *to_name = c->left->rawstr.c_str();
+			snprintf(buf, 32, "%s : [%p]", to_name, c->left);
+			left = createNode(graph, (const char *)buf);
+			drawEdge(graph, node, left, "left");
+			drawCondStmt(graph, c->left, "for_cond", "#fff0f5");
+		}
 	} else if (c->type == Function) {
 		GraphvizNode *func_node = root_node;
 		drawStmt(graph, func_node, c->body, "body", "#e6e6fa");
@@ -112,7 +148,7 @@ void GPerlAST::draw(GraphvizGraph *graph, GPerlCell *c, GraphvizNode *node)
 			draw(graph, val, left);
 		}
 	}
-	if (c->left) {
+	if (c->left && c->type != ForStmt) {
 		const char *to_name = c->left->rawstr.c_str();
 		snprintf(buf, 32, "%s : [%p]", to_name, c->left);
 		left = createNode(graph, (const char *)buf);

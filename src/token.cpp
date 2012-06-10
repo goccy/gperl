@@ -2,7 +2,7 @@
 #include "gen_token_decl.cpp"
 using namespace std;
 
-GPerlToken::GPerlToken(string data_, int idx_) : data(data_), idx(idx_)
+GPerlToken::GPerlToken(string data_, int idx_) : data(data_), idx(idx_), indent(0)
 {
 	type = Undefined;
 }
@@ -115,7 +115,8 @@ vector<GPerlToken *> *GPerlTokenizer::tokenize(char *script)
 			//through
 		case ',': case ':': case ';': case '=': case '+':
 		case '<': case '>': case '&':
-		case '(': case ')': case '{': case '}': {
+		case '(': case ')': case '{': case '}':
+		case '[': case ']': {
 			if (isStringStarted) {
 				token[token_idx] = script[i];
 				token_idx++;
@@ -123,8 +124,16 @@ vector<GPerlToken *> *GPerlTokenizer::tokenize(char *script)
 			}
 			if (token[0] != EOL) {
 				//DBG_PL("token = [%s]", token);
-				tokens->push_back(new GPerlToken(string(token)));
-				memset(token, 0, MAX_TOKEN_SIZE);
+				if (token[0] == '@' && script[i] == '{') {
+					tokens->push_back(new GPerlToken("@{"));
+					memset(token, 0, MAX_TOKEN_SIZE);
+					token_idx = 0;
+					escapeFlag = false;
+					break;
+				} else {
+					tokens->push_back(new GPerlToken(string(token)));
+					memset(token, 0, MAX_TOKEN_SIZE);
+				}
 			}
 			char tmp[2] = {0};
 			if (mdOperationFlag &&
@@ -135,12 +144,19 @@ vector<GPerlToken *> *GPerlTokenizer::tokenize(char *script)
 				tokens->push_back(new GPerlToken(string(tmp)));
 				mdOperationFlag = false;
 			}
-			if (i + 1 < script_size &&
-				(script[i] == '<' || script[i] == '>' || script[i] == '=') &&
-				script[i + 1] == '=') {
-				//DBG_PL("token = [%c=]", script[i]);
-				tmp[0] = script[i];
-				tokens->push_back(new GPerlToken(string(tmp) + "="));
+			if ((i + 1 < script_size) &&
+				((script[i] == '<' || script[i] == '>' || script[i] == '=' ||
+				  script[i] == '+' || script[i] == '-' || script[i] == '*' || script[i] == '/') &&
+				 (script[i + 1] == '='))) {
+					//DBG_PL("token = [%c=]", script[i]);
+					tmp[0] = script[i];
+					tokens->push_back(new GPerlToken(string(tmp) + "="));
+					i++;
+			} else if ((i + 1 < script_size) && script[i] == '+' && script[i + 1] == '+') {
+				tokens->push_back(new GPerlToken("++"));
+				i++;
+			} else if ((i + 1 < script_size) && script[i] == '-' && script[i + 1] == '-') {
+				tokens->push_back(new GPerlToken("--"));
 				i++;
 			} else {
 				//DBG_PL("token = [%c]", script[i]);
@@ -254,10 +270,14 @@ void GPerlTokenizer::annotateTokens(vector<GPerlToken *> *tokens)
 		if (data == "+"     || data == "-"    || data == "*"     || data == "/"  ||
 			data == "<"     || data == ">"    || data == "<="    || data == ">=" ||
 			data == "=="    || data == "!="   || data == "="     ||
+			data == "+="    || data == "-="   || data == "*="    || data == "/=" ||
+			data == "++"    || data == "--"   ||
 			data == ";"     || data == ","    || data == ","     || data == "&"  ||
 			data == "("     || data == ")"    || data == "{"     || data == "}"  ||
+			data == "["     || data == "]"    || data == "@{"    ||
 			data == "print" || data == "push" || data == "if"    || data == "else"  ||
 			data == "my"    || data == "sub"  || data == "shift" ||
+			data == "while" || data == "for"  || data == "foreach" ||
 			data == "return") {
 			t->info = getTokenInfo(NULL, cstr(data));
 			cur_type = t->info.type;
