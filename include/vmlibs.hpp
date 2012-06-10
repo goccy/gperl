@@ -139,10 +139,10 @@ int callstack_count = 0;
 #define GPERL_FUNCSET(func, dst) setToFuncMemory(func, dst)
 #define GPERL_SETv(name, dst)
 
-#define GPERL_CALL(dst, src, NAME) {							\
-		GPerlVirtualMachineCode *code = func_memory[src];		\
-		top = code;												\
-		esp += pc->ebp;											\
+#define GPERL_CALL(dst, src, NAME) {								\
+		code_ = func_memory[src];									\
+		top   = code_;												\
+		esp += pc->ebp;												\
 		callstack->ebp = ebp;									\
 		ebp = esp;												\
 		callstack++;											\

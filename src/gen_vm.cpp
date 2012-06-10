@@ -10,7 +10,7 @@ string outbuf = "";
 int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 {
 	static GPerlVirtualMachineCode *top;
-	GPerlVirtualMachineCode *pc = codes;
+	GPerlVirtualMachineCode *pc = codes, *code_ = NULL;
 	GPerlEnv *callstack = createCallStack();
     GPerlValue stack[MAX_STACK_MEMORY_SIZE];
     int esp = 0;
