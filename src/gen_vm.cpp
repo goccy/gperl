@@ -8,7 +8,7 @@ using namespace std;
 int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 {
 	static GPerlVirtualMachineCode *top;
-	GPerlVirtualMachineCode *pc = codes;
+	GPerlVirtualMachineCode *pc = codes, *code_ = NULL;
 	GPerlEnv *callstack = createCallStack();
 	GPerlObject **argstack = createArgStack();
 	static char shared_buf[128] = {0};//TODO must be variable buffer
