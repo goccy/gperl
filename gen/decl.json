@@ -85,6 +85,16 @@
 	 "parse_func" : ""
  },
  {
+ 	 "type" : "LeftShift",
+	 "data" : "<<",
+	 "parse_func" : ""
+ },
+ {
+ 	 "type" : "RightShift",
+	 "data" : ">>",
+	 "parse_func" : ""
+ },
+ {
 	 "type" : "VarDecl",
 	 "data" : "my",
 	 "parse_func" : ""
@@ -100,6 +110,11 @@
 	 "parse_func" : ""
  },
  {
+	 "type" : "IsNot",
+	 "data" : "!",
+	 "parse_func" : ""
+ },
+ {
 	 "type" : "BuiltinFunc",
 	 "data" : "print",
 	 "parse_func" : ""
@@ -107,6 +122,16 @@
  {
 	 "type" : "BuiltinFunc",
 	 "data" : "push",
+	 "parse_func" : ""
+ },
+ {
+	 "type" : "BuiltinFunc",
+	 "data" : "ref",
+	 "parse_func" : ""
+ },
+ {
+	 "type" : "BuiltinFunc",
+	 "data" : "undef",
 	 "parse_func" : ""
  },
  {

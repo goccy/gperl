@@ -123,7 +123,14 @@
 	 "type" : 1,
 	 "const" : 0,
 	 "fast_type" : 0,
-     "args" : [{"src" : "pc->src"}]
+     "args" : [{"dst" : "pc->dst"}]
+ },
+ {
+	 "code" : "gDEC",
+	 "type" : 1,
+	 "const" : 0,
+	 "fast_type" : 0,
+     "args" : [{"dst" : "pc->dst"}]
  },
  {
 	 "code" : "RET",

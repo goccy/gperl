@@ -267,18 +267,30 @@ void GPerlTokenizer::annotateTokens(vector<GPerlToken *> *tokens)
 	while (it != tokens->end()) {
 		GPerlToken *t = (GPerlToken *)*it;
 		string data = t->data;
-		if (data == "+"     || data == "-"    || data == "*"     || data == "/"  ||
-			data == "<"     || data == ">"    || data == "<="    || data == ">=" ||
-			data == "=="    || data == "!="   || data == "="     ||
-			data == "+="    || data == "-="   || data == "*="    || data == "/=" ||
-			data == "++"    || data == "--"   ||
-			data == ";"     || data == ","    || data == ","     || data == "&"  ||
-			data == "("     || data == ")"    || data == "{"     || data == "}"  ||
-			data == "["     || data == "]"    || data == "@{"    ||
-			data == "print" || data == "push" || data == "if"    || data == "else"  ||
-			data == "my"    || data == "sub"  || data == "shift" ||
-			data == "while" || data == "for"  || data == "foreach" ||
+		if (data == "+"     || data == "-"    ||
+			data == "*"     || data == "/"    ||
+			data == "<"     || data == ">"    ||
+			data == "<="    || data == ">="   ||
+			data == "=="    || data == "!="   ||
+			data == "="     || data == "+="   ||
+			data == "-="    || data == "*="   ||
+			data == "/="    || data == "++"   ||
+			data == "--"    || data == ";"    ||
+			data == ","     || data == ","    ||
+			data == "&"     || data == "("    ||
+			data == ")"     || data == "{"    ||
+			data == "}"     || data == "["    ||
+			data == "]"     || data == "@{"   ||
+			data == "%{"    || data == "!"    ||
+			data == "<<"    || data == ">>"   ||
+			data == "print" || data == "push" ||
+			data == "ref"   || data == "undef"||
+			data == "if"    || data == "else" ||
+			data == "my"    || data == "sub"  ||
+			data == "shift" || data == "while"||
+			data == "for"   || data == "foreach" ||
 			data == "return") {
+			DBG_PL("TOKEN = [%s]", cstr(data));
 			t->info = getTokenInfo(NULL, cstr(data));
 			cur_type = t->info.type;
 		} else if (cur_type == VarDecl && t->data.find("$") != string::npos) {

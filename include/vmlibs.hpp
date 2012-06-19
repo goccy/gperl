@@ -107,11 +107,14 @@ int callstack_count = 0;
 #define GPERL_sgINC(dst)
 #define GPERL_ogINC(dst)
 
-#define GPERL_DEC(src)
-#define GPERL_iDEC(src) I(src)--
-#define GPERL_dDEC(src) D(src)--
-#define GPERL_sDEC(src)
-#define GPERL_oDEC(src) {}
+#define GPERL_iDEC(dst) stack[ebp + dst].ivalue--
+#define GPERL_dDEC(dst) stack[ebp + dst].dvalue--
+#define GPERL_sDEC(dst)
+#define GPERL_oDEC(dst)
+#define GPERL_igDEC(dst) global_vmemory[dst].ivalue--
+#define GPERL_dgDEC(dst) global_vmemory[dst].dvalue--
+#define GPERL_sgDEC(dst)
+#define GPERL_ogDEC(dst)
 
 #define GPERL_RET(src) callstack->reg[0] = callstack->reg[src]; RETURN();
 #define GPERL_NOP()

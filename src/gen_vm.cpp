@@ -457,7 +457,7 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 		BREAK();
 	});
 	CASE(DEC, {
-		int type = TYPE_CHECK(callstack->reg[pc->dst]);
+		int type = TYPE_CHECK(stack[ebp + pc->dst]);
 #ifdef STATIC_TYPING_MODE
 		pc->opnext = jmp_table[pc->op + 1 + type];
 #else /* DYNAMIC_TYPING_MODE */
@@ -466,22 +466,51 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 		BREAK();
 	});
 	CASE(dDEC, {
-		GPERL_dDEC(pc->src);
+		GPERL_dDEC(pc->dst);
 		pc++;
 		BREAK();
 	});
 	CASE(iDEC, {
-		GPERL_iDEC(pc->src);
+		GPERL_iDEC(pc->dst);
 		pc++;
 		BREAK();
 	});
 	CASE(sDEC, {
-		GPERL_sDEC(pc->src);
+		GPERL_sDEC(pc->dst);
 		pc++;
 		BREAK();
 	});
 	CASE(oDEC, {
-		GPERL_oDEC(pc->src);
+		GPERL_oDEC(pc->dst);
+		pc++;
+		BREAK();
+	});
+	CASE(gDEC, {
+		int type = TYPE_CHECK(global_vmemory[pc->dst]);
+#ifdef STATIC_TYPING_MODE
+		pc->opnext = jmp_table[pc->op + 1 + type];
+#else /* DYNAMIC_TYPING_MODE */
+		goto *jmp_table[pc->op + 1 + type];
+#endif
+		BREAK();
+	});
+	CASE(dgDEC, {
+		GPERL_dgDEC(pc->dst);
+		pc++;
+		BREAK();
+	});
+	CASE(igDEC, {
+		GPERL_igDEC(pc->dst);
+		pc++;
+		BREAK();
+	});
+	CASE(sgDEC, {
+		GPERL_sgDEC(pc->dst);
+		pc++;
+		BREAK();
+	});
+	CASE(ogDEC, {
+		GPERL_ogDEC(pc->dst);
 		pc++;
 		BREAK();
 	});

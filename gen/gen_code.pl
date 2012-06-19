@@ -211,7 +211,7 @@ sub gen_inst_body {
 
         foreach (@inst_names) {
             my $op = "";
-            if ($_ =~ "ADD") {
+            if ($_ =~ /ADD/) {
                 $op .= "+=";
             } elsif ($_ =~ /SUB/) {
                 $op .= "-=";
@@ -287,7 +287,7 @@ string outbuf = \"\";
 int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 {
 	static GPerlVirtualMachineCode *top;
-	GPerlVirtualMachineCode *pc = codes;
+	GPerlVirtualMachineCode *pc = codes, *code_ = NULL;
 	GPerlEnv *callstack = createCallStack();
     GPerlValue stack[MAX_STACK_MEMORY_SIZE];
     int esp = 0;
@@ -358,7 +358,7 @@ sub gen_vm_run_code {
                 $decl_args =~ s/pc->src/pc->v/;
                 $ret .= "\t\tGPERL_${_}(" . $decl_args . ");\n";
                 $ret .= "\t\tpc++;\n";
-			} elsif ($_ eq "WRITE" || $_ eq "INC" || $_ eq "gINC" || $_ eq "DEC") {
+			} elsif ($_ eq "WRITE" || $_ eq "INC" || $_ eq "gINC" || $_ eq "DEC" || $_ eq "gDEC") {
 				my $check_code .=
 "		int type = TYPE_CHECK(callstack->reg[pc->dst]);
 #ifdef STATIC_TYPING_MODE
@@ -367,8 +367,8 @@ sub gen_vm_run_code {
 		goto *jmp_table[pc->op + 1 + type];
 #endif
 ";
-				$check_code =~ s/callstack\-\>reg\[pc\-\>dst\]/stack[ebp + pc->dst]/ if ($_ eq "INC");
-				$check_code =~ s/callstack\-\>reg\[pc\-\>dst\]/global_vmemory[pc->dst]/ if ($_ eq "gINC");
+				$check_code =~ s/callstack\-\>reg\[pc\-\>dst\]/stack[ebp + pc->dst]/ if ($_ eq "INC" || $_ eq "DEC");
+				$check_code =~ s/callstack\-\>reg\[pc\-\>dst\]/global_vmemory[pc->dst]/ if ($_ eq "gINC" || $_ eq "gDEC");
 				$ret .= $check_code;
 			} else {
 				$ret .= "\t\tGPERL_${_}(" . $decl_args . ");\n";

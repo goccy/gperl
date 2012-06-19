@@ -313,6 +313,7 @@ public:
 	void setMOV(GPerlVirtualMachineCode *code, GPerlCell *c);
 	void setVMOV(GPerlVirtualMachineCode *code, GPerlCell *c);
 	void setINC(GPerlVirtualMachineCode *code, GPerlCell *c);
+	void setDEC(GPerlVirtualMachineCode *code, GPerlCell *c);
 	void setLET(GPerlVirtualMachineCode *code, GPerlCell *c);
 	void setSETv(GPerlVirtualMachineCode *code, GPerlCell *c);
 	void setCALL(GPerlVirtualMachineCode *code, GPerlCell *c);
