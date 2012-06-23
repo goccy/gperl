@@ -42,4 +42,5 @@ GPerl::GPerl(int argc, char **argv)
 	vm->run(codes);//execute code
 	//fprintf(stderr, "%d\n", vm->run(codes));//execute code
 	fclose(fp);
+	mm->exit();
 }

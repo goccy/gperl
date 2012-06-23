@@ -231,7 +231,20 @@ struct _GPerlObject;
 class GPerlMemoryManager {
 public:
 	_GPerlObject *freeList;
+	_GPerlObject *body;
+	void *head;
+	void *tail;
 	GPerlMemoryManager(void);
+	void exit();
+	_GPerlObject* gmalloc(size_t size);
+	static void _gfree(_GPerlObject* obj);
+	void gc();
+	_GPerlObject* _pop();
+	void _push(_GPerlObject* obj);
+	void _gc_init();
+	void _gc_mark();
+	void _gc_mark_root();
+	void _gc_sweep();
 };
 
 typedef struct _GPerlObjectHeader {
