@@ -6,12 +6,33 @@ using namespace std;
 
 char shared_buf[128] = {0};//TODO must be variable buffer
 string outbuf = "";
+static char *cwb;
+static int cwb_idx = 0;
+void write_cwb(char *buf)
+{
+    size_t buf_size = strlen(buf);
+    strncpy(cwb + cwb_idx, buf, buf_size);
+    cwb_idx += buf_size;
+    if (cwb_idx > MAX_CWB_SIZE) {
+        fprintf(stderr, "ERROR: cwb_idx = [%d] > %d\n", cwb_idx, MAX_CWB_SIZE);
+        memset(cwb, 0, MAX_CWB_SIZE);
+        cwb_idx = 0;
+    }
+}
+
+inline void clear_cwb(void)
+{
+    memset(cwb, 0, cwb_idx);
+    cwb_idx = 0;
+}
 
 int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 {
 	static GPerlVirtualMachineCode *top;
 	GPerlVirtualMachineCode *pc = codes, *code_ = NULL;
 	GPerlEnv *callstack = createCallStack();
+    cwb = (char *)malloc(MAX_CWB_SIZE);
+    memset(cwb, 0, MAX_CWB_SIZE);
     GPerlValue stack[MAX_STACK_MEMORY_SIZE];
     int esp = 0;
     int ebp = 0;
@@ -634,7 +655,7 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 		BREAK();
 	});
 	CASE(ARRAY_PUSH, {
-		GPERL_ARRAY_PUSH(callstack->argstack);
+        GPERL_ARRAY_PUSH((callstack+1)->argstack);
 		pc++;
 		BREAK();
 	});

@@ -36,24 +36,29 @@ void Array_write(GPerlValue o)
 {
 	GPerlArray *a = (GPerlArray *)getObject(o);
 	if (a->h.type == ArrayRef) {
-		sprintf(shared_buf, "ARRAY(%p)", a->list);
+        char buf[32] = {0};
+		sprintf(buf, "ARRAY(%p)", a->list);
 		outbuf += string(shared_buf);
 	} else {
 		size_t size = a->size;
 		GPerlValue *list = a->list;
 		for (size_t i = 0; i < size; i++) {
 			GPerlValue v = list[i];
+            char buf[32] = {0};
 			switch (TYPE_CHECK(v)) {
 			case 0: /* Double */
-				sprintf(shared_buf, "%f", v.dvalue);
-				outbuf += string(shared_buf);
+				sprintf(buf, "%f", v.dvalue);
+                write_cwb(buf);
 				break;
-			case 1: /* Int */
-				sprintf(shared_buf, "%d", v.ivalue);
-				outbuf += string(shared_buf);
+			case 1: /* Int */ {
+				sprintf(buf, "%d", v.ivalue);
+                write_cwb(buf);
 				break;
-			case 2: /* String */
+            }
+			case 2: /* String */ {
+                write_cwb(getString(v));
 				break;
+            }
 			default: /* Object */
 				break;
 			}

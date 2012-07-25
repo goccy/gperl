@@ -158,11 +158,13 @@ public:
 	int vidx; /* variable idx */
 	int vcount; /* variable count in scope block */
 	int indent;
+    int argc;
+    char **argv;
 
 	std::vector<GPerlToken *>::iterator it;
 	std::vector<GPerlToken *>::iterator end;
 
-	GPerlParser(std::vector<GPerlToken *> *tokens);
+	GPerlParser(std::vector<GPerlToken *> *tokens, int argc, char **argv);
 	GPerlAST *parse(void);
 	void parseValue(GPerlToken *t, GPerlNodes *nodes, GPerlScope *scope);
 };
@@ -250,7 +252,6 @@ typedef struct _GPerlObject {
 } GPerlObject;
 
 typedef struct _GPerlArray {
-public:
 	GPerlObjectHeader h;
 	int size;
 	GPerlValue *list;
@@ -258,6 +259,15 @@ public:
 	void *slot4;
 	void *slot5;
 } GPerlArray;
+
+typedef struct _GPerlUndef {
+    GPerlObjectHeader h;
+    void *slot1;
+    void *slot2;
+    void (*write)(GPerlValue v);
+    void *slot4;
+    void *slot5;
+} GPerlUndef;
 
 typedef struct _GPerlVirtualMachineCode {
 	GPerlOpCode op; /* operation code */
@@ -395,10 +405,18 @@ public:
 #define NAME_RESOLUTION_PREFIX "*"
 #define MAX_GLOBAL_MEMORY_SIZE 128
 #define MAX_STACK_MEMORY_SIZE 1024 * 8 /* 8M */
+#define KB 1024
+#define MB KB * KB
+#define MAX_CWB_SIZE 1 * MB
+
 extern GPerlValue global_vmemory[MAX_GLOBAL_MEMORY_SIZE];
 extern GPerlMemoryManager *mm;
 extern char shared_buf[128];
 extern std::string outbuf;
-GPerlArray *new_GPerlArray(GPerlValue *list, size_t asize);
-void Array_push(GPerlValue *);
-void Array_write(GPerlValue );
+extern GPerlArray *new_GPerlArray(GPerlValue *list, size_t asize);
+extern GPerlUndef *new_GPerlUndef(void);
+extern void Undef_write(GPerlValue );
+extern void Array_push(GPerlValue *);
+extern void Array_write(GPerlValue );
+extern void write_cwb(char *buf);
+extern void clear_cwb(void);

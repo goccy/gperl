@@ -39,6 +39,8 @@ typedef enum {
 	WhileStmt,
 	ForStmt,
 	ForeachStmt,
+	ArgumentArray,
+	ProgramArgument,
 	FieldDecl,
 	TypeRef,
 	LabelRef,

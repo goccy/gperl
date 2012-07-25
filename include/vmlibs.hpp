@@ -122,21 +122,21 @@ int callstack_count = 0;
 #define GPERL_WRITE(dst)
 #define GPERL_iWRITE(dst) {								\
 		sprintf(shared_buf, "%d", I(dst));				\
-		outbuf += string(shared_buf);					\
+		write_cwb(shared_buf);                          \
 	}
 #define GPERL_dWRITE(dst) {								\
 		sprintf(shared_buf, "%f", D(dst));				\
-		outbuf += string(shared_buf);					\
+		write_cwb(shared_buf);                          \
 	}
-#define GPERL_sWRITE(dst) outbuf += string(getString(callstack->reg[dst]))
+#define GPERL_sWRITE(dst) write_cwb(getString(callstack->reg[dst]))
 #define GPERL_oWRITE(dst) {									\
 		GPerlObject *o = (GPerlObject *)getObject(callstack->reg[dst]);	\
 		o->write(callstack->reg[dst]);						\
 	}
 
 #define GPERL_FLUSH() {												\
-		fprintf(stderr, "%s", cstr(outbuf));						\
-		outbuf = "";												\
+		fprintf(stderr, "%s", cwb);						\
+        clear_cwb();                                    \
 	}
 #define GPERL_JMP() pc += pc->jmp
 #define GPERL_FUNCSET(func, dst) setToFuncMemory(func, dst)
@@ -187,15 +187,25 @@ int callstack_count = 0;
 #define GPERL_oSHIFT(src)
 #define GPERL_PUSH(dst, src) (callstack+1)->argstack[src] = callstack->reg[dst]
 #define GPERL_NEW()
-#define GPERL_ARRAY_PUSH(argstack) callstack++; pc->push(argstack);
-#define GPERL_ARRAY_AT(dst, src, idx) do {								\
-		GPerlArray *a = (GPerlArray *)getObject(stack[ebp + src]);		\
-		callstack->reg[dst] = a->list[I(idx)];							\
-	} while (0);
+#define GPERL_ARRAY_PUSH(argstack) pc->push(argstack);
+#define GPERL_ARRAY_AT(dst, src, idx) do {                          \
+        GPerlArray *a = (GPerlArray *)getObject(stack[ebp + src]);  \
+        if (a->size > I(idx)) {                                     \
+            callstack->reg[dst] = a->list[I(idx)];                  \
+        } else {                                                    \
+            GPerlUndef *undef = new_GPerlUndef();                   \
+            OBJECT_init(callstack->reg[dst], undef);                \
+        }                                                           \
+    } while (0);
 
 #define GPERL_ARRAY_gAT(dst, src, idx) do {								\
 		GPerlArray *a = (GPerlArray *)getObject(global_vmemory[src]);	\
-		callstack->reg[dst] = a->list[I(idx)];							\
+        if (a->size > I(idx)) {                                     \
+            callstack->reg[dst] = a->list[I(idx)];                  \
+        } else {                                                    \
+            GPerlUndef *undef = new_GPerlUndef();                   \
+            OBJECT_init(callstack->reg[dst], undef);                \
+        }                                                           \
 	} while (0);
 
 

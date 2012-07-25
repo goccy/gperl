@@ -61,7 +61,7 @@ void GPerlCell::setVariableIdx(int idx)
 	vidx = idx;
 }
 
-GPerlParser::GPerlParser(vector<GPerlToken *> *tokens)
+GPerlParser::GPerlParser(vector<GPerlToken *> *tokens, int _argc, char **_argv) : argc(_argc), argv(_argv)
 {
 	it = tokens->begin();
 	end = tokens->end();
@@ -477,6 +477,23 @@ GPerlAST *GPerlParser::parse(void)
 			}
 			break;
 		}
+        case ArgumentArray : {
+            DBG_PL("ArgumentArray");
+            break;
+        }
+        case ProgramArgument: {
+            DBG_PL("ProgramArgument");
+            GPerlCell *args = new GPerlCell(List);
+            for (int i = 0; i < argc; i++) {
+                GPerlCell *v = new GPerlCell(String, argv[i]);
+                v->indent = indent;
+                args->vargs[args->argsize] = v;
+                args->argsize++;
+            }
+			args->indent = indent;
+			blocks.pushNode(args);
+            break;
+        }
 		case Comma: {
 			DBG_PL("VARGS[] = STMT & CLEAR BLOCKS");
 			GPerlCell *stmt = blocks.at(0);

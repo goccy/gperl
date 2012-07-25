@@ -697,6 +697,7 @@ void GPerlCompiler::setArrayAt(GPerlVirtualMachineCode *code, GPerlCell *c_)
 	code->src = idx;
 	code->idx = dst-1;
 	code->dst = dst;
+    reg_type[dst] = Object;
 	dst++;
 }
 

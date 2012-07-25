@@ -42,6 +42,8 @@ GPerlTokenInfo decl_tokens[] = {
 	{WhileStmt, "WhileStmt", "while"},
 	{ForStmt, "ForStmt", "for"},
 	{ForeachStmt, "ForeachStmt", "foreach"},
+	{ArgumentArray, "ArgumentArray", "@_"},
+	{ProgramArgument, "ProgramArgument", "@ARGV"},
 	{FieldDecl, "FieldDecl", ""},
 	{TypeRef, "TypeRef", ""},
 	{LabelRef, "LabelRef", ""},

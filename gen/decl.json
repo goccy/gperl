@@ -215,6 +215,16 @@
 	 "parse_func" : ""
  },
  {
+     "type" : "ArgumentArray",
+     "data" : "@_",
+     "parse_func" : ""
+ },
+ {
+     "type" : "ProgramArgument",
+     "data" : "@ARGV",
+     "parse_func" : ""
+ },
+ {
 	 "type" : "FieldDecl",
 	 "data" : "",
 	 "parse_func" : ""

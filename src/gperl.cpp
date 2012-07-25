@@ -24,7 +24,7 @@ GPerl::GPerl(int argc, char **argv)
 	t.annotateTokens(tokens);
 	DBG_PL("=============<TOKENIZE>============");
 	t.dump(tokens);
-	GPerlParser p(tokens);
+	GPerlParser p(tokens, argc - 2, argv + 2);
 	DBG_PL("==============<PARSE>==============");
 	GPerlAST *ast = p.parse();
 #ifdef USING_GRAPH_DEBUG
