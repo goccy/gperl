@@ -78,6 +78,26 @@
 		pc++;
 		BREAK();
 	});
+	CASE(A_ArrayARGMOV, {
+		GPERL_ArrayARGMOV(0);
+		pc++;
+		BREAK();
+	});
+	CASE(B_ArrayARGMOV, {
+		GPERL_ArrayARGMOV(1);
+		pc++;
+		BREAK();
+	});
+	CASE(C_ArrayARGMOV, {
+		GPERL_ArrayARGMOV(2);
+		pc++;
+		BREAK();
+	});
+	CASE(D_ArrayARGMOV, {
+		GPERL_ArrayARGMOV(3);
+		pc++;
+		BREAK();
+	});
 	CASE(AB_ADD, {
 		int dst_type = TYPE_CHECK(callstack->reg[pc->dst]);
 		int src_type = TYPE_CHECK(callstack->reg[pc->src]);

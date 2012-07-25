@@ -254,7 +254,7 @@ GPerlAST *GPerlParser::parse(void)
 			vidx++;
 			break;
 		}
-		case Var: case ArrayVar:
+		case Var: case ArrayVar: case ArgumentArray:
 		case Int: case String: case Call: case BuiltinFunc: {
 			parseValue(t, &blocks, NULL);
 			break;
@@ -477,23 +477,19 @@ GPerlAST *GPerlParser::parse(void)
 			}
 			break;
 		}
-        case ArgumentArray : {
-            DBG_PL("ArgumentArray");
-            break;
-        }
-        case ProgramArgument: {
-            DBG_PL("ProgramArgument");
-            GPerlCell *args = new GPerlCell(List);
-            for (int i = 0; i < argc; i++) {
-                GPerlCell *v = new GPerlCell(String, argv[i]);
-                v->indent = indent;
-                args->vargs[args->argsize] = v;
-                args->argsize++;
-            }
+		case ProgramArgument: {
+			DBG_PL("ProgramArgument");
+			GPerlCell *args = new GPerlCell(List);
+			for (int i = 0; i < argc; i++) {
+				GPerlCell *v = new GPerlCell(String, argv[i]);
+				v->indent = indent;
+				args->vargs[args->argsize] = v;
+				args->argsize++;
+			}
 			args->indent = indent;
 			blocks.pushNode(args);
-            break;
-        }
+			break;
+		}
 		case Comma: {
 			DBG_PL("VARGS[] = STMT & CLEAR BLOCKS");
 			GPerlCell *stmt = blocks.at(0);

@@ -35,6 +35,13 @@
      "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}]
  },
  {
+	 "code" : "ArrayARGMOV",
+	 "type" : 0,
+	 "const" : 0,
+	 "fast_type" : 2,
+     "args" : [{"dst" : "pc->dst"}]
+ },
+ {
 	 "code" : "ADD",
 	 "type" : 1,
 	 "const" : 1,

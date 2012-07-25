@@ -18,6 +18,8 @@ GPerl::GPerl(int argc, char **argv)
 		snprintf(tmp, line_size + 1, "%s\n", line);
 		tmp += line_size;
 	}
+	cwb = (char *)malloc(MAX_CWB_SIZE);
+	memset(cwb, 0, MAX_CWB_SIZE);
 	mm = new GPerlMemoryManager();
 	GPerlTokenizer t;
 	std::vector<GPerlToken *> *tokens = t.tokenize(script);

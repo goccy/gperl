@@ -531,6 +531,9 @@ GPerlVirtualMachineCode *GPerlCompiler::createVMCode(GPerlCell *c)
 	case LocalVar: case Var: case ArrayVar:
 		setVMOV(code, c);
 		break;
+	case ArgumentArray:
+		setArrayARGMOV(code, c);
+		break;
 	case BuiltinFunc:
 		setBFUNC(code, c);
 		break;
@@ -635,6 +638,15 @@ void GPerlCompiler::setMOV(GPerlVirtualMachineCode *code, GPerlCell *c)
 	dst++;
 }
 
+void GPerlCompiler::setArrayARGMOV(GPerlVirtualMachineCode *code, GPerlCell *)
+{
+	DBG_PL("ArrayARGMOV");
+	code->op = ArrayARGMOV;
+	code->dst = 0;
+	reg_type[dst] = Array;
+	dst++;
+}
+
 void GPerlCompiler::setARGMOV(GPerlVirtualMachineCode *code, GPerlCell *c)
 {
 	(void)c;
@@ -697,7 +709,7 @@ void GPerlCompiler::setArrayAt(GPerlVirtualMachineCode *code, GPerlCell *c_)
 	code->src = idx;
 	code->idx = dst-1;
 	code->dst = dst;
-    reg_type[dst] = Object;
+	reg_type[dst] = Object;
 	dst++;
 }
 
@@ -795,6 +807,7 @@ void GPerlCompiler::setCALL(GPerlVirtualMachineCode *code, GPerlCell *c)
 	code->src = idx;
 	code->ebp = ebp_num;
 	code->name = name;
+	reg_type[dst-1] = Object;
 }
 
 void GPerlCompiler::setBFUNC(GPerlVirtualMachineCode *code, GPerlCell *c)

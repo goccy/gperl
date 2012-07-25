@@ -1,7 +1,7 @@
 CC = g++
-#CFLAGS = -O2 -Wall -g3 -W -I./include/ -DSTATIC_TYPING_MODE #-DDEBUG_MODE #-DUSING_GRAPH_DEBUG
-CFLAGS = -O0 -g3 -gdwarf-2 -Wall -W -fpermissive -I./include/ -I/opt/local/include/ -DSTATIC_TYPING_MODE -DDEBUG_MODE #-DUSING_GRAPH_DEBUG
-LDLIBS = -lgraph -lgvc -lpthread #`pkg-config libgvc --libs` -lpthread
+CFLAGS = -O2 -Wall -g3 -W -I./include/ -DSTATIC_TYPING_MODE #-DDEBUG_MODE #-DUSING_GRAPH_DEBUG
+#CFLAGS = -O0 -g3 -gdwarf-2 -Wall -W -fpermissive -I./include/ -I/opt/local/include/ -DSTATIC_TYPING_MODE -DDEBUG_MODE -DUSING_GRAPH_DEBUG
+LDLIBS = `pkg-config libgvc --libs` -lpthread
 target = gperl
 
 objs = build/main.o \

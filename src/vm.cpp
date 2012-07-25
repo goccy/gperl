@@ -2,6 +2,26 @@
 
 using namespace std;
 GPerlValue global_vmemory[MAX_GLOBAL_MEMORY_SIZE];
+char *cwb;
+int cwb_idx = 0;
+void write_cwb(char *buf)
+{
+    size_t buf_size = strlen(buf);
+    strncpy(cwb + cwb_idx, buf, buf_size);
+    cwb_idx += buf_size;
+    if (cwb_idx > MAX_CWB_SIZE) {
+        fprintf(stderr, "ERROR: cwb_idx = [%d] > %d\n", cwb_idx, MAX_CWB_SIZE);
+        memset(cwb, 0, MAX_CWB_SIZE);
+        cwb_idx = 0;
+    }
+}
+
+void clear_cwb(void)
+{
+    memset(cwb, 0, cwb_idx);
+    cwb_idx = 0;
+}
+
 GPerlVirtualMachine::GPerlVirtualMachine(void)
 {
 }
@@ -58,9 +78,13 @@ void GPerlVirtualMachine::createSelectiveInliningCode(GPerlVirtualMachineCode *c
 //	}
 }
 
+GPerlArgsArray *args;
 static GPerlEnv env_[MAX_CALLSTACK_SIZE];
 GPerlEnv *GPerlVirtualMachine::createCallStack(void)
 {
+	args = (GPerlArgsArray *)malloc(sizeof(GPerlArgsArray));
+	memset(args, 0, sizeof(GPerlArgsArray));
+	args->write = Array_write;
 	for (int i = 0; i < MAX_CALLSTACK_SIZE; i++) {
 		GPerlValue *reg = (GPerlValue *)malloc(sizeof(GPerlValue) * MAX_REG_SIZE);
 		GPerlValue *argstack = (GPerlValue *)malloc(sizeof(GPerlValue) * MAX_ARGSTACK_SIZE);

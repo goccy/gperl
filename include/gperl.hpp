@@ -260,13 +260,23 @@ typedef struct _GPerlArray {
 	void *slot5;
 } GPerlArray;
 
+/* Protected ArrayObject */
+typedef struct _GPerlArgsArray {
+	GPerlObjectHeader h;
+	int size;
+	GPerlValue *list;
+	void (*write)(GPerlValue v);
+	void *slot4;
+	void *slot5;
+} GPerlArgsArray;
+
 typedef struct _GPerlUndef {
-    GPerlObjectHeader h;
-    void *slot1;
-    void *slot2;
-    void (*write)(GPerlValue v);
-    void *slot4;
-    void *slot5;
+	GPerlObjectHeader h;
+	void *slot1;
+	void *slot2;
+	void (*write)(GPerlValue v);
+	void *slot4;
+	void *slot5;
 } GPerlUndef;
 
 typedef struct _GPerlVirtualMachineCode {
@@ -329,6 +339,7 @@ public:
 	void setCALL(GPerlVirtualMachineCode *code, GPerlCell *c);
 	void setBFUNC(GPerlVirtualMachineCode *code, GPerlCell *c);
 	void setFUNC(GPerlVirtualMachineCode *code, GPerlCell *c);
+	void setArrayARGMOV(GPerlVirtualMachineCode *code, GPerlCell *c);
 	void setARGMOV(GPerlVirtualMachineCode *code, GPerlCell *c);
 	void setArrayAt(GPerlVirtualMachineCode *code, GPerlCell *c);
 	void setArrayDereference(GPerlVirtualMachineCode *code, GPerlCell *c);
@@ -413,6 +424,8 @@ extern GPerlValue global_vmemory[MAX_GLOBAL_MEMORY_SIZE];
 extern GPerlMemoryManager *mm;
 extern char shared_buf[128];
 extern std::string outbuf;
+extern char *cwb;
+extern GPerlArgsArray *args;
 extern GPerlArray *new_GPerlArray(GPerlValue *list, size_t asize);
 extern GPerlUndef *new_GPerlUndef(void);
 extern void Undef_write(GPerlValue );
