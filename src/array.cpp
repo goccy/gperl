@@ -38,7 +38,7 @@ void Array_write(GPerlValue o)
 	if (a->h.type == ArrayRef) {
 		char buf[32] = {0};
 		sprintf(buf, "ARRAY(%p)", a->list);
-		outbuf += string(shared_buf);
+		write_cwb(buf);
 	} else {
 		size_t size = a->size;
 		GPerlValue *list = a->list;
