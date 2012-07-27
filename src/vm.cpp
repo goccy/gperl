@@ -50,12 +50,12 @@ void GPerlVirtualMachine::createDirectThreadingCode(GPerlVirtualMachineCode *cod
 }
 
 /*
-static void *gxmalloc(void)
+static void *gxsafe_malloc(void)
 {
 	int pagesize = sysconf(_SC_PAGE_SIZE);
 	DBG_PL("pagesize = [%d]", pagesize);
 	if (pagesize < 0) perror("sysconf");
-	void *_codeptr = (void *)malloc(pagesize * 10L);
+	void *_codeptr = (void *)safe_malloc(pagesize * 10L);
 	void *codeptr = (void *)((long)_codeptr & ~(pagesize - 1L));
 	memset(codeptr, 0xc3, pagesize * 10L);
 	if (mprotect(codeptr, pagesize * 10L, PROT_WRITE|PROT_READ|PROT_EXEC) < 0) perror("mprotect");
@@ -82,17 +82,17 @@ GPerlArgsArray *args;
 static GPerlEnv env_[MAX_CALLSTACK_SIZE];
 GPerlEnv *GPerlVirtualMachine::createCallStack(void)
 {
-	args = (GPerlArgsArray *)malloc(sizeof(GPerlArgsArray));
+	args = (GPerlArgsArray *)safe_malloc(sizeof(GPerlArgsArray));
 	memset(args, 0, sizeof(GPerlArgsArray));
 	args->write = Array_write;
 	for (int i = 0; i < MAX_CALLSTACK_SIZE; i++) {
-		GPerlValue *reg = (GPerlValue *)malloc(sizeof(GPerlValue) * MAX_REG_SIZE);
-		GPerlValue *argstack = (GPerlValue *)malloc(sizeof(GPerlValue) * MAX_ARGSTACK_SIZE);
+		GPerlValue *reg = (GPerlValue *)safe_malloc(sizeof(GPerlValue) * MAX_REG_SIZE);
+		GPerlValue *argstack = (GPerlValue *)safe_malloc(sizeof(GPerlValue) * MAX_ARGSTACK_SIZE);
 		env_[i].argstack = argstack;
 		env_[i].reg = reg;
 	}
 	int size = MAX_CALLSTACK_SIZE * sizeof(GPerlEnv);
-	GPerlEnv *callstack = (GPerlEnv *)malloc(size);
+	GPerlEnv *callstack = (GPerlEnv *)safe_malloc(size);
 	memcpy(callstack, env_, size);
 	return callstack;
 }
@@ -101,7 +101,7 @@ static GPerlObject **argstack_[MAX_CALLSTACK_SIZE];
 GPerlObject **GPerlVirtualMachine::createArgStack(void)
 {
 	for (int i = 0; i < MAX_CALLSTACK_SIZE; i++) {
-		argstack_[i] = (GPerlObject **)malloc(sizeof(GPerlObject) * MAX_ARGSTACK_SIZE);
+		argstack_[i] = (GPerlObject **)safe_malloc(sizeof(GPerlObject) * MAX_ARGSTACK_SIZE);
 		memset(argstack_[i], 0, sizeof(GPerlObject) * MAX_ARGSTACK_SIZE);
 	}
 	return (GPerlObject **)argstack_;

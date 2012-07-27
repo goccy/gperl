@@ -31,9 +31,9 @@ int callstack_count = 0;
 #define GPERL_vMOV(dst, src) callstack->reg[dst] = stack[ebp + src]
 #define GPERL_gMOV(dst, src) callstack->reg[dst] = global_vmemory[src];
 #define GPERL_ARGMOV(dst, src) callstack->reg[dst] = callstack->argstack[src]
-#define GPERL_ArrayARGMOV(_dst) {				\
-		args->list = callstack->argstack;		\
-		args->size = callstack->pc->dst + 1;		\
+#define GPERL_ArrayARGMOV(_dst) {                   \
+		args->list = callstack->argstack;           \
+		args->size = argc;                          \
 		OBJECT_init(callstack->reg[_dst], args);	\
 	}
 
@@ -148,6 +148,7 @@ int callstack_count = 0;
 #define GPERL_SETv(name, dst)
 
 #define GPERL_CALL(dst, src, NAME) {					\
+        argc = 0;                                       \
 		code_ = func_memory[src];						\
 		top   = code_;									\
 		esp += pc->ebp;									\
@@ -167,6 +168,7 @@ int callstack_count = 0;
 	}
 
 #define GPERL_SELFCALL(dst, NAME) {						\
+        argc = 0;                                       \
 		esp += pc->ebp;									\
 		callstack->ebp = ebp;							\
 		ebp = esp;										\
@@ -185,12 +187,30 @@ int callstack_count = 0;
 		esp = ebp;										\
 	}
 
+#define GPERL_JIT_CALL(src, env) {                              \
+		code_ = func_memory[src];                               \
+		top   = code_;                                          \
+        args->list = (callstack+1)->argstack;                   \
+		args->size = argc;                                      \
+        unsigned int result = jit_compiler.compile(top, &env);  \
+		INT_init(callstack->reg[pc->dst], result);              \
+        argc = 0;                                               \
+    }
+
+#define GPERL_JIT_SELFCALL(top, env) {                          \
+        args->list = (callstack+1)->argstack;                   \
+		args->size = argc;                                      \
+        unsigned int result = jit_compiler.compile(top, &env);  \
+		INT_init(callstack->reg[pc->dst], result);              \
+        argc = 0;                                               \
+    }
+
 #define GPERL_SHIFT(src)
 #define GPERL_iSHIFT(src)
 #define GPERL_dSHIFT(src)
 #define GPERL_sSHIFT(src)
 #define GPERL_oSHIFT(src)
-#define GPERL_PUSH(dst, src) (callstack+1)->argstack[src] = callstack->reg[dst]
+#define GPERL_PUSH(dst, src) (callstack+1)->argstack[src] = callstack->reg[dst]; argc++;
 #define GPERL_NEW()
 #define GPERL_ARRAY_PUSH(argstack) pc->push(argstack);
 #define GPERL_ARRAY_AT(dst, src, idx) do {                          \

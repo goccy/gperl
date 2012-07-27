@@ -158,7 +158,9 @@ void GPerlCompiler::genFunctionCode(GPerlCell *path)
 	ADD_FUNCCODE_TO_CODES(codes);
 	optimizeFuncCode(codes, path->fname);
 	COPY_CURRENT_CODE(codes, func_code);//codes => func_code
-	//finalCompile(func_code);
+#ifndef ENABLE_JIT_COMPILE
+	finalCompile(func_code);
+#endif
 	GPerlVirtualMachineCode *f = getPureCodes(func_code);
 	DBG_PL("========= DUMP FUNC CODE ==========");
 	dumpPureVMCode(f);
@@ -436,7 +438,7 @@ GPerlVirtualMachineCode *GPerlCompiler::getPureCodes(vector<GPerlVirtualMachineC
 		pure_codes_[i] = *codes->at(i);
 	}
 	volatile int code_size = code_n * sizeof(GPerlVirtualMachineCode);
-	GPerlVirtualMachineCode *pure_codes = (GPerlVirtualMachineCode *)malloc(code_size);
+	GPerlVirtualMachineCode *pure_codes = (GPerlVirtualMachineCode *)safe_malloc(code_size);
 	memcpy(pure_codes, pure_codes_, code_size);
 	return pure_codes;
 }
@@ -602,7 +604,7 @@ void GPerlCompiler::setMOV(GPerlVirtualMachineCode *code, GPerlCell *c)
 	case List: case ArrayRef: {
 		DBG_PL("List");
 		size_t size = sizeof(GPerlValue) * (c->argsize + 1);
-		GPerlValue *list = (GPerlValue *)malloc(size);
+		GPerlValue *list = (GPerlValue *)safe_malloc(size);
 		memset(list, 0, size);
 		for (int i = 0; i < c->argsize; i++) {
 			GPerlCell *v = c->vargs[i];

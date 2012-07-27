@@ -409,6 +409,48 @@ public:
 	int run(GPerlVirtualMachineCode *codes);
 };
 
+#ifdef USING_JIT
+
+#include <jit/jit.h>
+#define ENABLE_JIT_COMPILE
+typedef struct _GPerlJITEnv {
+    GPerlEnv *callstack;
+    GPerlValue *stack;
+    GPerlArgsArray *args;
+} GPerlJITEnv;
+
+class GPerlJmpInfo {
+public:
+    jit_label_t label;
+    int jmp_count;
+    GPerlJmpInfo(int jmp_count);
+};
+
+class GPerlJmpStack {
+public:
+    int jmp_stack_idx;
+    GPerlJmpInfo **infs;
+
+    GPerlJmpStack(void);
+    void push(GPerlJmpInfo *info);
+    GPerlJmpInfo *pop(void);
+    bool isJmp(void);
+};
+
+#define MAX_JMP_STACK_SIZE 128
+
+typedef jit_function_t GPerlJITCode;
+class GPerlJITCompiler {
+public:
+    GPerlJITCompiler(void);
+    unsigned int compile(GPerlVirtualMachineCode *codes, GPerlJITEnv *env);
+    unsigned int _compile(GPerlVirtualMachineCode *codes, GPerlJITEnv *env);
+    jit_value_t compileMOV(GPerlVirtualMachineCode *pc, jit_function_t *func);
+    jit_value_t compileVMOV(GPerlVirtualMachineCode *pc, jit_function_t *func);
+};
+
+#endif
+
 #define PAGE_SIZE 4096
 #define VOID_PTR sizeof(void*)
 #define OBJECT_SIZE (VOID_PTR * 8)
@@ -433,3 +475,5 @@ extern void Array_push(GPerlValue *);
 extern void Array_write(GPerlValue );
 extern void write_cwb(char *buf);
 extern void clear_cwb(void);
+extern void *safe_malloc(size_t size);
+extern void safe_free(void *ptr, size_t size);
