@@ -599,7 +599,7 @@ void GPerlCompiler::setMOV(GPerlVirtualMachineCode *code, GPerlCell *c)
 		break;
 	case String:
 		code->src = -1;
-		STRING_init(code->v, c->data.sdata);
+		STRING_init(code->v, new_GPerlString(c->data.sdata, strlen(c->data.sdata) + 1));
 		break;
 	case List: case ArrayRef: {
 		DBG_PL("List");
@@ -613,7 +613,7 @@ void GPerlCompiler::setMOV(GPerlVirtualMachineCode *code, GPerlCell *c)
 				INT_init(list[i], v->data.idata);
 				break;
 			case String:
-				STRING_init(list[i], v->data.sdata);
+				STRING_init(list[i], new_GPerlString(v->data.sdata, strlen(v->data.sdata) + 1));
 				break;
 			case Object:
 				OBJECT_init(list[i], v->data.pdata);
