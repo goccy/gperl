@@ -25,7 +25,7 @@
 #define DOUBLE_init(o, ddata) o.dvalue = ddata;
 #define STRING_init(o, ptr) o.svalue = ptr; o.bytes |= NaN | StringTag
 #define OBJECT_init(o, ptr) o.ovalue = ptr; o.bytes |= NaN | ObjectTag
-#define getString(o) (char *)(o.bytes ^ (NaN | StringTag))
+#define getString(o) ((GPerlString *)(o.bytes ^ (NaN | StringTag)))->s
 #define getObject(o) (o.bytes ^ (NaN | ObjectTag))
 #define TYPE_CHECK(T) ((T.bytes & NaN) == NaN) * ((T.bytes & TYPE) >> 48 )
 
@@ -219,12 +219,14 @@ public:
 #define MAX_VARIABLE_NUM 128
 #define MAX_FUNC_NUM 128
 
+struct _GPerlString;
+
 typedef union {
 	uint64_t bytes; /* for typecheck */
 	int ivalue;
 	double dvalue;
 	bool bvalue;
-	char *svalue;
+	_GPerlString *svalue;
 	void *ovalue; /* other Object */
 } GPerlValue;
 
@@ -272,6 +274,15 @@ typedef struct _GPerlArray {
 	void *slot4;
 	void *slot5;
 } GPerlArray;
+
+typedef struct _GPerlString {
+	GPerlObjectHeader h;
+	char *s;
+	size_t len;
+	void *slot3;
+	void *slot4;
+	void *slot5;
+} GPerlString;
 
 /* Protected ArrayObject */
 typedef struct _GPerlArgsArray {
@@ -483,6 +494,7 @@ extern char *cwb;
 extern GPerlArgsArray *args;
 extern GPerlArray *new_GPerlArray(GPerlValue *list, size_t asize);
 extern GPerlUndef *new_GPerlUndef(void);
+extern GPerlString *new_GPerlString(char *s, size_t len);
 extern void Undef_write(GPerlValue );
 extern void Array_push(GPerlValue *);
 extern void Array_write(GPerlValue );
