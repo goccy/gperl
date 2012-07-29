@@ -1,7 +1,7 @@
 #include <gperl.hpp>
 using namespace std;
 
-GPerlArray *new_GPerlArray(GPerlValue *list, size_t asize)
+GPerlArray *new_GPerlInitArray(GPerlValue *list, size_t asize)
 {
 	fprintf(stderr, "new Array\n");
 	GPerlArray *a = (GPerlArray *)mm->gmalloc(asize);
@@ -11,6 +11,43 @@ GPerlArray *new_GPerlArray(GPerlValue *list, size_t asize)
 	a->write = Array_write;
 	a->trace = Array_trace;
 	return a;
+}
+
+GPerlObject *new_GPerlArray(GPerlVirtualMachineCode *cur_pc, GPerlValue v)
+{
+	//root.stack_top_idx = cur_pc->cur_stack_top;
+
+	//root.stack_bottom = stack;
+	//root.callstack_bottom = callstack_bottom;
+	//root.global_memory = global_memory;
+	//root.init_variabls = init_variabls;
+	GPerlArray *a = (GPerlArray *)getObject(v);
+	size_t size = a->size;
+	GPerlValue *list = (GPerlValue *)safe_malloc(size * sizeof(GPerlValue));
+	for (size_t i = 0; i < size; i++) {
+		/* needs deep copy */
+		GPerlValue *const_list = a->list;
+		switch (TYPE_CHECK(const_list[i])) {
+		case 0: case 1: /* Int or Double */
+			list[i] = const_list[i];
+			break;
+		case 2: /* String */ {
+			STRING_init(list[i], (GPerlString *)new_GPerlString(cur_pc, const_list[i]));
+			break;
+		}
+		case 3: /* Other Object */
+			break;
+		default:
+			break;
+		}
+	}
+
+	a->list = list;
+	a->size = size;
+	a->write = Array_write;
+	a->trace = Array_trace;
+	a->h.type = a->h.type;
+	return (GPerlObject *)a;
 }
 
 void Array_push(GPerlValue *argstack)

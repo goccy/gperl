@@ -33,7 +33,7 @@ int callstack_count = 0;
 #define GPERL_ARGMOV(dst, src) callstack->reg[dst] = callstack->argstack[src]
 #define GPERL_ArrayARGMOV(_dst) {                   \
 		args->list = callstack->argstack;           \
-		args->size = argc;                          \
+		args->size = callstack->args_size;			\
 		OBJECT_init(callstack->reg[_dst], args);	\
 	}
 
@@ -148,16 +148,18 @@ int callstack_count = 0;
 #define GPERL_SETv(name, dst)
 
 #define GPERL_CALL(dst, src, NAME) {					\
-        argc = 0;                                       \
 		code_ = func_memory[src];						\
 		top   = code_;									\
-		esp += pc->ebp;									\
+		esp += pc->cur_stack_top;						\
 		callstack->ebp = ebp;							\
 		ebp = esp;										\
 		callstack++;									\
+		callstack->args_size = argc;					\
+		callstack->reg_top = pc->cur_reg_top;			\
 		callstack->ret_addr = &&L_##NAME##AFTER;		\
 		callstack->pc = pc;								\
 		pc = top;										\
+        argc = 0;                                       \
 		GOTO_NEXTOP();									\
 	L_##NAME##AFTER:									\
 		pc = callstack->pc;								\
@@ -168,15 +170,17 @@ int callstack_count = 0;
 	}
 
 #define GPERL_SELFCALL(dst, NAME) {						\
-        argc = 0;                                       \
-		esp += pc->ebp;									\
+		esp += pc->cur_stack_top;						\
 		callstack->ebp = ebp;							\
 		ebp = esp;										\
 		callstack++;									\
 		callstack_count++;								\
 		callstack->ret_addr = &&L_##NAME##AFTER;		\
+		callstack->reg_top = pc->cur_reg_top;			\
+		callstack->args_size = argc;					\
 		callstack->pc = pc;								\
 		pc = top;										\
+        argc = 0;                                       \
 		GOTO_NEXTOP();									\
 	L_##NAME##AFTER:									\
 		pc = callstack->pc;								\
@@ -191,7 +195,7 @@ int callstack_count = 0;
 		code_ = func_memory[src];                               \
 		top   = code_;                                          \
         args->list = (callstack+1)->argstack;                   \
-		args->size = argc;                                      \
+		args->size = argc;										\
         unsigned int result = jit_compiler.compile(top, &env);  \
 		INT_init(callstack->reg[pc->dst], result);              \
         argc = 0;                                               \
@@ -211,14 +215,21 @@ int callstack_count = 0;
 #define GPERL_sSHIFT(src)
 #define GPERL_oSHIFT(src)
 #define GPERL_PUSH(dst, src) (callstack+1)->argstack[src] = callstack->reg[dst]; argc++;
-#define GPERL_NEW()
+#define GPERL_NEW() do {\
+		root.callstack_top = callstack;								\
+		OBJECT_init(callstack->reg[pc->dst], pc->_new(pc, pc->v));	\
+	} while (0)
+#define GPERL_NEW_STRING() do {\
+		root.callstack_top = callstack;									\
+		STRING_init(callstack->reg[pc->dst], (GPerlString *)pc->_new(pc, pc->v)); \
+	} while (0)
 #define GPERL_ARRAY_PUSH(argstack) pc->push(argstack);
 #define GPERL_ARRAY_AT(dst, src, idx) do {                          \
 		GPerlArray *a = (GPerlArray *)getObject(stack[ebp + src]);  \
 		if (a->size > I(idx)) {                                     \
 			callstack->reg[dst] = a->list[I(idx)];                  \
 		} else {                                                    \
-			GPerlUndef *undef = new_GPerlUndef();                   \
+			GPerlUndef *undef = new_GPerlUndef(pc);					\
 			OBJECT_init(callstack->reg[dst], undef);                \
 		}                                                           \
 	} while (0);
@@ -228,14 +239,14 @@ int callstack_count = 0;
 		if (a->size > I(idx)) {											\
 			callstack->reg[dst] = a->list[I(idx)];						\
 		} else {														\
-			GPerlUndef *undef = new_GPerlUndef();						\
+			GPerlUndef *undef = new_GPerlUndef(pc);						\
 			OBJECT_init(callstack->reg[dst], undef);					\
 		}																\
 	} while (0);
 
 
 #define GPERL_ARRAY_DREF(dst, src) do {									\
-		GPerlArray *a = (GPerlArray *)getObject(callstack->reg[src]);	\
-		GPerlArray *deref_a = new_GPerlArray(a->list, a->size);			\
-		OBJECT_init(callstack->reg[dst], deref_a);						\
+		GPerlArray *a = (GPerlArray *)new_GPerlArray(pc, callstack->reg[src]); \
+		a->h.type = Array;												\
+		OBJECT_init(callstack->reg[dst], a);							\
 	} while (0);

@@ -116,6 +116,7 @@ GPerlCodeInfo decl_codes[] = {
 	{oSHIFT, "oSHIFT"},
 	{PUSH, "PUSH"},
 	{NEW, "NEW"},
+	{NEW_STRING, "NEW_STRING"},
 	{ARRAY_PUSH, "ARRAY_PUSH"},
 	{ARRAY_AT, "ARRAY_AT"},
 	{ARRAY_gAT, "ARRAY_gAT"},

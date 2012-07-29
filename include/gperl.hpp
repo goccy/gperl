@@ -25,7 +25,9 @@
 #define DOUBLE_init(o, ddata) o.dvalue = ddata;
 #define STRING_init(o, ptr) o.svalue = ptr; o.bytes |= NaN | StringTag
 #define OBJECT_init(o, ptr) o.ovalue = ptr; o.bytes |= NaN | ObjectTag
+#define getStringObj(o) (GPerlString *)(o.bytes ^ (NaN | StringTag))
 #define getString(o) ((GPerlString *)(o.bytes ^ (NaN | StringTag)))->s
+#define getLength(o) ((GPerlString *)(o.bytes ^ (NaN | StringTag)))->len
 #define getObject(o) (o.bytes ^ (NaN | ObjectTag))
 #define TYPE_CHECK(T) ((T.bytes & NaN) == NaN) * ((T.bytes & TYPE) >> 48 )
 
@@ -252,13 +254,13 @@ public:
 	bool isMarked(_GPerlObject* obj);
 	void mark_setStack(_GPerlObject* obj);
 	void popStack();
-	void pushStack(_GPerlObject* obj);
+	//void pushStack(_GPerlObject* obj);
 	void expandStack();
-	void gc();
-	void gc_init();
-	void gc_mark();
-	void gc_mark_root();
-	void gc_sweep();
+	void gc(void);
+	void gc_init(void);
+	void gc_mark(GPerlValue v);
+	void gc_sweep(void);
+	void traceRoot(void);
 };
 
 typedef struct _GPerlObjectHeader {
@@ -290,7 +292,7 @@ typedef struct _GPerlString {
 	char *s;
 	size_t len;
 	void *slot3;
-	void *slot4;
+	size_t (*trace)(_GPerlObject* v);
 	void *slot5;
 } GPerlString;
 
@@ -322,11 +324,14 @@ typedef struct _GPerlVirtualMachineCode {
 	union {
 		void *code;/* selective inlining code */
 		int jmp;   /* jmp register number */
-		int ebp;   /* stack base pointer */
+		//int ebp;   /* stack base pointer */
 		int idx;   /* array[idx] */
+		GPerlObject *(*_new)(struct _GPerlVirtualMachineCode *, GPerlValue);
 		void (*push)(GPerlValue *);
 		void (*write)(GPerlValue );
 	};
+	int cur_reg_top;
+	int cur_stack_top;
 	const char *name;
 	struct _GPerlVirtualMachineCode *func;
 	void *opnext; /* for direct threading */
@@ -346,7 +351,7 @@ public:
 	int variable_types[MAX_VARIABLE_NUM];
 	const char *declared_vname;
 	const char *declared_fname;
-	int variable_index;
+	int cur_stack_top;
 	int func_index;
 	int args_count;/* for shift */
 	std::map<std::string, int> local_vmap;
@@ -364,6 +369,7 @@ public:
 	int getFuncIndex(const char *name);
 	GPerlVirtualMachineCode *createVMCode(GPerlCell *c);
 	void setInstByVMap(GPerlVirtualMachineCode *code, GPerlCell *c, GPerlOpCode lop, GPerlOpCode gop, int *idx);
+	void setEscapeStackNum(GPerlVirtualMachineCode *code, GPerlCell *c);
 	void setMOV(GPerlVirtualMachineCode *code, GPerlCell *c);
 	void setVMOV(GPerlVirtualMachineCode *code, GPerlCell *c);
 	void setINC(GPerlVirtualMachineCode *code, GPerlCell *c);
@@ -415,8 +421,11 @@ public:
 typedef struct _GPerlEnv {
 	GPerlValue *reg;
 	GPerlValue *argstack;
+	size_t args_size;
 	GPerlVirtualMachineCode *pc;
+	GPerlVirtualMachineCode **cur_pc;
 	void *ret_addr;
+	int reg_top;
 	int esp;
 	int ebp;
 } GPerlEnv;
@@ -485,7 +494,20 @@ public:
 
 #endif
 
-#define PAGE_SIZE (64 * 4)
+typedef struct _GPerlTraceRoot {
+	/* callstack trace for register */
+	GPerlEnv *callstack_top;
+	GPerlEnv *callstack_bottom;
+	/* virtual stack to stack[stack_top_idx] */
+	GPerlValue *stack_bottom;
+	int stack_top_idx;
+	/* global variables */
+	GPerlValue *global_vmemory;
+	/* initial variables */
+	GPerlValue *init_values;
+} GPerlTraceRoot;
+
+#define PAGE_SIZE (64 * 8)
 //#define PAGE_SIZE 4096
 #define VOID_PTR sizeof(void*)
 #define OBJECT_SIZE (VOID_PTR * 8)
@@ -493,24 +515,32 @@ public:
 #define NAME_RESOLUTION_PREFIX "*"
 #define MAX_GLOBAL_MEMORY_SIZE 128
 #define MAX_STACK_MEMORY_SIZE 1024 * 8 /* 8M */
+#define MAX_INIT_VALUES_SIZE 64
 #define KB 1024
 #define MB KB * KB
 #define MAX_CWB_SIZE 1 * MB
 
 extern GPerlValue global_vmemory[MAX_GLOBAL_MEMORY_SIZE];
+extern GPerlValue init_values[MAX_INIT_VALUES_SIZE];
 extern GPerlMemoryManager *mm;
 extern char shared_buf[128];
 extern std::string outbuf;
 extern char *cwb;
 extern GPerlArgsArray *args;
-extern GPerlArray *new_GPerlArray(GPerlValue *list, size_t asize);
-extern GPerlUndef *new_GPerlUndef(void);
-extern GPerlString *new_GPerlString(char *s, size_t len);
+extern GPerlArray *new_GPerlInitArray(GPerlValue *list, size_t asize);
+extern GPerlObject *new_GPerlArray(GPerlVirtualMachineCode *cur_pc, GPerlValue );
+extern GPerlUndef *new_GPerlUndef(GPerlVirtualMachineCode *cur_pc);
+extern GPerlString *new_GPerlInitString(char *s, size_t len);
+extern GPerlObject *new_GPerlString(GPerlVirtualMachineCode *cur_pc, GPerlValue );
 extern void Undef_write(GPerlValue );
 extern void Array_push(GPerlValue *);
 extern void Array_write(GPerlValue );
 extern size_t Array_trace(GPerlObject* );
+extern size_t String_trace(GPerlObject* );
 extern void write_cwb(char *buf);
 extern void clear_cwb(void);
 extern void *safe_malloc(size_t size);
 extern void safe_free(void *ptr, size_t size);
+extern GPerlVirtualMachineCode **cur_pc;
+extern GPerlTraceRoot root;
+extern int init_value_idx;

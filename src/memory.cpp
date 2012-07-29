@@ -2,7 +2,6 @@
 
 #define MM_POP(list, obj) { \
 		obj = list; \
-		fprintf(stderr, "list %p, tail %p\n", list, tail);\
 		list = list->h.next;\
 		if (list == NULL) {\
 			obj = NULL;\
@@ -15,7 +14,12 @@
 		list = obj; \
 	}
 
+GPerlValue global_vmemory[MAX_GLOBAL_MEMORY_SIZE];
+GPerlValue init_values[MAX_INIT_VALUES_SIZE];
+GPerlTraceRoot root;
+int init_value_idx = 0;
 static int memory_leaks = 0;
+
 void *safe_malloc(size_t size)
 {
 	void *ret = malloc(size);
@@ -47,7 +51,6 @@ GPerlMemoryManager::GPerlMemoryManager(void)
 	body = (GPerlObject *)safe_malloc(PAGE_SIZE);
 	head = (void*)body;
 	tail = (void*)((char*)body + PAGE_SIZE);
-	fprintf(stderr, "head: %p, tail: %p\n", head, tail);
 	GPerlObject* obj = (GPerlObject*)head;
 	while (obj < tail) {
 		obj->h.next = obj + 1;
@@ -69,10 +72,10 @@ bool GPerlMemoryManager::isMarked(GPerlObject* obj) {
 void GPerlMemoryManager::popStack() {
 }
 
-void GPerlMemoryManager::pushStack(GPerlObject* obj) {
-	stack[stackSize++] = obj;
-	stackHead++;
-}
+//void GPerlMemoryManager::pushStack(GPerlValue obj) {
+//	stack[stackSize++] = obj;
+//	stackHead++;
+//}
 
 void GPerlMemoryManager::expandStack() {
 	stack = (GPerlObject**)realloc((void*)stack, stackSize * 2);
@@ -110,68 +113,89 @@ void GPerlMemoryManager::_gfree(GPerlObject* obj) {
 void GPerlMemoryManager::gc_init() {
 }
 
-void GPerlMemoryManager::gc_mark_root() {
-	//stack = traceStack();
-	//stack = traceRegister();
-	//return traceSize;
-	int i = 0;
-	GPerlObject* obj = (GPerlObject*)head;
-	while (obj < tail) {
-		fprintf(stderr, "obj: %p\n", obj);
-		pushStack(obj);
-	}
-}
+//void GPerlMemoryManager::mark_setStack(GPerlObject* obj) {
+//	if (!isMarked(obj)) {
+//		obj->h.mark_flag = 1;
+//	}
+//	//pushStack(obj);
+//}
 
-void GPerlMemoryManager::mark_setStack(GPerlObject* obj) {
-	if (!isMarked(obj)) {
-		obj->h.mark_flag = 1;
-	}
-	pushStack(obj);
-}
-
-void GPerlMemoryManager::gc_mark() {
-	size_t i, j;
-	gc_mark_root();
-	fprintf(stderr, "max stack size: %lu\n", maxStackSize);
-	for(i = 0; i < stackSize - 1; i++) {
-		GPerlObject* obj = stack[i];
-		fprintf(stderr, "type: %ld\n", obj->h.type);
-		traceSize = obj->trace(obj);
-		for (j = 0; j < traceSize; j++) {
-			mark_setStack(obj);
+void GPerlMemoryManager::gc_mark(GPerlValue v) {
+	size_t i;
+	GPerlObject* obj = (GPerlObject*)getStringObj(v);
+	traceSize = obj->trace(obj);
+	for (i = 0; i < traceSize; i++) {
+		if (!isMarked(obj)) {
+			obj->h.mark_flag = 1;
 		}
+		//gc_mark(v);
 	}
 }
 
 void GPerlMemoryManager::gc_sweep() {
 	size_t deadCount = 0;
 	GPerlObject* obj = (GPerlObject*)head;
-	fprintf(stderr, "start sweep\n");
+	//fprintf(stderr, "start sweep\n");
 	while (obj < tail) {
-		fprintf(stderr, "obj: %p\n", obj);
+		//fprintf(stderr, "obj: %p\n", obj);
 		if (!isMarked(obj)) {
-			fprintf(stderr, "gc sweep: %p\n", obj);
-			_gfree(obj);
+			//fprintf(stderr, "gc sweep: %p\n", obj);
 			MM_PUSH(freeList, obj);
 			deadCount++;
 		}
 		obj++;
 	}
+	//fprintf(stderr, "sweeped: %lu\n", deadCount);
 	if (deadCount < maxStackSize * 3 / 4) {
-		fprintf(stderr, "Expand Heap!! \n");
+		//fprintf(stderr, "Expand Heap!! \n");
 		return;
 	}
 }
 
 void GPerlMemoryManager::gc() {
-	fprintf(stderr, "start GC.\n");
+	//fprintf(stderr, "start GC.\n");
 	gc_init();
-	gc_mark();
+	traceRoot();
 	gc_sweep();
-	fprintf(stderr, "end GC.\n");
+	//fprintf(stderr, "end GC.\n");
 }
 
 void GPerlMemoryManager::exit() {
 	free(body);
 	free(stack);
+	for (int i = 0; i < MAX_GLOBAL_MEMORY_SIZE; i++) {
+		global_vmemory[i].ovalue = NULL;
+	}
+	for (int i = 0; i < MAX_INIT_VALUES_SIZE; i++) {
+		init_values[i].ovalue = NULL;
+	}
+}
+
+void GPerlMemoryManager::traceRoot(void)
+{
+	GPerlEnv *callstack_bottom = root.callstack_bottom;
+	GPerlEnv *callstack_trace_ptr = callstack_bottom;
+	GPerlEnv *callstack_top = root.callstack_top;
+
+	for (;callstack_trace_ptr != callstack_top; callstack_trace_ptr++) {
+		int reg_top_idx = callstack_trace_ptr->reg_top;
+		for (int i = 0; i < reg_top_idx; i++) {
+			gc_mark(callstack_trace_ptr->reg[i]);
+		}
+	}
+	GPerlValue *stack = root.stack_bottom;
+	int stack_top = callstack_top->ebp + root.stack_top_idx;
+	for (int i = 0; i < stack_top; i++) {
+		gc_mark(stack[i]);
+	}
+	GPerlValue *global_vmemory = root.global_vmemory;
+	for (int i = 0; global_vmemory[i].ovalue != NULL; i++) {
+		gc_mark(global_vmemory[i]);
+	}
+	GPerlValue *linit_values = init_values;
+	for (int i = 0; i < init_value_idx; i++) {
+		gc_mark(linit_values[i]);
+	}
+
+
 }
