@@ -3,32 +3,49 @@ using namespace std;
 
 GPerlArray *new_GPerlArray(GPerlValue *list, size_t asize)
 {
-	GPerlObject *freeList = mm->freeList;
-	GPerlObject *head = freeList;
-	if (freeList->h.next != NULL) {
-		mm->freeList = freeList->h.next;
-		GPerlArray *a = (GPerlArray *)head;
-		a->h.type = Array;
-		a->list = list;
-		a->size = asize;
-		a->write = Array_write;
-		return a;
-	} else {
-		DBG_PL("GC START!!");
-	}
-	return NULL;
+	GPerlArray *a = (GPerlArray *)mm->gmalloc(asize);
+	a->h.type = Array;
+	a->list = list;
+	a->size = asize;
+	a->write = Array_write;
+	return a;
 }
 
 void Array_push(GPerlValue *argstack)
 {
 	GPerlArray *a = (GPerlArray *)getObject(argstack[0]);
 	void *tmp;
-	if (!(tmp = realloc(a->list, sizeof(GPerlValue) + (a->size + 1)))) {
+	if (!(tmp = mm->grealloc(a->list, sizeof(GPerlValue) + (a->size + 1)))) {
 		fprintf(stderr, "ERROR!!: cannot allocated memory\n");
 	} else {
 		a->list = (GPerlValue *)tmp;
 		a->list[a->size] = argstack[1];
 		a->size++;
+	}
+}
+
+#define MM_POP(list, obj) { \
+		obj = list; \
+		list = list->h.next; \
+	}
+
+#define MM_PUSH(list, obj) { \
+		_gfree(obj); \
+		obj->h.next = list; \
+		list = obj; \
+	}
+
+#define IS_UNBOX(obj) ((obj)->h.type < 2)
+
+void Array_trace(GPerlValue *argstack)
+{
+	fprintf(stderr, "Array trace...\n");
+	GPerlArray *a = (GPerlArray *)getObject(argstack[0]);
+	for (int i = 0; i < a->size; i++) {
+		GPerlValue v = a->list[i];
+		//if (IS_UNBOX(&v)) continue;
+		//mm->pushStack((GPerlObject*)a->list[i]);
+		//mm->pushStack((GPerlObject*)v);
 	}
 }
 

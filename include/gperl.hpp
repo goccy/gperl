@@ -236,24 +236,33 @@ class GPerlMemoryManager {
 public:
 	_GPerlObject *freeList;
 	_GPerlObject *body;
+	_GPerlObject **stack;
+	size_t stackSize;
+	size_t maxStackSize;
+	size_t traceSize;
 	void *head;
 	void *tail;
+	_GPerlObject *stackHead;
+	void *stackTail;
 	GPerlMemoryManager(void);
 	void exit();
 	_GPerlObject* gmalloc(size_t size);
+	_GPerlObject* grealloc(void* obj, size_t size);
 	static void _gfree(_GPerlObject* obj);
+	bool isMarked(_GPerlObject* obj);
+	void popStack(_GPerlObject* obj);
+	void pushStack();
+	void expandStack();
 	void gc();
-	_GPerlObject* _pop();
-	void _push(_GPerlObject* obj);
-	void _gc_init();
-	void _gc_mark();
-	void _gc_mark_root();
-	void _gc_sweep();
+	void gc_init();
+	void gc_mark();
+	void gc_mark_root();
+	void gc_sweep();
 };
 
 typedef struct _GPerlObjectHeader {
-	int type;
-	int mark_flag;
+	intptr_t type;
+	intptr_t mark_flag;
 	_GPerlObject *next;
 } GPerlObjectHeader;
 
@@ -262,7 +271,7 @@ typedef struct _GPerlObject {
 	void *slot1;
 	void *slot2;
 	void (*write)(GPerlValue v);
-	void *slot4;
+	void *(*trace)();
 	void *slot5;
 } GPerlObject;
 
@@ -271,8 +280,8 @@ typedef struct _GPerlArray {
 	int size;
 	GPerlValue *list;
 	void (*write)(GPerlValue v);
-	void *slot4;
-	void *slot5;
+	void (*trace)();
+	void (*free)();
 } GPerlArray;
 
 typedef struct _GPerlString {
@@ -475,7 +484,8 @@ public:
 
 #endif
 
-#define PAGE_SIZE 4096
+#define PAGE_SIZE (64 * 4)
+//#define PAGE_SIZE 4096
 #define VOID_PTR sizeof(void*)
 #define OBJECT_SIZE (VOID_PTR * 8)
 #define MEMORY_POOL_SIZE (OBJECT_SIZE * PAGE_SIZE)
