@@ -2,7 +2,11 @@
 
 #define MM_POP(list, obj) { \
 		obj = list; \
-		list = list->h.next; \
+		fprintf(stderr, "list %p, tail %p\n", list, tail);\
+		list = list->h.next;\
+		if (list == NULL) {\
+			obj = NULL;\
+		}\
 	}
 
 #define MM_PUSH(list, obj) { \
@@ -43,6 +47,7 @@ GPerlMemoryManager::GPerlMemoryManager(void)
 	body = (GPerlObject *)safe_malloc(PAGE_SIZE);
 	head = (void*)body;
 	tail = (void*)((char*)body + PAGE_SIZE);
+	fprintf(stderr, "head: %p, tail: %p\n", head, tail);
 	GPerlObject* obj = (GPerlObject*)head;
 	while (obj < tail) {
 		obj->h.next = obj + 1;
@@ -51,7 +56,7 @@ GPerlMemoryManager::GPerlMemoryManager(void)
 	obj->h.next = NULL;
 	freeList = (GPerlObject*)head;
 	stack = (GPerlObject **)safe_malloc(PAGE_SIZE * sizeof(void*) / sizeof(GPerlObject));
-	head = stack;
+	stackHead = stack[0];
 	stackTail = (void*)((char*)stack + PAGE_SIZE * sizeof(void*) / sizeof(GPerlObject));
 	stackSize = 0;
 	maxStackSize = PAGE_SIZE / sizeof(GPerlObject);
@@ -61,12 +66,12 @@ bool GPerlMemoryManager::isMarked(GPerlObject* obj) {
 	return (obj->h.mark_flag == 1) ? true: false ;
 }
 
-void GPerlMemoryManager::popStack(GPerlObject* obj) {
-	stack[stackSize++] = obj;
-	stackHead++;
+void GPerlMemoryManager::popStack() {
 }
 
-void GPerlMemoryManager::pushStack() {
+void GPerlMemoryManager::pushStack(GPerlObject* obj) {
+	stack[stackSize++] = obj;
+	stackHead++;
 }
 
 void GPerlMemoryManager::expandStack() {
@@ -109,29 +114,52 @@ void GPerlMemoryManager::gc_mark_root() {
 	//stack = traceStack();
 	//stack = traceRegister();
 	//return traceSize;
+	int i = 0;
+	GPerlObject* obj = (GPerlObject*)head;
+	while (obj < tail) {
+		fprintf(stderr, "obj: %p\n", obj);
+		pushStack(obj);
+	}
+}
+
+void GPerlMemoryManager::mark_setStack(GPerlObject* obj) {
+	if (!isMarked(obj)) {
+		obj->h.mark_flag = 1;
+	}
+	pushStack(obj);
 }
 
 void GPerlMemoryManager::gc_mark() {
 	size_t i, j;
-	for(i = 0; i < maxStackSize; i++) {
+	gc_mark_root();
+	fprintf(stderr, "max stack size: %lu\n", maxStackSize);
+	for(i = 0; i < stackSize - 1; i++) {
 		GPerlObject* obj = stack[i];
-		obj->trace();
+		fprintf(stderr, "type: %ld\n", obj->h.type);
+		traceSize = obj->trace(obj);
 		for (j = 0; j < traceSize; j++) {
-			if (!isMarked(obj)) {
-				obj->h.mark_flag = 1;
-			}
+			mark_setStack(obj);
 		}
 	}
 }
 
 void GPerlMemoryManager::gc_sweep() {
+	size_t deadCount = 0;
 	GPerlObject* obj = (GPerlObject*)head;
-	while(obj < tail) {
+	fprintf(stderr, "start sweep\n");
+	while (obj < tail) {
+		fprintf(stderr, "obj: %p\n", obj);
 		if (!isMarked(obj)) {
+			fprintf(stderr, "gc sweep: %p\n", obj);
 			_gfree(obj);
 			MM_PUSH(freeList, obj);
+			deadCount++;
 		}
 		obj++;
+	}
+	if (deadCount < maxStackSize * 3 / 4) {
+		fprintf(stderr, "Expand Heap!! \n");
+		return;
 	}
 }
 
@@ -140,6 +168,7 @@ void GPerlMemoryManager::gc() {
 	gc_init();
 	gc_mark();
 	gc_sweep();
+	fprintf(stderr, "end GC.\n");
 }
 
 void GPerlMemoryManager::exit() {

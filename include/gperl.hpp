@@ -250,8 +250,9 @@ public:
 	_GPerlObject* grealloc(void* obj, size_t size);
 	static void _gfree(_GPerlObject* obj);
 	bool isMarked(_GPerlObject* obj);
-	void popStack(_GPerlObject* obj);
-	void pushStack();
+	void mark_setStack(_GPerlObject* obj);
+	void popStack();
+	void pushStack(_GPerlObject* obj);
 	void expandStack();
 	void gc();
 	void gc_init();
@@ -271,7 +272,7 @@ typedef struct _GPerlObject {
 	void *slot1;
 	void *slot2;
 	void (*write)(GPerlValue v);
-	void *(*trace)();
+	size_t (*trace)(_GPerlObject* v);
 	void *slot5;
 } GPerlObject;
 
@@ -280,7 +281,7 @@ typedef struct _GPerlArray {
 	int size;
 	GPerlValue *list;
 	void (*write)(GPerlValue v);
-	void (*trace)();
+	size_t (*trace)(_GPerlObject* v);
 	void (*free)();
 } GPerlArray;
 
@@ -508,6 +509,7 @@ extern GPerlString *new_GPerlString(char *s, size_t len);
 extern void Undef_write(GPerlValue );
 extern void Array_push(GPerlValue *);
 extern void Array_write(GPerlValue );
+extern size_t Array_trace(GPerlObject* );
 extern void write_cwb(char *buf);
 extern void clear_cwb(void);
 extern void *safe_malloc(size_t size);

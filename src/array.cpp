@@ -3,11 +3,13 @@ using namespace std;
 
 GPerlArray *new_GPerlArray(GPerlValue *list, size_t asize)
 {
+	fprintf(stderr, "new Array\n");
 	GPerlArray *a = (GPerlArray *)mm->gmalloc(asize);
 	a->h.type = Array;
 	a->list = list;
 	a->size = asize;
 	a->write = Array_write;
+	a->trace = Array_trace;
 	return a;
 }
 
@@ -37,16 +39,18 @@ void Array_push(GPerlValue *argstack)
 
 #define IS_UNBOX(obj) ((obj)->h.type < 2)
 
-void Array_trace(GPerlValue *argstack)
+size_t Array_trace(GPerlObject* o)
 {
 	fprintf(stderr, "Array trace...\n");
-	GPerlArray *a = (GPerlArray *)getObject(argstack[0]);
-	for (int i = 0; i < a->size; i++) {
+	GPerlArray *a = (GPerlArray *)o;
+	size_t size = a->size;
+	for (int i = 0; i < size; i++) {
 		GPerlValue v = a->list[i];
 		//if (IS_UNBOX(&v)) continue;
 		//mm->pushStack((GPerlObject*)a->list[i]);
 		//mm->pushStack((GPerlObject*)v);
 	}
+	return size;
 }
 
 void Array_write(GPerlValue o)
