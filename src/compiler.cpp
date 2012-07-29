@@ -1,8 +1,7 @@
 #include <gperl.hpp>
 using namespace std;
-
 GPerlCompiler::GPerlCompiler(void) : dst(0), src(0), code_num(0),
-									 variable_index(0), func_index(0),
+									 func_index(0),
 									 args_count(0)
 {
 	declared_vname = NULL;
@@ -562,6 +561,7 @@ GPerlVirtualMachineCode *GPerlCompiler::createVMCode(GPerlCell *c)
 	default:
 		break;
 	}
+	setEscapeStackNum(code, c);
 	return code;
 }
 
@@ -596,13 +596,19 @@ void GPerlCompiler::setMOV(GPerlVirtualMachineCode *code, GPerlCell *c)
 	switch (type) {
 	case Int:
 		INT_init(code->v, c->data.idata);
+		code->op = MOV;
 		break;
 	case String:
 		code->src = -1;
-		STRING_init(code->v, new_GPerlString(c->data.sdata, strlen(c->data.sdata) + 1));
+		code->op = NEW_STRING;
+		code->_new = new_GPerlString;
+		STRING_init(code->v, new_GPerlInitString(c->data.sdata, strlen(c->data.sdata) + 1));
+		init_values[init_value_idx] = code->v;
+		init_value_idx++;
 		break;
 	case List: case ArrayRef: {
-		DBG_PL("List");
+		code->op = NEW;
+		code->_new = new_GPerlArray;
 		size_t size = sizeof(GPerlValue) * (c->argsize + 1);
 		GPerlValue *list = (GPerlValue *)safe_malloc(size);
 		memset(list, 0, size);
@@ -613,7 +619,7 @@ void GPerlCompiler::setMOV(GPerlVirtualMachineCode *code, GPerlCell *c)
 				INT_init(list[i], v->data.idata);
 				break;
 			case String:
-				STRING_init(list[i], new_GPerlString(v->data.sdata, strlen(v->data.sdata) + 1));
+				STRING_init(list[i], new_GPerlInitString(v->data.sdata, strlen(v->data.sdata) + 1));
 				break;
 			case Object:
 				OBJECT_init(list[i], v->data.pdata);
@@ -622,12 +628,14 @@ void GPerlCompiler::setMOV(GPerlVirtualMachineCode *code, GPerlCell *c)
 				break;
 			}
 		}
-		GPerlArray *a = new_GPerlArray(list, c->argsize);
+		OBJECT_init(code->v, new_GPerlInitArray(list, c->argsize));
 		if (type == ArrayRef) {
+			GPerlArray *a = (GPerlArray *)getObject(code->v);
 			a->h.type = ArrayRef;
 		}
+		init_values[init_value_idx] = code->v;
+		init_value_idx++;
 		code->src = 0;
-		OBJECT_init(code->v, a);
 		type = Object;
 		break;
 	}
@@ -635,7 +643,6 @@ void GPerlCompiler::setMOV(GPerlVirtualMachineCode *code, GPerlCell *c)
 		break;
 	}
 	code->dst = dst;
-	code->op = MOV;
 	reg_type[dst] = type;
 	dst++;
 }
@@ -785,17 +792,18 @@ void GPerlCompiler::setSETv(GPerlVirtualMachineCode *code, GPerlCell *c)
 	code->src = 0;
 	code->name = name;
 	declared_vname = name;
+	cur_stack_top = c->vidx + 1;
 }
 
-void GPerlCompiler::setCALL(GPerlVirtualMachineCode *code, GPerlCell *c)
+void GPerlCompiler::setEscapeStackNum(GPerlVirtualMachineCode *code, GPerlCell *c)
 {
-	const char *name = cstr(c->fname);
-	int idx = getFuncIndex(name);
+	/*
 	int ebp_num = 0;
 	map<string, int>::iterator it = local_vmap.begin();
 	while (it != local_vmap.end()) {
 		string key = it->first;
 		string prefix = "";
+		DBG_PL("indent = [%d]", c->indent);
 		for (int i = 1; i < c->indent; i++) {
 			prefix += string(NAME_RESOLUTION_PREFIX);
 			if (!strncmp(cstr(prefix), cstr(key), i)) {
@@ -804,11 +812,22 @@ void GPerlCompiler::setCALL(GPerlVirtualMachineCode *code, GPerlCell *c)
 		}
 		it++;
 	}
+	*/
+	//code->ebp = cur_stack_top;//ebp_num;
+	code->cur_stack_top = cur_stack_top;//ebp_num;
+	code->cur_reg_top = dst;
+}
+
+void GPerlCompiler::setCALL(GPerlVirtualMachineCode *code, GPerlCell *c)
+{
+	const char *name = cstr(c->fname);
+	int idx = getFuncIndex(name);
+	setEscapeStackNum(code, c);
 	code->op = CALL;
 	code->dst = dst-1;
 	code->src = idx;
-	code->ebp = ebp_num;
 	code->name = name;
+	code->cur_reg_top = dst-1;
 	reg_type[dst-1] = Object;
 }
 
@@ -851,6 +870,8 @@ GPerlVirtualMachineCode *GPerlCompiler::createRET(void)
 	GPerlVirtualMachineCode *code = new GPerlVirtualMachineCode();
 	code->code_num = code_num;
 	code->op = RET;
+	code->cur_stack_top = cur_stack_top;//ebp_num;
+	code->cur_reg_top = dst;
 	return code;
 }
 
@@ -859,6 +880,8 @@ GPerlVirtualMachineCode *GPerlCompiler::createUNDEF(void)
 	GPerlVirtualMachineCode *code = new GPerlVirtualMachineCode();
 	code->code_num = code_num;
 	code->op = UNDEF;
+	code->cur_stack_top = cur_stack_top;//ebp_num;
+	code->cur_reg_top = dst;
 	return code;
 }
 
@@ -868,6 +891,7 @@ GPerlVirtualMachineCode *GPerlCompiler::createWRITE(void)
 	code->code_num = code_num;
 	code->op = WRITE;
 	code->dst = dst-1;
+	code->cur_stack_top = cur_stack_top;//ebp_num;
 	return code;
 }
 
@@ -877,6 +901,7 @@ GPerlVirtualMachineCode *GPerlCompiler::createiWRITE(void)
 	code->code_num = code_num;
 	code->op = iWRITE;
 	code->dst = dst-1;
+	code->cur_stack_top = cur_stack_top;//ebp_num;
 	return code;
 }
 
@@ -886,6 +911,7 @@ GPerlVirtualMachineCode *GPerlCompiler::createsWRITE(void)
 	code->code_num = code_num;
 	code->op = sWRITE;
 	code->dst = dst-1;
+	code->cur_stack_top = cur_stack_top;//ebp_num;
 	return code;
 }
 
@@ -894,6 +920,7 @@ GPerlVirtualMachineCode *GPerlCompiler::createoWRITE(void)
 	GPerlVirtualMachineCode *code = new GPerlVirtualMachineCode();
 	code->code_num = code_num;
 	code->op = oWRITE;
+	code->cur_stack_top = cur_stack_top;//ebp_num;
 	return code;
 }
 
@@ -904,6 +931,8 @@ GPerlVirtualMachineCode *GPerlCompiler::createPUSH(int i, int dst_)
 	code->op = PUSH;
 	code->src = i;
 	code->dst = dst_-1;
+	code->cur_stack_top = cur_stack_top;//ebp_num;
+	code->cur_reg_top = dst_;
 	args_count++;
 	return code;
 }
@@ -914,15 +943,17 @@ GPerlVirtualMachineCode *GPerlCompiler::createJMP(int jmp_num)
 	code->code_num = code_num;
 	code->op = JMP;
 	code->jmp = jmp_num;
+	code->cur_stack_top = cur_stack_top;//ebp_num;
+	code->cur_reg_top = dst;
 	return code;
 }
 
 void GPerlCompiler::dumpVMCode(GPerlVirtualMachineCode *code)
 {
 	(void)code;
-	DBG_PL("L[%d] : %s [dst:%d], [src:%d], [jmp:%d], [name:%s], [ivalue: %d]",
+	DBG_PL("L[%d] : %s [dst:%d], [src:%d], [jmp:%d], [name:%s], [ivalue: %d], [cur_stack_top: %d], [cur_reg_top: %d]",
 		   code->code_num, decl_codes[code->op].name, code->dst, code->src,
-		   code->jmp, code->name, code->v.ivalue);
+		   code->jmp, code->name, code->v.ivalue, code->cur_stack_top, code->cur_reg_top);
 }
 
 void GPerlCompiler::dumpPureVMCode(GPerlVirtualMachineCode *c)

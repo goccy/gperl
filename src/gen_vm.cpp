@@ -12,11 +12,13 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 	static GPerlVirtualMachineCode *top;
 	GPerlVirtualMachineCode *pc = codes, *code_ = NULL;
 	GPerlEnv *callstack = createCallStack();
-    int callstack_idx = 0;
     GPerlValue stack[MAX_STACK_MEMORY_SIZE];
     int esp = 0;
     int ebp = 0;
-    int argc = 0;
+	int argc = 0;
+	root.stack_bottom = stack;
+	root.callstack_bottom = callstack;
+	root.global_vmemory = global_vmemory;
 #ifdef USING_JIT
     GPerlJITCompiler jit_compiler;
     GPerlJITEnv jit_env;
@@ -531,7 +533,6 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 	});
 	CASE(RET, {
 		GPERL_RET(pc->src);
-        callstack_idx--;
 		pc++;
 		BREAK();
 	});
@@ -605,28 +606,12 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 		BREAK();
 	});
 	CASE(CALL, {
-#ifdef USING_JIT
-        if (callstack_count > 0) {
-            GPERL_JIT_CALL(pc->src, jit_env);
-        } else {
-#endif
-            GPERL_CALL(pc->dst, pc->src, CALL);
-#ifdef USING_JIT
-        }
-#endif
+		GPERL_CALL(pc->dst, pc->src, CALL);
 		pc++;
 		BREAK();
 	});
 	CASE(SELFCALL, {
-#ifdef USING_JIT
-        if (callstack_count > 0) {
-            GPERL_JIT_SELFCALL(top, jit_env);
-        } else {
-#endif
-            GPERL_SELFCALL(pc->dst, SELFCALL);
-#ifdef USING_JIT
-        }
-#endif
+		GPERL_SELFCALL(pc->dst, SELFCALL);
 		pc++;
 		BREAK();
 	});
@@ -665,8 +650,13 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 		pc++;
 		BREAK();
 	});
+	CASE(NEW_STRING, {
+		GPERL_NEW_STRING();
+		pc++;
+		BREAK();
+	});
 	CASE(ARRAY_PUSH, {
-		GPERL_ARRAY_PUSH((callstack+1)->argstack);
+			GPERL_ARRAY_PUSH((callstack+1)->argstack);
 		pc++;
 		BREAK();
 	});

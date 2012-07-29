@@ -1,7 +1,6 @@
 #include <gperl.hpp>
 
 using namespace std;
-GPerlValue global_vmemory[MAX_GLOBAL_MEMORY_SIZE];
 char *cwb;
 int cwb_idx = 0;
 void write_cwb(char *buf)

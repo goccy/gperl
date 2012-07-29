@@ -116,6 +116,7 @@ typedef enum {
 	oSHIFT,
 	PUSH,
 	NEW,
+	NEW_STRING,
 	ARRAY_PUSH,
 	ARRAY_AT,
 	ARRAY_gAT,

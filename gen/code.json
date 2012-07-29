@@ -245,6 +245,13 @@
      "args" : []
  },
  {
+	 "code" : "NEW_STRING",
+	 "type" : 0,
+	 "const" : 0,
+	 "fast_type" : 0,
+     "args" : []
+ },
+ {
 	 "code" : "ARRAY_PUSH",
 	 "type" : 0,
 	 "const" : 0,
