@@ -1,6 +1,6 @@
 #include <gperl.hpp>
 
-GPerlUndef *new_GPerlUndef(void)
+GPerlUndef *new_GPerlUndef(GPerlVirtualMachineCode *cur_pc)
 {
 	GPerlObject *freeList = mm->freeList;
 	GPerlObject *head = freeList;
