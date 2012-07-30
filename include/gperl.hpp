@@ -240,6 +240,7 @@ public:
 	_GPerlObject *mem_pool;
 	_GPerlObject *head;
 	_GPerlObject *tail;
+    size_t mem_pool_size;
 
 	GPerlMemoryManager(void);
 	_GPerlObject* gmalloc(void);
@@ -314,7 +315,7 @@ typedef struct _GPerlVirtualMachineCode {
 		int jmp;   /* jmp register number */
 		//int ebp;   /* stack base pointer */
 		int idx;   /* array[idx] */
-		GPerlObject *(*_new)(struct _GPerlVirtualMachineCode *, GPerlValue);
+		GPerlObject *(*_new)(GPerlValue);
 		void (*push)(GPerlValue *);
 		void (*write)(GPerlValue );
 	};
@@ -496,7 +497,7 @@ typedef struct _GPerlTraceRoot {
 	GPerlValue *init_values;
 } GPerlTraceRoot;
 
-#define PAGE_SIZE (OBJECT_SIZE * 8)
+#define PAGE_SIZE (OBJECT_SIZE * 32)
 //#define PAGE_SIZE 4096
 #define VOID_PTR sizeof(void*)
 #define OBJECT_SIZE (VOID_PTR * 8)
@@ -516,11 +517,11 @@ extern char shared_buf[128];
 extern std::string outbuf;
 extern char *cwb;
 extern GPerlArgsArray *args;
+extern GPerlUndef *new_GPerlUndef(void);
 extern GPerlArray *new_GPerlInitArray(GPerlValue *list, size_t asize);
-extern GPerlObject *new_GPerlArray(GPerlVirtualMachineCode *cur_pc, GPerlValue );
-extern GPerlUndef *new_GPerlUndef(GPerlVirtualMachineCode *cur_pc);
+extern GPerlObject *new_GPerlArray(GPerlValue v);
 extern GPerlString *new_GPerlInitString(char *s, size_t len);
-extern GPerlObject *new_GPerlString(GPerlVirtualMachineCode *cur_pc, GPerlValue );
+extern GPerlObject *new_GPerlString(GPerlValue v);
 extern void Undef_write(GPerlValue );
 extern void Array_push(GPerlValue *);
 extern void Array_write(GPerlValue );

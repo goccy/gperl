@@ -217,11 +217,12 @@ int callstack_count = 0;
 #define GPERL_PUSH(dst, src) (callstack+1)->argstack[src] = callstack->reg[dst]; argc++;
 #define GPERL_NEW() do {\
 		root.callstack_top = callstack;								\
-		OBJECT_init(callstack->reg[pc->dst], pc->_new(pc, pc->v));	\
+        root.stack_top_idx = pc->cur_stack_top;                     \
+		OBJECT_init(callstack->reg[pc->dst], pc->_new(pc->v));      \
 	} while (0)
 #define GPERL_NEW_STRING() do {\
 		root.callstack_top = callstack;									\
-		STRING_init(callstack->reg[pc->dst], (GPerlString *)pc->_new(pc, pc->v)); \
+		STRING_init(callstack->reg[pc->dst], (GPerlString *)pc->_new(pc->v)); \
 	} while (0)
 #define GPERL_ARRAY_PUSH(argstack) pc->push(argstack);
 #define GPERL_ARRAY_AT(dst, src, idx) do {                          \
@@ -229,7 +230,7 @@ int callstack_count = 0;
 		if (a->size > I(idx)) {                                     \
 			callstack->reg[dst] = a->list[I(idx)];                  \
 		} else {                                                    \
-			GPerlUndef *undef = new_GPerlUndef(pc);					\
+			GPerlUndef *undef = new_GPerlUndef();					\
 			OBJECT_init(callstack->reg[dst], undef);                \
 		}                                                           \
 	} while (0);
@@ -239,14 +240,14 @@ int callstack_count = 0;
 		if (a->size > I(idx)) {											\
 			callstack->reg[dst] = a->list[I(idx)];						\
 		} else {														\
-			GPerlUndef *undef = new_GPerlUndef(pc);						\
+			GPerlUndef *undef = new_GPerlUndef();						\
 			OBJECT_init(callstack->reg[dst], undef);					\
 		}																\
 	} while (0);
 
 
 #define GPERL_ARRAY_DREF(dst, src) do {									\
-		GPerlArray *a = (GPerlArray *)new_GPerlArray(pc, callstack->reg[src]); \
+		GPerlArray *a = (GPerlArray *)new_GPerlArray(callstack->reg[src]); \
 		a->h.type = Array;												\
 		OBJECT_init(callstack->reg[dst], a);							\
 	} while (0);

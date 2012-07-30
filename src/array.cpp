@@ -95,7 +95,6 @@ void Array_free(GPerlObject *o)
 
 GPerlArray *new_GPerlInitArray(GPerlValue *list, size_t asize)
 {
-	fprintf(stderr, "new Array\n");
 	GPerlArray *a = (GPerlArray *)mm->gmalloc();
 	a->h.type = Array;
 	a->list = list;
@@ -106,7 +105,7 @@ GPerlArray *new_GPerlInitArray(GPerlValue *list, size_t asize)
 	return a;
 }
 
-GPerlObject *new_GPerlArray(GPerlVirtualMachineCode *, GPerlValue v)
+GPerlObject *new_GPerlArray(GPerlValue v)
 {
 	//root.stack_top_idx = cur_pc->cur_stack_top;
 	//root.stack_bottom = stack;
