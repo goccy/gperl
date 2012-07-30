@@ -26,7 +26,7 @@
 #define STRING_init(o, ptr) o.svalue = ptr; o.bytes |= NaN | StringTag
 #define OBJECT_init(o, ptr) o.ovalue = ptr; o.bytes |= NaN | ObjectTag
 #define getStringObj(o) (GPerlString *)(o.bytes ^ (NaN | StringTag))
-#define getString(o) ((GPerlString *)(o.bytes ^ (NaN | StringTag)))->s
+#define getRawString(o) ((GPerlString *)(o.bytes ^ (NaN | StringTag)))->s
 #define getLength(o) ((GPerlString *)(o.bytes ^ (NaN | StringTag)))->len
 #define getObject(o) (o.bytes ^ (NaN | ObjectTag))
 #define TYPE_CHECK(T) ((T.bytes & NaN) == NaN) * ((T.bytes & TYPE) >> 48 )
@@ -237,27 +237,15 @@ struct _GPerlObject;
 class GPerlMemoryManager {
 public:
 	_GPerlObject *freeList;
-	_GPerlObject *body;
-	_GPerlObject **stack;
-	size_t stackSize;
-	size_t maxStackSize;
-	size_t traceSize;
-	void *head;
-	void *tail;
-	_GPerlObject *stackHead;
-	void *stackTail;
+	_GPerlObject *mem_pool;
+	_GPerlObject *head;
+	_GPerlObject *tail;
+
 	GPerlMemoryManager(void);
-	void exit();
-	_GPerlObject* gmalloc(size_t size);
-	_GPerlObject* grealloc(void* obj, size_t size);
-	static void _gfree(_GPerlObject* obj);
+	_GPerlObject* gmalloc(void);
 	bool isMarked(_GPerlObject* obj);
-	void mark_setStack(_GPerlObject* obj);
-	void popStack();
-	//void pushStack(_GPerlObject* obj);
-	void expandStack();
+	void expandMemPool(void);
 	void gc(void);
-	void gc_init(void);
 	void gc_mark(GPerlValue v);
 	void gc_sweep(void);
 	void traceRoot(void);
@@ -274,36 +262,36 @@ typedef struct _GPerlObject {
 	void *slot1;
 	void *slot2;
 	void (*write)(GPerlValue v);
-	size_t (*trace)(_GPerlObject* v);
-	void *slot5;
+    void (*mark)(_GPerlObject *o);
+    void (*free)(_GPerlObject *o);
 } GPerlObject;
 
 typedef struct _GPerlArray {
 	GPerlObjectHeader h;
-	int size;
+	intptr_t size;
 	GPerlValue *list;
 	void (*write)(GPerlValue v);
-	size_t (*trace)(_GPerlObject* v);
-	void (*free)();
+    void (*mark)(_GPerlObject *o);
+	void (*free)(GPerlObject *o);
 } GPerlArray;
 
 typedef struct _GPerlString {
 	GPerlObjectHeader h;
 	char *s;
 	size_t len;
-	void *slot3;
-	size_t (*trace)(_GPerlObject* v);
-	void *slot5;
+	void (*write)(GPerlValue v);
+    void (*mark)(_GPerlObject *o);
+    void (*free)(GPerlObject *o);
 } GPerlString;
 
 /* Protected ArrayObject */
 typedef struct _GPerlArgsArray {
 	GPerlObjectHeader h;
-	int size;
+	intptr_t size;
 	GPerlValue *list;
 	void (*write)(GPerlValue v);
-	void *slot4;
-	void *slot5;
+    void (*mark)(_GPerlObject *o);
+    void (*free)(GPerlObject *o);
 } GPerlArgsArray;
 
 typedef struct _GPerlUndef {
@@ -311,8 +299,8 @@ typedef struct _GPerlUndef {
 	void *slot1;
 	void *slot2;
 	void (*write)(GPerlValue v);
-	void *slot4;
-	void *slot5;
+    void (*mark)(_GPerlObject *o);
+    void (*free)(GPerlObject *o);
 } GPerlUndef;
 
 typedef struct _GPerlVirtualMachineCode {
@@ -446,6 +434,7 @@ public:
 	void setToFuncMemory(GPerlVirtualMachineCode *func, int idx);
 	GPerlVirtualMachineCode *getFromFuncMemory(int idx);
 	GPerlEnv *createCallStack(void);
+    GPerlValue *createMachineStack(void);
 	GPerlObject **createArgStack(void);
 	void createDirectThreadingCode(GPerlVirtualMachineCode *codes, void **jmp_tbl);
 	void createSelectiveInliningCode(GPerlVirtualMachineCode *codes, void **jmp_tbl, InstBlock *block_tbl);
@@ -507,14 +496,14 @@ typedef struct _GPerlTraceRoot {
 	GPerlValue *init_values;
 } GPerlTraceRoot;
 
-#define PAGE_SIZE (64 * 8)
+#define PAGE_SIZE (OBJECT_SIZE * 8)
 //#define PAGE_SIZE 4096
 #define VOID_PTR sizeof(void*)
 #define OBJECT_SIZE (VOID_PTR * 8)
 #define MEMORY_POOL_SIZE (OBJECT_SIZE * PAGE_SIZE)
 #define NAME_RESOLUTION_PREFIX "*"
 #define MAX_GLOBAL_MEMORY_SIZE 128
-#define MAX_STACK_MEMORY_SIZE 1024 * 8 /* 8M */
+#define MAX_MACHINE_STACK_SIZE 1024 * 8 /* 8M */
 #define MAX_INIT_VALUES_SIZE 64
 #define KB 1024
 #define MB KB * KB

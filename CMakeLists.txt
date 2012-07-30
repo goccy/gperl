@@ -29,6 +29,7 @@ set(SOURCE
 	src/memory.cpp
 	src/vm.cpp
 	src/gen_vm.cpp
+	src/string.cpp
 	src/array.cpp
 	src/undef.cpp
 	src/jit.cpp

@@ -133,7 +133,7 @@ int callstack_count = 0;
 		sprintf(shared_buf, "%f", D(dst));				\
 		write_cwb(shared_buf);                          \
 	}
-#define GPERL_sWRITE(dst) write_cwb(getString(callstack->reg[dst]))
+#define GPERL_sWRITE(dst) write_cwb(getRawString(callstack->reg[dst]))
 #define GPERL_oWRITE(dst) {									\
 		GPerlObject *o = (GPerlObject *)getObject(callstack->reg[dst]);	\
 		o->write(callstack->reg[dst]);						\

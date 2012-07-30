@@ -6,13 +6,12 @@ using namespace std;
 
 char shared_buf[128] = {0};//TODO must be variable buffer
 string outbuf = "";
-
 int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 {
 	static GPerlVirtualMachineCode *top;
 	GPerlVirtualMachineCode *pc = codes, *code_ = NULL;
 	GPerlEnv *callstack = createCallStack();
-    GPerlValue stack[MAX_STACK_MEMORY_SIZE];
+    GPerlValue *stack = createMachineStack();
     int esp = 0;
     int ebp = 0;
 	int argc = 0;

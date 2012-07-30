@@ -96,6 +96,11 @@ GPerlEnv *GPerlVirtualMachine::createCallStack(void)
 	return callstack;
 }
 
+GPerlValue *GPerlVirtualMachine::createMachineStack(void)
+{
+    return (GPerlValue *)safe_malloc(MAX_MACHINE_STACK_SIZE * sizeof(GPerlValue));
+}
+
 static GPerlObject **argstack_[MAX_CALLSTACK_SIZE];
 GPerlObject **GPerlVirtualMachine::createArgStack(void)
 {
