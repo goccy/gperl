@@ -3,20 +3,14 @@ using namespace std;
 
 GPerlArray *new_GPerlInitArray(GPerlValue *list, size_t asize)
 {
-	GPerlObject *freeList = mm->freeList;
-	GPerlObject *head = freeList;
-	if (freeList->h.next != NULL) {
-		mm->freeList = freeList->h.next;
-		GPerlArray *a = (GPerlArray *)head;
-		a->h.type = Array;
-		a->list = list;
-		a->size = asize;
-		a->write = Array_write;
-		return a;
-	} else {
-		DBG_PL("GC START!!");
-	}
-	return NULL;
+	fprintf(stderr, "new Array\n");
+	GPerlArray *a = (GPerlArray *)mm->gmalloc(asize);
+	a->h.type = Array;
+	a->list = list;
+	a->size = asize;
+	a->write = Array_write;
+	a->trace = Array_trace;
+	return a;
 }
 
 GPerlObject *new_GPerlArray(GPerlVirtualMachineCode *cur_pc, GPerlValue v)
@@ -47,33 +41,53 @@ GPerlObject *new_GPerlArray(GPerlVirtualMachineCode *cur_pc, GPerlValue v)
 			break;
 		}
 	}
-	GPerlObject *freeList = mm->freeList;
-	GPerlObject *head = freeList;
-	if (freeList->h.next != NULL) {
-		mm->freeList = freeList->h.next;
-		GPerlArray *ret = (GPerlArray *)head;
-		ret->list = list;
-		ret->size = size;
-		ret->write = Array_write;
-		ret->h.type = a->h.type;
-		return (GPerlObject *)ret;
-	} else {
-		DBG_PL("GC START!!");
-	}
-	return NULL;
+
+	a->list = list;
+	a->size = size;
+	a->write = Array_write;
+	a->trace = Array_trace;
+	a->h.type = a->h.type;
+	return (GPerlObject *)a;
 }
 
 void Array_push(GPerlValue *argstack)
 {
 	GPerlArray *a = (GPerlArray *)getObject(argstack[0]);
 	void *tmp;
-	if (!(tmp = realloc(a->list, sizeof(GPerlValue) + (a->size + 1)))) {
+	if (!(tmp = mm->grealloc(a->list, sizeof(GPerlValue) + (a->size + 1)))) {
 		fprintf(stderr, "ERROR!!: cannot allocated memory\n");
 	} else {
 		a->list = (GPerlValue *)tmp;
 		a->list[a->size] = argstack[1];
 		a->size++;
 	}
+}
+
+#define MM_POP(list, obj) { \
+		obj = list; \
+		list = list->h.next; \
+	}
+
+#define MM_PUSH(list, obj) { \
+		_gfree(obj); \
+		obj->h.next = list; \
+		list = obj; \
+	}
+
+#define IS_UNBOX(obj) ((obj)->h.type < 2)
+
+size_t Array_trace(GPerlObject* o)
+{
+	fprintf(stderr, "Array trace...\n");
+	GPerlArray *a = (GPerlArray *)o;
+	size_t size = a->size;
+	for (int i = 0; i < size; i++) {
+		GPerlValue v = a->list[i];
+		//if (IS_UNBOX(&v)) continue;
+		//mm->pushStack((GPerlObject*)a->list[i]);
+		//mm->pushStack((GPerlObject*)v);
+	}
+	return size;
 }
 
 void Array_write(GPerlValue o)
