@@ -25,6 +25,7 @@
 #define DOUBLE_init(o, ddata) o.dvalue = ddata;
 #define STRING_init(o, ptr) o.svalue = ptr; o.bytes |= NaN | StringTag
 #define OBJECT_init(o, ptr) o.ovalue = ptr; o.bytes |= NaN | ObjectTag
+#define getStringObj(o) (GPerlString *)(o.bytes ^ (NaN | StringTag))
 #define getString(o) ((GPerlString *)(o.bytes ^ (NaN | StringTag)))->s
 #define getLength(o) ((GPerlString *)(o.bytes ^ (NaN | StringTag)))->len
 #define getObject(o) (o.bytes ^ (NaN | ObjectTag))
@@ -237,15 +238,34 @@ class GPerlMemoryManager {
 public:
 	_GPerlObject *freeList;
 	_GPerlObject *body;
+	_GPerlObject **stack;
+	size_t stackSize;
+	size_t maxStackSize;
+	size_t traceSize;
 	void *head;
 	void *tail;
+	_GPerlObject *stackHead;
+	void *stackTail;
 	GPerlMemoryManager(void);
+	void exit();
+	_GPerlObject* gmalloc(size_t size);
+	_GPerlObject* grealloc(void* obj, size_t size);
+	static void _gfree(_GPerlObject* obj);
+	bool isMarked(_GPerlObject* obj);
+	void mark_setStack(_GPerlObject* obj);
+	void popStack();
+	//void pushStack(_GPerlObject* obj);
+	void expandStack();
+	void gc(void);
+	void gc_init(void);
+	void gc_mark(GPerlValue v);
+	void gc_sweep(void);
 	void traceRoot(void);
 };
 
 typedef struct _GPerlObjectHeader {
-	int type;
-	int mark_flag;
+	intptr_t type;
+	intptr_t mark_flag;
 	_GPerlObject *next;
 } GPerlObjectHeader;
 
@@ -254,7 +274,7 @@ typedef struct _GPerlObject {
 	void *slot1;
 	void *slot2;
 	void (*write)(GPerlValue v);
-	void *slot4;
+	size_t (*trace)(_GPerlObject* v);
 	void *slot5;
 } GPerlObject;
 
@@ -263,8 +283,8 @@ typedef struct _GPerlArray {
 	int size;
 	GPerlValue *list;
 	void (*write)(GPerlValue v);
-	void *slot4;
-	void *slot5;
+	size_t (*trace)(_GPerlObject* v);
+	void (*free)();
 } GPerlArray;
 
 typedef struct _GPerlString {
@@ -272,7 +292,7 @@ typedef struct _GPerlString {
 	char *s;
 	size_t len;
 	void *slot3;
-	void *slot4;
+	size_t (*trace)(_GPerlObject* v);
 	void *slot5;
 } GPerlString;
 
@@ -487,7 +507,8 @@ typedef struct _GPerlTraceRoot {
 	GPerlValue *init_values;
 } GPerlTraceRoot;
 
-#define PAGE_SIZE 4096
+#define PAGE_SIZE (64 * 8)
+//#define PAGE_SIZE 4096
 #define VOID_PTR sizeof(void*)
 #define OBJECT_SIZE (VOID_PTR * 8)
 #define MEMORY_POOL_SIZE (OBJECT_SIZE * PAGE_SIZE)
@@ -514,6 +535,8 @@ extern GPerlObject *new_GPerlString(GPerlVirtualMachineCode *cur_pc, GPerlValue 
 extern void Undef_write(GPerlValue );
 extern void Array_push(GPerlValue *);
 extern void Array_write(GPerlValue );
+extern size_t Array_trace(GPerlObject* );
+extern size_t String_trace(GPerlObject* );
 extern void write_cwb(char *buf);
 extern void clear_cwb(void);
 extern void *safe_malloc(size_t size);

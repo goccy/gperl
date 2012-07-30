@@ -604,6 +604,8 @@ void GPerlCompiler::setMOV(GPerlVirtualMachineCode *code, GPerlCell *c)
 		code->_new = new_GPerlString;
 		STRING_init(code->v, new_GPerlInitString(c->data.sdata, strlen(c->data.sdata) + 1));
 		init_values[init_value_idx] = code->v;
+		GPerlString* str = (GPerlString*)getString(code->v);
+		GPerlString* str1 = (GPerlString*)getString(init_values[0]);
 		init_value_idx++;
 		break;
 	case List: case ArrayRef: {
