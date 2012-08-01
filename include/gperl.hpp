@@ -236,11 +236,13 @@ struct _GPerlObject;
 
 class GPerlMemoryManager {
 public:
+    _GPerlObject **arena;
 	_GPerlObject *freeList;
 	_GPerlObject *mem_pool;
 	_GPerlObject *head;
 	_GPerlObject *tail;
     size_t mem_pool_size;
+    size_t max_arena_size;
 
 	GPerlMemoryManager(void);
 	_GPerlObject* gmalloc(void);
@@ -497,10 +499,10 @@ typedef struct _GPerlTraceRoot {
 	GPerlValue *init_values;
 } GPerlTraceRoot;
 
-#define PAGE_SIZE (OBJECT_SIZE * 32)
+#define PAGE_SIZE (OBJECT_SIZE * 16)
 //#define PAGE_SIZE 4096
-#define VOID_PTR sizeof(void*)
-#define OBJECT_SIZE (VOID_PTR * 8)
+#define PTR_SIZE sizeof(void*)
+#define OBJECT_SIZE (PTR_SIZE * 8)
 #define MEMORY_POOL_SIZE (OBJECT_SIZE * PAGE_SIZE)
 #define NAME_RESOLUTION_PREFIX "*"
 #define MAX_GLOBAL_MEMORY_SIZE 128
