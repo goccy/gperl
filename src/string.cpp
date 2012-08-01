@@ -14,7 +14,6 @@ static void String_mark(GPerlObject *o)
 
 GPerlString *new_GPerlInitString(char *s, size_t len)
 {
-    DBG_PL("new_GPerlInitString");
 	GPerlString *str = (GPerlString *)mm->gmalloc();
 	str->h.type = String;
 	str->s = s;
@@ -27,7 +26,6 @@ GPerlString *new_GPerlInitString(char *s, size_t len)
 
 GPerlObject *new_GPerlString(GPerlValue v)
 {
-	DBG_PL("new_GPerlString");
 	char *s = getRawString(v);
 	size_t len = getLength(v);
 	GPerlString *str = (GPerlString *)mm->gmalloc();

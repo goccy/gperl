@@ -74,6 +74,7 @@ void Array_mark(GPerlObject* o)
 
 void Array_free(GPerlObject *o)
 {
+    DBG_PL("Array_free");
     GPerlArray *a = (GPerlArray *)o;
     size_t size = a->size;
     GPerlValue *list = a->list;
@@ -96,7 +97,6 @@ void Array_free(GPerlObject *o)
 GPerlArray *new_GPerlInitArray(GPerlValue *list, size_t asize)
 {
 	GPerlArray *a = (GPerlArray *)mm->gmalloc();
-	a->h.type = Array;
 	a->list = list;
 	a->size = asize;
 	a->write = Array_write;
@@ -107,37 +107,8 @@ GPerlArray *new_GPerlInitArray(GPerlValue *list, size_t asize)
 
 GPerlObject *new_GPerlArray(GPerlValue v)
 {
-	//root.stack_top_idx = cur_pc->cur_stack_top;
-	//root.stack_bottom = stack;
-	//root.callstack_bottom = callstack_bottom;
-	//root.global_memory = global_memory;
-	//root.init_variabls = init_variabls;
 	GPerlArray *a = (GPerlArray *)getObject(v);
-    /*
-	//size_t size = a->size;
-	GPerlValue *list = (GPerlValue *)safe_malloc(size * sizeof(GPerlValue));
-	for (size_t i = 0; i < size; i++) {
-    //needs deep copy
-		GPerlValue *const_list = a->list;
-		switch (TYPE_CHECK(const_list[i])) {
-		case 0: case 1: // Int or Double
-			list[i] = const_list[i];
-			break;
-		case 2: {//String
-			STRING_init(list[i], (GPerlString *)new_GPerlString(cur_pc, const_list[i]));
-			break;
-		}
-		case 3: // Other Object
-			break;
-		default:
-			break;
-		}
-	}
-	a->list = list;
-	a->size = size;
-	a->write = Array_write;
-	a->trace = Array_trace;
-	a->h.type = a->h.type;
-   */
-    return (GPerlObject *)new_GPerlInitArray(a->list, a->size);
+    GPerlArray *ret = new_GPerlInitArray(a->list, a->size);
+    ret->h.type = a->h.type;
+    return (GPerlObject *)ret;
 }
