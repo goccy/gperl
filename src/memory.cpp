@@ -5,12 +5,12 @@
 		if (!list->h.next) {                    \
 			o = NULL;                           \
 		} else {                                \
-            list = list->h.next;                \
-        }                                       \
+			list = list->h.next;                \
+		}                                       \
 	}
 
 #define MemoryManager_pushObject(o, list) {     \
-        memset(o, 0, OBJECT_SIZE);              \
+		memset(o, 0, OBJECT_SIZE);              \
 		o->h.next = list;                       \
 		list = o;                               \
 	}
@@ -50,9 +50,9 @@ int leaks(void)
 GPerlMemoryManager::GPerlMemoryManager(void)
 {
 	mem_pool = (GPerlObject *)safe_malloc(PAGE_SIZE);
-    mem_pool_size = PAGE_SIZE;
+	mem_pool_size = PAGE_SIZE;
 	head = mem_pool;
-    tail = (GPerlObject *)((char *)head + PAGE_SIZE - OBJECT_SIZE);
+	tail = (GPerlObject *)((char *)head + PAGE_SIZE - OBJECT_SIZE);
 	GPerlObject* o = (GPerlObject*)head;
 	while (o < tail) {
 		o->h.next = o + 1;
@@ -74,54 +74,54 @@ bool GPerlMemoryManager::isMarked(GPerlObject* obj) {
 
 void GPerlMemoryManager::expandMemPool(void)
 {
-    fprintf(stderr, "TODO: expand MemoryPool\n");
-    /*
-    arena = (GPerlObject **)realloc(arena, PTR_SIZE * max_arena_size);
-    if (!arena) {
-        fprintf(stderr, "ERROR!!: cannot expand arena\n");
-        exit(EXIT_FAILURE);
-    }
-    DBG_PL("EXPAND MEMORY POOL");
-    tail = (GPerlObject *)((char *)head + mem_pool_size - OBJECT_SIZE);
-	GPerlObject* o = (GPerlObject*)freeList;
-	while (o < tail) {
-		o->h.next = o + 1;
-		o = o->h.next;
-	}
-	o->h.next = NULL;
+	fprintf(stderr, "TODO: expand MemoryPool\n");
+	/*
+	  arena = (GPerlObject **)realloc(arena, PTR_SIZE * max_arena_size);
+	  if (!arena) {
+	  fprintf(stderr, "ERROR!!: cannot expand arena\n");
+	  exit(EXIT_FAILURE);
+	  }
+	  DBG_PL("EXPAND MEMORY POOL");
+	  tail = (GPerlObject *)((char *)head + mem_pool_size - OBJECT_SIZE);
+	  GPerlObject* o = (GPerlObject*)freeList;
+	  while (o < tail) {
+	  o->h.next = o + 1;
+	  o = o->h.next;
+	  }
+	  o->h.next = NULL;
     */
 }
 
 GPerlObject* GPerlMemoryManager::gmalloc(void) {
 	GPerlObject* ret = NULL;
-    DBG_PL("freeList = [%p]", freeList);
+	DBG_PL("freeList = [%p]", freeList);
 	MemoryManager_popObject(ret, freeList);
 	if (!ret) {
 		gc();
 		MemoryManager_popObject(ret, freeList);
-        if (!ret) {
-            expandMemPool();
-            MemoryManager_popObject(ret, freeList);
-        }
+		if (!ret) {
+			expandMemPool();
+			MemoryManager_popObject(ret, freeList);
+		}
 	}
 	return ret;
 }
 
 void GPerlMemoryManager::gc_mark(GPerlValue v) {
-    switch (TYPE_CHECK(v)) {
-    case 2: {
-        GPerlString *s = getStringObj(v);
-        s->h.mark_flag = 1;
-        break;
-    }
-    case 3: {
-        GPerlObject *o = (GPerlObject *)getObject(v);
-        o->mark(o);
-        break;
-    }
-    default:
-        break;
-    }
+	switch (TYPE_CHECK(v)) {
+	case 2: {
+		GPerlString *s = getStringObj(v);
+		s->h.mark_flag = 1;
+		break;
+	}
+	case 3: {
+		GPerlObject *o = (GPerlObject *)getObject(v);
+		o->mark(o);
+		break;
+	}
+	default:
+		break;
+	}
 }
 
 #define MARK_RESET() o->h.mark_flag = 0;
@@ -130,12 +130,12 @@ void GPerlMemoryManager::gc_sweep(void) {
 	GPerlObject* o = (GPerlObject*)head;
 	while (o < tail) {
 		if (!isMarked(o) && o->free) {
-            o->free(o);
+			o->free(o);
 			MemoryManager_pushObject(o, freeList);
-            DBG_PL("FREE!!");
+			DBG_PL("FREE!!");
 		} else {
-            MARK_RESET();
-        }
+			MARK_RESET();
+		}
 		o++;
 	}
 }

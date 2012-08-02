@@ -5,12 +5,12 @@ GPerlMemoryManager *mm;
 
 GPerl::GPerl(int argc, char **argv)
 {
-    init();
+	init();
 	if (argc < 2) {
-        startInteractiveMode();
-    } else {
-        startEvalScriptMode(argc, argv);
-    }
+		startInteractiveMode();
+	} else {
+		startEvalScriptMode(argc, argv);
+	}
 }
 
 void GPerl::init(void)
@@ -35,9 +35,9 @@ int GPerl::checkBrace(char *line)
 
 void GPerl::startInteractiveMode(void)
 {
-    usingHistory();
-    brace_count = 0;
-    char *line = NULL;
+	usingHistory();
+	brace_count = 0;
+	char *line = NULL;
 	char tmp[128] = {0};
 	while (true) {
 		if (line == NULL) {
@@ -52,23 +52,23 @@ void GPerl::startInteractiveMode(void)
 		if (check == 0) {
 			strcat(tmp, " ");
 			strcat(tmp, line);
-            if (line[strlen(line)-1] != '}') {
-                strcat(tmp, ";");
-            }
+			if (line[strlen(line)-1] != '}') {
+				strcat(tmp, ";");
+			}
 			GPerlValue ret = eval(tmp);
-            switch (TYPE_CHECK(ret)) {
-            case 0: /* Double */
-                fprintf(stdout, "%f\n", ret.dvalue);
-                break;
-            case 1: /* Int */
-                fprintf(stdout, "%d\n", ret.ivalue);
-                break;
-            case 2: /* String */
-                fprintf(stdout, "%s\n", getRawString(ret));
-                break;
-            default: /* Other Object */
-                break;
-            }
+			switch (TYPE_CHECK(ret)) {
+			case 0: /* Double */
+				fprintf(stdout, "%f\n", ret.dvalue);
+				break;
+			case 1: /* Int */
+				fprintf(stdout, "%d\n", ret.ivalue);
+				break;
+			case 2: /* String */
+				fprintf(stdout, "%s\n", getRawString(ret));
+				break;
+			default: /* Other Object */
+				break;
+			}
 			tmp[0] = EOL;
 			free(line);
 			line = NULL;
@@ -101,7 +101,7 @@ void GPerl::startEvalScriptMode(int argc, char **argv)
 		snprintf(tmp, line_size + 1, "%s\n", line);
 		tmp += line_size;
 	}
-    eval(script, argc, argv);
+	eval(script, argc, argv);
 	fclose(fp);
 }
 
@@ -112,12 +112,12 @@ GPerlValue GPerl::eval(char *script, int argc, char **argv)
 	t.annotateTokens(tokens);
 	DBG_PL("=============<TOKENIZE>============");
 	t.dump(tokens);
-    GPerlParser *p;
-    if (argv) {
-        p = new GPerlParser(tokens, argc - 2, argv + 2);
-    } else {
-        p = new GPerlParser(tokens);
-    }
+	GPerlParser *p;
+	if (argv) {
+		p = new GPerlParser(tokens, argc - 2, argv + 2);
+	} else {
+		p = new GPerlParser(tokens);
+	}
 	DBG_PL("==============<PARSE>==============");
 	GPerlAST *ast = p->parse();
 #ifdef USING_GRAPH_DEBUG

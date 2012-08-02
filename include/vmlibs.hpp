@@ -141,7 +141,7 @@ int callstack_count = 0;
 
 #define GPERL_FLUSH() {                                 \
 		fprintf(stdout, "%s", cwb);						\
-        clear_cwb();                                    \
+		clear_cwb();                                    \
 	}
 #define GPERL_JMP() pc += pc->jmp
 #define GPERL_FUNCSET(func, dst) setToFuncMemory(func, dst)
@@ -159,7 +159,7 @@ int callstack_count = 0;
 		callstack->ret_addr = &&L_##NAME##AFTER;		\
 		callstack->pc = pc;								\
 		pc = top;										\
-        argc = 0;                                       \
+		argc = 0;                                       \
 		GOTO_NEXTOP();									\
 	L_##NAME##AFTER:									\
 		pc = callstack->pc;								\
@@ -180,7 +180,7 @@ int callstack_count = 0;
 		callstack->args_size = argc;					\
 		callstack->pc = pc;								\
 		pc = top;										\
-        argc = 0;                                       \
+		argc = 0;                                       \
 		GOTO_NEXTOP();									\
 	L_##NAME##AFTER:									\
 		pc = callstack->pc;								\
@@ -194,20 +194,20 @@ int callstack_count = 0;
 #define GPERL_JIT_CALL(src, env) {                              \
 		code_ = func_memory[src];                               \
 		top   = code_;                                          \
-        args->list = (callstack+1)->argstack;                   \
+		args->list = (callstack+1)->argstack;                   \
 		args->size = argc;										\
-        unsigned int result = jit_compiler.compile(top, &env);  \
+		unsigned int result = jit_compiler.compile(top, &env);  \
 		INT_init(callstack->reg[pc->dst], result);              \
-        argc = 0;                                               \
+		argc = 0;                                               \
     }
 
 #define GPERL_JIT_SELFCALL(top, env) {                          \
-        args->list = (callstack+1)->argstack;                   \
+		args->list = (callstack+1)->argstack;                   \
 		args->size = argc;                                      \
-        unsigned int result = jit_compiler.compile(top, &env);  \
+		unsigned int result = jit_compiler.compile(top, &env);  \
 		INT_init(callstack->reg[pc->dst], result);              \
-        argc = 0;                                               \
-    }
+		argc = 0;                                               \
+	}
 
 #define GPERL_SHIFT(src)
 #define GPERL_iSHIFT(src)
@@ -215,10 +215,10 @@ int callstack_count = 0;
 #define GPERL_sSHIFT(src)
 #define GPERL_oSHIFT(src)
 #define GPERL_PUSH(dst, src) (callstack+1)->argstack[src] = callstack->reg[dst]; argc++;
-#define GPERL_NEW() do {\
-		root.callstack_top = callstack;								\
-        root.stack_top_idx = pc->cur_stack_top;                     \
-		OBJECT_init(callstack->reg[pc->dst], pc->_new(pc->v));      \
+#define GPERL_NEW() do {										\
+		root.callstack_top = callstack;							\
+		root.stack_top_idx = pc->cur_stack_top;					\
+		OBJECT_init(callstack->reg[pc->dst], pc->_new(pc->v));	\
 	} while (0)
 #define GPERL_NEW_STRING() do {\
 		root.callstack_top = callstack;									\

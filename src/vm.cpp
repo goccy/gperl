@@ -5,20 +5,20 @@ char *cwb;
 int cwb_idx = 0;
 void write_cwb(char *buf)
 {
-    size_t buf_size = strlen(buf);
-    strncpy(cwb + cwb_idx, buf, buf_size);
-    cwb_idx += buf_size;
-    if (cwb_idx > MAX_CWB_SIZE) {
-        fprintf(stderr, "ERROR: cwb_idx = [%d] > %d\n", cwb_idx, MAX_CWB_SIZE);
-        memset(cwb, 0, MAX_CWB_SIZE);
-        cwb_idx = 0;
-    }
+	size_t buf_size = strlen(buf);
+	strncpy(cwb + cwb_idx, buf, buf_size);
+	cwb_idx += buf_size;
+	if (cwb_idx > MAX_CWB_SIZE) {
+		fprintf(stderr, "ERROR: cwb_idx = [%d] > %d\n", cwb_idx, MAX_CWB_SIZE);
+		memset(cwb, 0, MAX_CWB_SIZE);
+		cwb_idx = 0;
+	}
 }
 
 void clear_cwb(void)
 {
-    memset(cwb, 0, cwb_idx);
-    cwb_idx = 0;
+	memset(cwb, 0, cwb_idx);
+	cwb_idx = 0;
 }
 
 GPerlVirtualMachine::GPerlVirtualMachine(void)
@@ -98,7 +98,7 @@ GPerlEnv *GPerlVirtualMachine::createCallStack(void)
 
 GPerlValue *GPerlVirtualMachine::createMachineStack(void)
 {
-    return (GPerlValue *)safe_malloc(MAX_MACHINE_STACK_SIZE * sizeof(GPerlValue));
+	return (GPerlValue *)safe_malloc(MAX_MACHINE_STACK_SIZE * sizeof(GPerlValue));
 }
 
 static GPerlObject **argstack_[MAX_CALLSTACK_SIZE];

@@ -69,14 +69,14 @@ typedef union {
 
 class GPerl {
 public:
-    int brace_count;
+	int brace_count;
 
 	GPerl(int argc, char **argv);
-    void init(void);
-    int checkBrace(char *line);
-    void startInteractiveMode(void);
-    void startEvalScriptMode(int argc, char **argv);
-    GPerlValue eval(char *script, int argc = 0, char **argv = NULL);
+	void init(void);
+	int checkBrace(char *line);
+	void startInteractiveMode(void);
+	void startEvalScriptMode(int argc, char **argv);
+	GPerlValue eval(char *script, int argc = 0, char **argv = NULL);
 };
 
 class GPerlToken {
@@ -178,8 +178,8 @@ public:
 	int vidx; /* variable idx */
 	int vcount; /* variable count in scope block */
 	int indent;
-    int argc;
-    char **argv;
+	int argc;
+	char **argv;
 
 	std::vector<GPerlToken *>::iterator it;
 	std::vector<GPerlToken *>::iterator end;
@@ -243,13 +243,13 @@ struct _GPerlObject;
 
 class GPerlMemoryManager {
 public:
-    _GPerlObject **arena;
+	_GPerlObject **arena;
 	_GPerlObject *freeList;
 	_GPerlObject *mem_pool;
 	_GPerlObject *head;
 	_GPerlObject *tail;
-    size_t mem_pool_size;
-    size_t max_arena_size;
+	size_t mem_pool_size;
+	size_t max_arena_size;
 
 	GPerlMemoryManager(void);
 	_GPerlObject* gmalloc(void);
@@ -272,8 +272,8 @@ typedef struct _GPerlObject {
 	void *slot1;
 	void *slot2;
 	void (*write)(GPerlValue v);
-    void (*mark)(_GPerlObject *o);
-    void (*free)(_GPerlObject *o);
+	void (*mark)(_GPerlObject *o);
+	void (*free)(_GPerlObject *o);
 } GPerlObject;
 
 typedef struct _GPerlArray {
@@ -281,7 +281,7 @@ typedef struct _GPerlArray {
 	intptr_t size;
 	GPerlValue *list;
 	void (*write)(GPerlValue v);
-    void (*mark)(_GPerlObject *o);
+	void (*mark)(_GPerlObject *o);
 	void (*free)(GPerlObject *o);
 } GPerlArray;
 
@@ -290,8 +290,8 @@ typedef struct _GPerlString {
 	char *s;
 	size_t len;
 	void (*write)(GPerlValue v);
-    void (*mark)(_GPerlObject *o);
-    void (*free)(GPerlObject *o);
+	void (*mark)(_GPerlObject *o);
+	void (*free)(GPerlObject *o);
 } GPerlString;
 
 /* Protected ArrayObject */
@@ -300,8 +300,8 @@ typedef struct _GPerlArgsArray {
 	intptr_t size;
 	GPerlValue *list;
 	void (*write)(GPerlValue v);
-    void (*mark)(_GPerlObject *o);
-    void (*free)(GPerlObject *o);
+	void (*mark)(_GPerlObject *o);
+	void (*free)(GPerlObject *o);
 } GPerlArgsArray;
 
 typedef struct _GPerlUndef {
@@ -309,8 +309,8 @@ typedef struct _GPerlUndef {
 	void *slot1;
 	void *slot2;
 	void (*write)(GPerlValue v);
-    void (*mark)(_GPerlObject *o);
-    void (*free)(GPerlObject *o);
+	void (*mark)(_GPerlObject *o);
+	void (*free)(GPerlObject *o);
 } GPerlUndef;
 
 typedef struct _GPerlVirtualMachineCode {
@@ -444,7 +444,7 @@ public:
 	void setToFuncMemory(GPerlVirtualMachineCode *func, int idx);
 	GPerlVirtualMachineCode *getFromFuncMemory(int idx);
 	GPerlEnv *createCallStack(void);
-    GPerlValue *createMachineStack(void);
+	GPerlValue *createMachineStack(void);
 	GPerlObject **createArgStack(void);
 	void createDirectThreadingCode(GPerlVirtualMachineCode *codes, void **jmp_tbl);
 	void createSelectiveInliningCode(GPerlVirtualMachineCode *codes, void **jmp_tbl, InstBlock *block_tbl);
@@ -456,27 +456,27 @@ public:
 #include <jit/jit.h>
 #define ENABLE_JIT_COMPILE
 typedef struct _GPerlJITEnv {
-    GPerlEnv *callstack;
-    GPerlValue *stack;
-    GPerlArgsArray *args;
+	GPerlEnv *callstack;
+	GPerlValue *stack;
+	GPerlArgsArray *args;
 } GPerlJITEnv;
 
 class GPerlJmpInfo {
 public:
-    jit_label_t label;
-    int jmp_count;
-    GPerlJmpInfo(int jmp_count);
+	jit_label_t label;
+	int jmp_count;
+	GPerlJmpInfo(int jmp_count);
 };
 
 class GPerlJmpStack {
 public:
-    int jmp_stack_idx;
-    GPerlJmpInfo **infs;
+	int jmp_stack_idx;
+	GPerlJmpInfo **infs;
 
-    GPerlJmpStack(void);
-    void push(GPerlJmpInfo *info);
-    GPerlJmpInfo *pop(void);
-    bool isJmp(void);
+	GPerlJmpStack(void);
+	void push(GPerlJmpInfo *info);
+	GPerlJmpInfo *pop(void);
+	bool isJmp(void);
 };
 
 #define MAX_JMP_STACK_SIZE 128
@@ -484,11 +484,11 @@ public:
 typedef jit_function_t GPerlJITCode;
 class GPerlJITCompiler {
 public:
-    GPerlJITCompiler(void);
-    unsigned int compile(GPerlVirtualMachineCode *codes, GPerlJITEnv *env);
-    unsigned int _compile(GPerlVirtualMachineCode *codes, GPerlJITEnv *env);
-    jit_value_t compileMOV(GPerlVirtualMachineCode *pc, jit_function_t *func);
-    jit_value_t compileVMOV(GPerlVirtualMachineCode *pc, jit_function_t *func);
+	GPerlJITCompiler(void);
+	unsigned int compile(GPerlVirtualMachineCode *codes, GPerlJITEnv *env);
+	unsigned int _compile(GPerlVirtualMachineCode *codes, GPerlJITEnv *env);
+	jit_value_t compileMOV(GPerlVirtualMachineCode *pc, jit_function_t *func);
+	jit_value_t compileVMOV(GPerlVirtualMachineCode *pc, jit_function_t *func);
 };
 
 #endif

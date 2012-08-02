@@ -11,24 +11,24 @@ GPerlValue GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 	static GPerlVirtualMachineCode *top;
 	GPerlVirtualMachineCode *pc = codes, *code_ = NULL;
 	GPerlEnv *callstack = createCallStack();
-    GPerlValue *stack = createMachineStack();
-    int esp = 0;
-    int ebp = 0;
+	GPerlValue *stack = createMachineStack();
+	int esp = 0;
+	int ebp = 0;
 	int argc = 0;
 	root.stack_bottom = stack;
 	root.callstack_bottom = callstack;
 	root.global_vmemory = global_vmemory;
 #ifdef USING_JIT
-    GPerlJITCompiler jit_compiler;
-    GPerlJITEnv jit_env;
-    jit_env.callstack = callstack;
-    jit_env.stack = stack;
-    jit_env.args = args;
+	GPerlJITCompiler jit_compiler;
+	GPerlJITEnv jit_env;
+	jit_env.callstack = callstack;
+	jit_env.stack = stack;
+	jit_env.args = args;
 #endif
 
 #include "gen_label.cpp"
 
-    DISPATCH_START();
+	DISPATCH_START();
 
 	CASE(UNDEF, {
 		GPERL_UNDEF();
