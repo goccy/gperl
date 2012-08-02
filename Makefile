@@ -1,7 +1,9 @@
 CC = g++
-CFLAGS = -O2 -Wall -g3 -W -I./include/ -DSTATIC_TYPING_MODE #-DUSING_JIT #-DDEBUG_MODE #-DUSING_GRAPH_DEBUG
-#CFLAGS = -O0 -g3 -gdwarf-2 -Wall -W -fpermissive -I./include/ -I/opt/local/include/ -DSTATIC_TYPING_MODE -DDEBUG_MODE #-DUSING_GRAPH_DEBUG
-LDLIBS = -L/usr/local/lib/x86_64 -ljit #`pkg-config libgvc --libs` -lpthread
+READLINE_DIR = lib/greadline
+CFLAGS = -O2 -Wall -g3 -W -I./include/ -I$(READLINE_DIR)/include -DSTATIC_TYPING_MODE #-DUSING_JIT #-DDEBUG_MODE #-DUSING_GRAPH_DEBUG
+#CFLAGS = -O0 -g3 -gdwarf-2 -Wall -W -fpermissive -I./include/ -I$(READLINE_DIR)/include -I/opt/local/include/ -DSTATIC_TYPING_MODE -DDEBUG_MODE #-DUSING_GRAPH_DEBUG
+READLINE_CFLAGS= -Os -Wall -W -I$(READLINE_DIR)/include/
+LDLIBS = #-L/usr/local/lib/x86_64 -ljit #`pkg-config libgvc --libs` -lpthread
 target = gperl
 
 objs = build/main.o \
@@ -17,7 +19,13 @@ objs = build/main.o \
 	build/string.o\
 	build/array.o\
 	build/undef.o\
-	build/jit.o
+	build/jit.o\
+	$(READLINE_DIR)/build/greadline.o\
+	$(READLINE_DIR)/build/keyword.o\
+	$(READLINE_DIR)/build/term.o\
+	$(READLINE_DIR)/build/complete.o\
+	$(READLINE_DIR)/build/history.o\
+	$(READLINE_DIR)/build/mem.o
 
 .PHONY: all
 all: $(target)
@@ -66,6 +74,24 @@ build/undef.o : src/undef.cpp
 
 build/jit.o : src/jit.cpp
 	$(CC) $(CFLAGS) -o $@ -c $^
+
+$(READLINE_DIR)/build/greadline.o : $(READLINE_DIR)/src/greadline.c
+	$(CC) $(READLINE_CFLAGS) -o $@ -c $^
+
+$(READLINE_DIR)/build/complete.o : $(READLINE_DIR)/src/complete.c
+	$(CC) $(READLINE_CFLAGS) -o $@ -c $^
+
+$(READLINE_DIR)/build/keyword.o : $(READLINE_DIR)/src/keyword.c
+	$(CC) $(READLINE_CFLAGS) -o $@ -c $^
+
+$(READLINE_DIR)/build/term.o : $(READLINE_DIR)/src/term.c
+	$(CC) $(READLINE_CFLAGS) -o $@ -c $^
+
+$(READLINE_DIR)/build/history.o : $(READLINE_DIR)/src/history.c
+	$(CC) $(READLINE_CFLAGS) -o $@ -c $^
+
+$(READLINE_DIR)/build/mem.o : $(READLINE_DIR)/src/mem.c
+	$(CC) $(READLINE_CFLAGS) -o $@ -c $^
 
 .PHONY: clean
 clean:

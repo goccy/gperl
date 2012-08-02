@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <map>
 #include <new>
+#include <greadline.h>
 
 #define EOL '\0'
 #define MAX_LINE_SIZE 128
@@ -55,10 +56,27 @@
 #define DECL(T, S) {T, #T, S}
 extern GPerlTokenInfo decl_tokens[];
 extern GPerlCodeInfo decl_codes[];
+struct _GPerlString;
+
+typedef union {
+	uint64_t bytes; /* for typecheck */
+	int ivalue;
+	double dvalue;
+	bool bvalue;
+	_GPerlString *svalue;
+	void *ovalue; /* other Object */
+} GPerlValue;
 
 class GPerl {
 public:
+    int brace_count;
+
 	GPerl(int argc, char **argv);
+    void init(void);
+    int checkBrace(char *line);
+    void startInteractiveMode(void);
+    void startEvalScriptMode(int argc, char **argv);
+    GPerlValue eval(char *script, int argc = 0, char **argv = NULL);
 };
 
 class GPerlToken {
@@ -166,7 +184,7 @@ public:
 	std::vector<GPerlToken *>::iterator it;
 	std::vector<GPerlToken *>::iterator end;
 
-	GPerlParser(std::vector<GPerlToken *> *tokens, int argc, char **argv);
+	GPerlParser(std::vector<GPerlToken *> *tokens, int argc = 0, char **argv = NULL);
 	GPerlAST *parse(void);
 	void parseValue(GPerlToken *t, GPerlNodes *nodes, GPerlScope *scope);
 };
@@ -220,17 +238,6 @@ public:
 #define MAX_REG_SIZE 32
 #define MAX_VARIABLE_NUM 128
 #define MAX_FUNC_NUM 128
-
-struct _GPerlString;
-
-typedef union {
-	uint64_t bytes; /* for typecheck */
-	int ivalue;
-	double dvalue;
-	bool bvalue;
-	_GPerlString *svalue;
-	void *ovalue; /* other Object */
-} GPerlValue;
 
 struct _GPerlObject;
 
@@ -441,7 +448,7 @@ public:
 	GPerlObject **createArgStack(void);
 	void createDirectThreadingCode(GPerlVirtualMachineCode *codes, void **jmp_tbl);
 	void createSelectiveInliningCode(GPerlVirtualMachineCode *codes, void **jmp_tbl, InstBlock *block_tbl);
-	int run(GPerlVirtualMachineCode *codes);
+	GPerlValue run(GPerlVirtualMachineCode *codes);
 };
 
 #ifdef USING_JIT

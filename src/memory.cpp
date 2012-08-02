@@ -60,7 +60,6 @@ GPerlMemoryManager::GPerlMemoryManager(void)
 	}
 	o->h.next = NULL;
 	freeList = head;
-    arena[0] = mem_pool;
 	for (int i = 0; i < MAX_GLOBAL_MEMORY_SIZE; i++) {
 		global_vmemory[i].ovalue = NULL;
 	}

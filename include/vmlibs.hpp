@@ -139,8 +139,8 @@ int callstack_count = 0;
 		o->write(callstack->reg[dst]);						\
 	}
 
-#define GPERL_FLUSH() {												\
-		fprintf(stderr, "%s", cwb);						\
+#define GPERL_FLUSH() {                                 \
+		fprintf(stdout, "%s", cwb);						\
         clear_cwb();                                    \
 	}
 #define GPERL_JMP() pc += pc->jmp

@@ -6,7 +6,7 @@ using namespace std;
 
 char shared_buf[128] = {0};//TODO must be variable buffer
 string outbuf = "";
-int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
+GPerlValue GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 {
 	static GPerlVirtualMachineCode *top;
 	GPerlVirtualMachineCode *pc = codes, *code_ = NULL;
@@ -539,7 +539,7 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 		createDirectThreadingCode(codes, jmp_table);
 		(void)block_table;
 		//createSelectiveInliningCode(codes, jmp_table, block_table);
-		return 0;
+		return callstack->reg[0];
 	});
 	CASE(NOP, {
 		GPERL_NOP();
@@ -677,5 +677,5 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 #include "gen_fast_vmcode.cpp"
 
 	DISPATCH_END();
-	return I(0);
+	return callstack->reg[0];
 }
