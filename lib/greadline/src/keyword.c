@@ -1,4 +1,10 @@
 #include "greadline.h"
+#include <string.h>
+#include <stdlib.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 typedef char *(*KeyFunc)(int);
 typedef int (*ColorFunc)(int);
@@ -87,3 +93,7 @@ void deleteList(char **list)
 		free(list);
 	}
 }
+
+#ifdef __cplusplus
+} /* extern "C" */
+#endif

@@ -7,13 +7,17 @@ set(VERSION_MINOR "1")
 set(VERSION_PATCH "0")
 
 set(INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}
-		${CMAKE_CURRENT_SOURCE_DIR}/include ${CMAKE_CURRENT_BINARY_DIR})
+		${CMAKE_CURRENT_SOURCE_DIR}/include ${CMAKE_CURRENT_BINARY_DIR}
+		${CMAKE_CURRENT_SOURCE_DIR}/lib/greadline/include)
 include_directories(${INCLUDE_DIRS})
 
 if(NOT CMAKE_BUILD_TYPE)
 	set(CMAKE_BUILD_TYPE "Release")
 endif()
 
+SET(CMAKE_C_FLAGS         "-Wall")
+SET(CMAKE_C_FLAGS_RELEASE "-O3 -g")
+SET(CMAKE_C_FLAGS_DEBUG   "-O0 -g3")
 SET(CMAKE_CXX_FLAGS         "-Wall")
 SET(CMAKE_CXX_FLAGS_RELEASE "-O3 -g")
 SET(CMAKE_CXX_FLAGS_DEBUG   "-O0 -g3")
@@ -59,7 +63,9 @@ add_definitions(-DHAVE_CONFIG_H)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/config.h.cmake
 		${CMAKE_CURRENT_BINARY_DIR}/config.h)
 
+add_subdirectory(lib/greadline)
 add_executable(gperl ${SOURCE})
+target_link_libraries(gperl greadline)
 
 install(TARGETS gperl RUNTIME DESTINATION bin)
 
