@@ -241,7 +241,6 @@ void GPerlCompiler::genForStmtCode(GPerlCell *path)
 	GPerlCell *true_stmt = path->true_stmt->root;
 	GPerlVirtualMachineCode *jmp = codes->at(code_num - 1);
 	int cond_code_num = code_num;
-	fprintf(stderr, "before true stmt code_num = [%d]\n", code_num);
 	DBG_PL("-------------TRUE STMT--------------");
 	for (; true_stmt; true_stmt = true_stmt->next) {
 		GPerlCell *path = true_stmt;
@@ -250,9 +249,7 @@ void GPerlCompiler::genForStmtCode(GPerlCell *path)
 	}
 	GPerlCell *step = (cond->next) ? cond->next : NULL;
 	if (!step) fprintf(stderr, "SYNTAX ERROR : for stmt\n");
-	fprintf(stderr, "before step code_num = [%d]\n", code_num);
 	compile_(step);
-	fprintf(stderr, "code_num = [%d]\n", code_num);
 	jmp->jmp = code_num - cond_code_num + 2;// + 1/*OPNOP + OPJMP + 1*/;
 	int cur_code_num = code_num;
 	jmp = createJMP(1);

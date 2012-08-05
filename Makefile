@@ -1,9 +1,9 @@
 CC = g++
 READLINE_DIR = lib/greadline
 CFLAGS = -O2 -Wall -g3 -W -I./include/ -I$(READLINE_DIR)/include -DSTATIC_TYPING_MODE #-DUSING_JIT #-DDEBUG_MODE #-DUSING_GRAPH_DEBUG
-#CFLAGS = -O0 -g3 -gdwarf-2 -Wall -W -fpermissive -I./include/ -I$(READLINE_DIR)/include -I/opt/local/include/ -DSTATIC_TYPING_MODE -DDEBUG_MODE -DUSING_GRAPH_DEBUG
+#CFLAGS = -O0 -g3 -gdwarf-2 -Wall -W -fpermissive -I./include/ -I$(READLINE_DIR)/include -I/opt/local/include/ -DSTATIC_TYPING_MODE -DDEBUG_MODE #-DUSING_GRAPH_DEBUG
 READLINE_CFLAGS= -Os -Wall -W -I$(READLINE_DIR)/include/
-LDLIBS = #-L/usr/local/lib/x86_64 -ljit `pkg-config libgvc --libs` -lpthread
+LDLIBS = -L/usr/local/lib/x86_64 -ljit `pkg-config libgvc --libs` -lpthread
 target = gperl
 
 objs = build/main.o \

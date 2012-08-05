@@ -1,5 +1,6 @@
 #include <gperl.hpp>
 
+sigjmp_buf expand_mem;
 #define MemoryManager_popObject(o, list) {      \
 		o = list;                               \
 		if (!list->h.next) {                    \
@@ -20,6 +21,12 @@ GPerlValue init_values[MAX_INIT_VALUES_SIZE];
 GPerlTraceRoot root;
 int init_value_idx = 0;
 static int memory_leaks = 0;
+
+static void segv_handler(int , siginfo_t *, void *)
+{
+	exit(EXIT_FAILURE);
+	//siglongjmp(expand_mem, 1);
+}
 
 void *safe_malloc(size_t size)
 {
@@ -51,7 +58,7 @@ GPerlMemoryManager::GPerlMemoryManager(void)
 {
 	pool_size = 0;
 	max_pool_size = INIT_MEMPOOL_NUM;
-	pools = (GPerlMemPool **)safe_malloc(max_pool_size * sizeof(void*));
+	pools = (GPerlMemPool **)safe_malloc(max_pool_size * PTR_SIZE);
 	GPerlMemPool* pool = (GPerlMemPool*)safe_malloc(sizeof(GPerlMemPool));
 	pool->body = (GPerlObject *)safe_malloc(PAGE_SIZE);
 	pool->size = PAGE_SIZE;
@@ -76,6 +83,13 @@ GPerlMemoryManager::GPerlMemoryManager(void)
 	pools[pool_size] = pool;
 	pool_size++;
 	gc = &GPerlMemoryManager::dummy_gc;
+    sa.sa_flags = SA_SIGINFO;
+    sigemptyset(&sa.sa_mask);
+    sa.sa_sigaction = segv_handler;
+    if (sigaction(SIGBUS, &sa, NULL) == -1) {
+		fprintf(stderr, "ERROR!!: sigaction\n");
+		exit(EXIT_FAILURE);
+	}
 }
 
 bool GPerlMemoryManager::isMarked(GPerlObject* obj) {
@@ -100,8 +114,24 @@ void GPerlMemoryManager::expandMemPool(void)
 	o->h.next = NULL;
 	new_tail->h.next = freeList;
 	freeList = new_head;
+	if (pool_size > max_pool_size - 1) {
+		max_pool_size *= 2;
+		GPerlMemPool **tmp = (GPerlMemPool **)realloc(pools, max_pool_size * PTR_SIZE);
+		if (!tmp) {
+			fprintf(stderr, "ERROR!! cannot allocate memory\n");
+			exit(EXIT_FAILURE);
+		}
+		pools = tmp;
+	}
 	pools[pool_size] = new_pool;
 	pool_size++;
+    //sa.sa_flags = SA_SIGINFO;
+    //sigemptyset(&sa.sa_mask);
+    //sa.sa_sigaction = segv_handler;
+    //if (sigaction(SIGBUS, &sa, NULL) == -1) {
+	//fprintf(stderr, "ERROR!!: sigaction\n");
+	//exit(EXIT_FAILURE);
+	//}
 }
 
 GPerlObject* GPerlMemoryManager::gmalloc(void) {
@@ -174,6 +204,7 @@ void GPerlMemoryManager::msgc(void) {
 
 void GPerlMemoryManager::traceRoot(void)
 {
+	DBG_PL("traceRoot");
 	GPerlEnv *callstack_bottom = root.callstack_bottom;
 	GPerlEnv *callstack_trace_ptr = callstack_bottom;
 	GPerlEnv *callstack_top = root.callstack_top;

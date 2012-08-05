@@ -9,6 +9,10 @@
 #include <map>
 #include <new>
 #include <greadline.h>
+#include <unistd.h>
+#include <signal.h>
+#include <sys/mman.h>
+#include <setjmp.h>
 
 #define EOL '\0'
 #define MAX_LINE_SIZE 128
@@ -248,6 +252,7 @@ public:
 	_GPerlObject *freeList;
 	size_t max_pool_size;
 	size_t pool_size;
+    struct sigaction sa;
 
 	GPerlMemoryManager(void);
 	_GPerlObject* gmalloc(void);
@@ -513,7 +518,7 @@ typedef struct _GPerlTraceRoot {
 	GPerlValue *init_values;
 } GPerlTraceRoot;
 
-#define PAGE_SIZE (OBJECT_SIZE * 16)
+#define PAGE_SIZE (OBJECT_SIZE * 64)
 //#define PAGE_SIZE 4096
 #define PTR_SIZE sizeof(void*)
 #define OBJECT_SIZE (PTR_SIZE * 8)
@@ -551,3 +556,4 @@ extern void safe_free(void *ptr, size_t size);
 extern GPerlVirtualMachineCode **cur_pc;
 extern GPerlTraceRoot root;
 extern int init_value_idx;
+extern sigjmp_buf expand_mem;

@@ -3,6 +3,7 @@ using namespace std;
 
 static void String_free(GPerlObject *o)
 {
+	DBG_PL("String_free");
 	GPerlString *s = (GPerlString *)o;
 	safe_free(s->s, s->len);
 }

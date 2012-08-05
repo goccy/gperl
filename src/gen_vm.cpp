@@ -27,7 +27,9 @@ GPerlValue GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 #endif
 
 #include "gen_label.cpp"
-
+	if (sigsetjmp(expand_mem, 1)) {
+		DBG_PL("GC");
+	}
 	DISPATCH_START();
 
 	CASE(UNDEF, {

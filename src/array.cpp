@@ -7,7 +7,7 @@ void Array_push(GPerlValue *argstack)
 {
 	GPerlArray *a = (GPerlArray *)getObject(argstack[0]);
 	void *tmp;
-	if (!(tmp = realloc(a->list, sizeof(GPerlValue) + (a->size + 1)))) {
+	if (!(tmp = realloc(a->list, sizeof(GPerlValue) * (a->size + 1)))) {
 		fprintf(stderr, "ERROR!!: cannot allocated memory\n");
 	} else {
 		a->list = (GPerlValue *)tmp;
