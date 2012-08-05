@@ -426,7 +426,7 @@ GPerlAST *GPerlParser::parse(void)
 			MOVE_NEXT_TOKEN();
 			GPerlScope *scope = parse();
 			if (condIndentFlag) {
-				vidx -= vcount;
+				//vidx -= vcount;
 				indent--;
 				condIndentFlag = false;
 			}

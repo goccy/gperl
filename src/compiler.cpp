@@ -77,7 +77,9 @@ void GPerlCompiler::genVMCode(GPerlCell *path) {
 		return;
 	}
 	code = createVMCode(path);
-	addVMCode(code);
+	if (code->op != SETv && code->op != NOP && code->op != SHIFT) {
+		addVMCode(code);
+	}
 	dumpVMCode(code);
 }
 
@@ -219,8 +221,8 @@ void GPerlCompiler::genWhileStmtCode(GPerlCell *path)
 		compile_(path);
 		dst = 0;//reset dst number
 	}
-	jmp->jmp = code_num - cond_code_num + 1/*OPNOP + OPJMP + 1*/;
-	int cur_code_num = code_num - 1;
+	jmp->jmp = code_num - cond_code_num + 2/*OPNOP + OPJMP + 1*/;
+	int cur_code_num = code_num;// - 1;
 	jmp = createJMP(1);
 	addVMCode(jmp);
 	dumpVMCode(jmp);
@@ -239,6 +241,7 @@ void GPerlCompiler::genForStmtCode(GPerlCell *path)
 	GPerlCell *true_stmt = path->true_stmt->root;
 	GPerlVirtualMachineCode *jmp = codes->at(code_num - 1);
 	int cond_code_num = code_num;
+	fprintf(stderr, "before true stmt code_num = [%d]\n", code_num);
 	DBG_PL("-------------TRUE STMT--------------");
 	for (; true_stmt; true_stmt = true_stmt->next) {
 		GPerlCell *path = true_stmt;
@@ -247,9 +250,11 @@ void GPerlCompiler::genForStmtCode(GPerlCell *path)
 	}
 	GPerlCell *step = (cond->next) ? cond->next : NULL;
 	if (!step) fprintf(stderr, "SYNTAX ERROR : for stmt\n");
+	fprintf(stderr, "before step code_num = [%d]\n", code_num);
 	compile_(step);
-	jmp->jmp = code_num - cond_code_num + 1/*OPNOP + OPJMP + 1*/;
-	int cur_code_num = code_num - 1;
+	fprintf(stderr, "code_num = [%d]\n", code_num);
+	jmp->jmp = code_num - cond_code_num + 2;// + 1/*OPNOP + OPJMP + 1*/;
+	int cur_code_num = code_num;
 	jmp = createJMP(1);
 	addVMCode(jmp);
 	dumpVMCode(jmp);
