@@ -69,6 +69,7 @@ target_link_libraries(gperl greadline)
 
 install(TARGETS gperl RUNTIME DESTINATION bin)
 
+string(TOUPPER ${CMAKE_BUILD_TYPE} uppercase_CMAKE_BUILD_TYPE)
 MESSAGE(STATUS)
 MESSAGE(STATUS "-----------------------------------------------------------------" )
 MESSAGE(STATUS "CMAKE_BUILD_TYPE = ${uppercase_CMAKE_BUILD_TYPE}")
