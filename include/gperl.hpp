@@ -240,26 +240,33 @@ public:
 #define MAX_FUNC_NUM 128
 
 struct _GPerlObject;
+struct _GPerlMemPool;
 
 class GPerlMemoryManager {
 public:
-	_GPerlObject **arena;
+	_GPerlMemPool **pools;
 	_GPerlObject *freeList;
-	_GPerlObject *mem_pool;
-	_GPerlObject *head;
-	_GPerlObject *tail;
-	size_t mem_pool_size;
-	size_t max_arena_size;
+	size_t max_pool_size;
+	size_t pool_size;
 
 	GPerlMemoryManager(void);
 	_GPerlObject* gmalloc(void);
 	bool isMarked(_GPerlObject* obj);
 	void expandMemPool(void);
-	void gc(void);
+	void (GPerlMemoryManager::*gc)();
+	void dummy_gc(void);
+	void msgc(void);
 	void gc_mark(GPerlValue v);
 	void gc_sweep(void);
 	void traceRoot(void);
 };
+
+typedef struct _GPerlMemPool {
+	_GPerlObject *body;
+	_GPerlObject *head;
+	_GPerlObject *tail;
+	size_t size;
+} GPerlMemPool;
 
 typedef struct _GPerlObjectHeader {
 	intptr_t type;
@@ -518,6 +525,7 @@ typedef struct _GPerlTraceRoot {
 #define KB 1024
 #define MB KB * KB
 #define MAX_CWB_SIZE 1 * MB
+#define INIT_MEMPOOL_NUM 4
 
 extern GPerlValue global_vmemory[MAX_GLOBAL_MEMORY_SIZE];
 extern GPerlValue init_values[MAX_INIT_VALUES_SIZE];
