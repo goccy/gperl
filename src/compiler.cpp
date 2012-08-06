@@ -516,6 +516,9 @@ GPerlVirtualMachineCode *GPerlCompiler::createVMCode(GPerlCell *c)
 	case NotEqual:
 		SET_OPCODE(JNE);
 		break;
+	case StringAdd:
+		SET_OPCODE(StringADD);
+		break;
 	case Inc:
 		setINC(code, c);
 		break;

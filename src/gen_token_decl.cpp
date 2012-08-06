@@ -10,6 +10,7 @@ GPerlTokenInfo decl_tokens[] = {
 	{SubEqual, "SubEqual", "-="},
 	{MulEqual, "MulEqual", "*="},
 	{DivEqual, "DivEqual", "/="},
+	{StringAdd, "StringAdd", ".="},
 	{GreaterEqual, "GreaterEqual", ">="},
 	{LessEqual, "LessEqual", "<="},
 	{EqualEqual, "EqualEqual", "=="},

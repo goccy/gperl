@@ -112,6 +112,13 @@
      "args" : [{"op" : "!="}, {"dst" : "pc->dst"}, {"src" : "pc->src"}]
  },
  {
+	 "code" : "StringADD",
+	 "type" : 1,
+	 "const" : 1,
+	 "fast_type" : 2,
+	 "args" : [{"dst" : "pc->dst"}, {"v" : "pc->v"}]
+ },
+ {
 	 "code" : "INC",
 	 "type" : 1,
 	 "const" : 0,

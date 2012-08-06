@@ -114,7 +114,7 @@ vector<GPerlToken *> *GPerlTokenizer::tokenize(char *script)
 			}
 			//through
 		case ',': case ':': case ';': case '=': case '+':
-		case '<': case '>': case '&':
+		case '<': case '>': case '&': case '.':
 		case '(': case ')': case '{': case '}':
 		case '[': case ']': {
 			if (isStringStarted) {
@@ -145,7 +145,7 @@ vector<GPerlToken *> *GPerlTokenizer::tokenize(char *script)
 				mdOperationFlag = false;
 			}
 			if ((i + 1 < script_size) &&
-				((script[i] == '<' || script[i] == '>' || script[i] == '=' ||
+				((script[i] == '<' || script[i] == '>' || script[i] == '=' || script[i] == '.' ||
 				  script[i] == '+' || script[i] == '-' || script[i] == '*' || script[i] == '/') &&
 				 (script[i + 1] == '='))) {
 					//DBG_PL("token = [%c=]", script[i]);
@@ -267,27 +267,28 @@ void GPerlTokenizer::annotateTokens(vector<GPerlToken *> *tokens)
 	while (it != tokens->end()) {
 		GPerlToken *t = (GPerlToken *)*it;
 		string data = t->data;
-		if (data == "+"     || data == "-"    ||
-			data == "*"     || data == "/"    ||
-			data == "<"     || data == ">"    ||
-			data == "<="    || data == ">="   ||
-			data == "=="    || data == "!="   ||
-			data == "="     || data == "+="   ||
-			data == "-="    || data == "*="   ||
-			data == "/="    || data == "++"   ||
-			data == "--"    || data == ";"    ||
-			data == ","     || data == ","    ||
-			data == "&"     || data == "("    ||
-			data == ")"     || data == "{"    ||
-			data == "}"     || data == "["    ||
-			data == "]"     || data == "@{"   ||
-			data == "%{"    || data == "!"    ||
-			data == "<<"    || data == ">>"   ||
-			data == "print" || data == "push" ||
-			data == "ref"   || data == "undef"||
-			data == "if"    || data == "else" ||
-			data == "my"    || data == "sub"  ||
-			data == "shift" || data == "while"||
+		if (data == "+"     || data == "-"     ||
+			data == "*"     || data == "/"     ||
+			data == "<"     || data == ">"     ||
+			data == "<="    || data == ">="    ||
+			data == "=="    || data == "!="    ||
+			data == "="     || data == "+="    ||
+			data == "-="    || data == "*="    ||
+			data == "/="    || data == ".="    ||
+			data == "++"    || data == "--"    ||
+			data == ";"     ||
+			data == ","     || data == ","     ||
+			data == "&"     || data == "("     ||
+			data == ")"     || data == "{"     ||
+			data == "}"     || data == "["     ||
+			data == "]"     || data == "@{"    ||
+			data == "%{"    || data == "!"     ||
+			data == "<<"    || data == ">>"    ||
+			data == "print" || data == "push"  ||
+			data == "ref"   || data == "undef" ||
+			data == "if"    || data == "else"  ||
+			data == "my"    || data == "sub"   ||
+			data == "shift" || data == "while" ||
 			data == "for"   || data == "foreach" ||
 			data == "@_"    || data == "@ARGV" ||
 			data == "return") {

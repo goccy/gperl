@@ -6,6 +6,7 @@ using namespace std;
 
 char shared_buf[128] = {0};//TODO must be variable buffer
 string outbuf = "";
+
 GPerlValue GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 {
 	static GPerlVirtualMachineCode *top;
@@ -30,7 +31,7 @@ GPerlValue GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 	if (sigsetjmp(expand_mem, 1)) {
 		DBG_PL("GC");
 	}
-	DISPATCH_START();
+    DISPATCH_START();
 
 	CASE(UNDEF, {
 		GPERL_UNDEF();
@@ -416,6 +417,41 @@ GPerlValue GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 		GPERL_iCMP_JMPC(!=, pc->dst, pc->v);
 		BREAK();
 	});
+	CASE(StringADD, {
+		GPERL_StringADD(pc->dst, pc->v);
+		pc++;
+		BREAK();
+	});
+	CASE(dStringADD, {
+		GPERL_dStringADD(pc->dst, pc->v);
+		pc++;
+		BREAK();
+	});
+	CASE(iStringADD, {
+		GPERL_iStringADD(pc->dst, pc->v);
+		pc++;
+		BREAK();
+	});
+	CASE(sStringADD, {
+		GPERL_sStringADD(pc->dst, pc->v);
+		pc++;
+		BREAK();
+	});
+	CASE(oStringADD, {
+		GPERL_oStringADD(pc->dst, pc->v);
+		pc++;
+		BREAK();
+	});
+	CASE(dStringADDC, {
+		GPERL_dStringADDC(pc->dst, pc->v);
+		pc++;
+		BREAK();
+	});
+	CASE(iStringADDC, {
+		GPERL_iStringADDC(pc->dst, pc->v);
+		pc++;
+		BREAK();
+	});
 	CASE(INC, {
 		int type = TYPE_CHECK(stack[ebp + pc->dst]);
 #ifdef STATIC_TYPING_MODE
@@ -657,7 +693,7 @@ GPerlValue GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 		BREAK();
 	});
 	CASE(ARRAY_PUSH, {
-			GPERL_ARRAY_PUSH((callstack+1)->argstack);
+		GPERL_ARRAY_PUSH(callstack->argstack);
 		pc++;
 		BREAK();
 	});

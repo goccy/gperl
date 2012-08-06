@@ -2142,6 +2142,186 @@
 		GPERL_oCMP_JMPC(!=, 3, pc->v);
 		BREAK();
 	});
+	CASE(A_StringADD, {
+		GPERL_StringADD(0, pc->v);
+		pc++;
+		BREAK();
+	});
+	CASE(A_dStringADD, {
+		GPERL_dStringADD(0, pc->v);
+		pc++;
+		BREAK();
+	});
+	CASE(A_iStringADD, {
+		GPERL_iStringADD(0, pc->v);
+		pc++;
+		BREAK();
+	});
+	CASE(A_sStringADD, {
+		GPERL_sStringADD(0, pc->v);
+		pc++;
+		BREAK();
+	});
+	CASE(A_oStringADD, {
+		GPERL_oStringADD(0, pc->v);
+		pc++;
+		BREAK();
+	});
+	CASE(B_StringADD, {
+		GPERL_StringADD(1, pc->v);
+		pc++;
+		BREAK();
+	});
+	CASE(B_dStringADD, {
+		GPERL_dStringADD(1, pc->v);
+		pc++;
+		BREAK();
+	});
+	CASE(B_iStringADD, {
+		GPERL_iStringADD(1, pc->v);
+		pc++;
+		BREAK();
+	});
+	CASE(B_sStringADD, {
+		GPERL_sStringADD(1, pc->v);
+		pc++;
+		BREAK();
+	});
+	CASE(B_oStringADD, {
+		GPERL_oStringADD(1, pc->v);
+		pc++;
+		BREAK();
+	});
+	CASE(C_StringADD, {
+		GPERL_StringADD(2, pc->v);
+		pc++;
+		BREAK();
+	});
+	CASE(C_dStringADD, {
+		GPERL_dStringADD(2, pc->v);
+		pc++;
+		BREAK();
+	});
+	CASE(C_iStringADD, {
+		GPERL_iStringADD(2, pc->v);
+		pc++;
+		BREAK();
+	});
+	CASE(C_sStringADD, {
+		GPERL_sStringADD(2, pc->v);
+		pc++;
+		BREAK();
+	});
+	CASE(C_oStringADD, {
+		GPERL_oStringADD(2, pc->v);
+		pc++;
+		BREAK();
+	});
+	CASE(D_StringADD, {
+		GPERL_StringADD(3, pc->v);
+		pc++;
+		BREAK();
+	});
+	CASE(D_dStringADD, {
+		GPERL_dStringADD(3, pc->v);
+		pc++;
+		BREAK();
+	});
+	CASE(D_iStringADD, {
+		GPERL_iStringADD(3, pc->v);
+		pc++;
+		BREAK();
+	});
+	CASE(D_sStringADD, {
+		GPERL_sStringADD(3, pc->v);
+		pc++;
+		BREAK();
+	});
+	CASE(D_oStringADD, {
+		GPERL_oStringADD(3, pc->v);
+		pc++;
+		BREAK();
+	});
+	CASE(A_StringADDC, {
+		GPERL_StringADDC(0, pc->v);
+		pc++;
+		BREAK();
+	});
+	CASE(A_dStringADDC, {
+		GPERL_dStringADDC(0, pc->v);
+		pc++;
+		BREAK();
+	});
+	CASE(A_iStringADDC, {
+		GPERL_iStringADDC(0, pc->v);
+		pc++;
+		BREAK();
+	});
+	CASE(A_sStringADDC, {
+		GPERL_sStringADDC(0, pc->v);
+		pc++;
+		BREAK();
+	});
+	CASE(B_StringADDC, {
+		GPERL_StringADDC(1, pc->v);
+		pc++;
+		BREAK();
+	});
+	CASE(B_dStringADDC, {
+		GPERL_dStringADDC(1, pc->v);
+		pc++;
+		BREAK();
+	});
+	CASE(B_iStringADDC, {
+		GPERL_iStringADDC(1, pc->v);
+		pc++;
+		BREAK();
+	});
+	CASE(B_sStringADDC, {
+		GPERL_sStringADDC(1, pc->v);
+		pc++;
+		BREAK();
+	});
+	CASE(C_StringADDC, {
+		GPERL_StringADDC(2, pc->v);
+		pc++;
+		BREAK();
+	});
+	CASE(C_dStringADDC, {
+		GPERL_dStringADDC(2, pc->v);
+		pc++;
+		BREAK();
+	});
+	CASE(C_iStringADDC, {
+		GPERL_iStringADDC(2, pc->v);
+		pc++;
+		BREAK();
+	});
+	CASE(C_sStringADDC, {
+		GPERL_sStringADDC(2, pc->v);
+		pc++;
+		BREAK();
+	});
+	CASE(D_StringADDC, {
+		GPERL_StringADDC(3, pc->v);
+		pc++;
+		BREAK();
+	});
+	CASE(D_dStringADDC, {
+		GPERL_dStringADDC(3, pc->v);
+		pc++;
+		BREAK();
+	});
+	CASE(D_iStringADDC, {
+		GPERL_iStringADDC(3, pc->v);
+		pc++;
+		BREAK();
+	});
+	CASE(D_sStringADDC, {
+		GPERL_sStringADDC(3, pc->v);
+		pc++;
+		BREAK();
+	});
 	CASE(A_RET, {
 		GPERL_RET(0);
 		pc++;

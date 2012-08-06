@@ -46,6 +46,17 @@ int callstack_count = 0;
 #define GPERL_dADDC(dst, v) D(dst) += v.dvalue
 #define GPERL_sADDC(dst, src)
 
+#define GPERL_StringADD(dst, v)
+#define GPERL_iStringADD(dst, v)
+#define GPERL_dStringADD(dst, v)
+#define GPERL_sStringADD(dst, v)
+#define GPERL_oStringADD(dst, v)
+
+#define GPERL_StringADDC(dst, v)
+#define GPERL_iStringADDC(dst, v)
+#define GPERL_dStringADDC(dst, v)
+#define GPERL_sStringADDC(dst, v)
+
 #define GPERL_iSUB(dst, src) I(dst) -= I(src)
 #define GPERL_dSUB(dst, src) D(dst) -= D(src)
 #define GPERL_oSUB(dst, src)

@@ -55,6 +55,11 @@
 	 "parse_func" : ""
  },
  {
+ 	 "type" : "StringAdd",
+	 "data" : ".=",
+	 "parse_func" : ""
+ },
+ {
 	 "type" : "GreaterEqual",
 	 "data" : ">=",
 	 "parse_func" : ""

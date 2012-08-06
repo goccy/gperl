@@ -273,7 +273,7 @@ GPerlAST *GPerlParser::parse(void)
 				fprintf(stderr, "Warning: unused keyword shift\n");
 			}
 			break;
-		case Add: case Sub: case Mul: case Div: case Greater: case Less:
+		case Add: case Sub: case Mul: case Div: case Greater: case Less: case StringAdd:
 		case GreaterEqual: case LessEqual: case EqualEqual: case NotEqual: case Inc: {
 			DBG_PL("[%s]:LAST BLOCK->PARENT", cstr(t->data));
 			GPerlCell *block = blocks.lastNode();

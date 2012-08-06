@@ -10,6 +10,7 @@ typedef enum {
 	SubEqual,
 	MulEqual,
 	DivEqual,
+	StringAdd,
 	GreaterEqual,
 	LessEqual,
 	EqualEqual,
