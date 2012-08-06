@@ -1,12 +1,12 @@
 #include <stdio.h>
-#include <sys/ioctl.h>
 #include <termios.h>
-#include <unistd.h>
-#include <stdlib.h>
-#include <dirent.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <string.h>
+
+#ifndef GREADLINE_H
+#define GREADLINE_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #if !defined(TCGETA) && defined(TIOCGETA)
 #define TCGETA TIOCGETA
@@ -130,3 +130,8 @@ void deleteKeyWords(void);
 WindowSize *getTermSize(int fd);
 int isSpecificKeyWord(char *name);
 char **getSpecificCompList(char *name);
+
+#ifdef __cplusplus
+} /* extern "C" */
+#endif
+#endif /* end of include guard */

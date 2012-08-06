@@ -1,4 +1,12 @@
 #include "greadline.h"
+#include <string.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <sys/ioctl.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 static int line_index = 0;
 static int end_buf = 0;
@@ -530,3 +538,7 @@ BREAK:
 	deleteCompletion(comp);
 	return line;
 }
+
+#ifdef __cplusplus
+} /* extern "C" */
+#endif

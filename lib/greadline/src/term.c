@@ -1,4 +1,9 @@
 #include "greadline.h"
+#include <sys/ioctl.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 void changeTermStatus(struct termio tty_backup)
 {
@@ -46,3 +51,7 @@ WindowSize *getTermSize(int fd)
 #endif
 	return ret;
 }
+
+#ifdef __cplusplus
+} /* extern "C" */
+#endif

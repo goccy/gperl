@@ -1,4 +1,9 @@
 #include "greadline.h"
+#include <sys/ioctl.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 char *greadline(const char *init_message)
 {
@@ -11,3 +16,7 @@ char *greadline(const char *init_message)
 	fprintf(stderr, "\n");
 	return line;
 }
+
+#ifdef __cplusplus
+} /* extern "C" */
+#endif

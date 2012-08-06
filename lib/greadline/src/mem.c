@@ -1,4 +1,10 @@
 #include "greadline.h"
+#include <stdlib.h>
+#include <string.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 void *gmalloc(size_t size)
 {
@@ -10,3 +16,7 @@ void *gmalloc(size_t size)
 	memset(ret, 0, size);
 	return ret;
 }
+
+#ifdef __cplusplus
+} /* extern "C" */
+#endif

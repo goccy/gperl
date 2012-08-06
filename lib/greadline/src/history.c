@@ -1,5 +1,9 @@
 #include "greadline.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef struct history_t {
 	char *line;
 	struct history_t *prev;
@@ -66,3 +70,7 @@ char *downHistory(int line_top_offset)
 	}
 	return search->line;
 }
+
+#ifdef __cplusplus
+} /* extern "C" */
+#endif
