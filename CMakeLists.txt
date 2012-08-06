@@ -67,6 +67,13 @@ add_subdirectory(lib/greadline)
 add_executable(gperl ${SOURCE})
 target_link_libraries(gperl greadline)
 
+enable_testing()
+file(GLOB_RECURSE test_files ${CMAKE_CURRENT_SOURCE_DIR}/sample/*.pl)
+foreach(f ${test_files})
+	add_test(NAME ${f} COMMAND gperl "${f}")
+	set_tests_properties(${f} PROPERTIES TIMEOUT 5)
+endforeach(f ${test_files})
+
 install(TARGETS gperl RUNTIME DESTINATION bin)
 
 string(TOUPPER ${CMAKE_BUILD_TYPE} uppercase_CMAKE_BUILD_TYPE)
@@ -77,5 +84,9 @@ MESSAGE(STATUS "CMAKE_CXX_COMPILER = ${CMAKE_CXX_COMPILER}")
 MESSAGE(STATUS "CMAKE_CXX_FLAGS = ${CMAKE_CXX_FLAGS_${uppercase_CMAKE_BUILD_TYPE}}")
 MESSAGE(STATUS "CMAKE_INSTALL_PREFIX = ${CMAKE_INSTALL_PREFIX}")
 MESSAGE(STATUS "Change a value with: cmake -D<Variable>=<Value>" )
+if(equal CMAKE_BUILD_TYPE  "Release")
+MESSAGE(STATUS
+	"If you want to debug gperl, execut cmake with -DCMAKE_BUILD_TYPE=Debug")
+endif()
 MESSAGE(STATUS "-----------------------------------------------------------------" )
 MESSAGE(STATUS)
