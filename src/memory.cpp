@@ -158,6 +158,14 @@ void GPerlMemoryManager::expandMemPool(void)
 GPerlObject* GPerlMemoryManager::gmalloc(void) {
 	GPerlObject* ret = NULL;
 	DBG_PL("freeList = [%p]", freeList);
+	/*** ======= for GDB Debugging on MacOSX =======
+		 If happend "Program received signal EXC_BAD_ACCESS,
+		 Could not access memory. Reason: KERN_PROTECTION_FAILURE",
+		 sets gdb the command "set dont-handle-bad-access 1" before running your program.
+		 (example)
+		 (gdb) set dont-handle-bad-access 1
+		 (gdb) run
+	***/
 	MemoryManager_popObject(ret, freeList);
 	/*
 	if (!ret) {
