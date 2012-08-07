@@ -2,7 +2,7 @@
 using namespace std;
 GPerlCompiler::GPerlCompiler(void) : dst(0), src(0), code_num(0),
 									 func_index(0),
-									 args_count(0)
+									 args_count(0), recv_args_count(0)
 {
 	declared_vname = NULL;
 	for (int i = 0; i < MAX_REG_SIZE; i++) {
@@ -150,6 +150,7 @@ void GPerlCompiler::genFunctionCode(GPerlCell *path)
 	vector<GPerlVirtualMachineCode *> *func_code = NULL;
 	dst = 0;//reset dst number
 	args_count = 0;
+	recv_args_count = 0;
 	func_code = new vector<GPerlVirtualMachineCode *>();
 	code = createVMCode(path);//OPFUNCSET
 	addVMCode(code);
@@ -172,6 +173,8 @@ void GPerlCompiler::genFunctionCode(GPerlCell *path)
 	code->func = f;
 	DBG_PL("code_num = [%d]", code_num);
 	DBG_PL("========= FUNCTION DECL END ==========");
+	args_count = 0;
+	recv_args_count = 0;
 }
 
 void GPerlCompiler::genIfStmtCode(GPerlCell *path)
@@ -667,8 +670,8 @@ void GPerlCompiler::setARGMOV(GPerlVirtualMachineCode *code, GPerlCell *c)
 	//code->op = SHIFT;
 	code->op = ARGMOV;
 	code->dst = 0;
-	code->src = args_count;
-	args_count++;
+	code->src = recv_args_count;
+	recv_args_count++;
 	reg_type[dst] = Object;
 	dst++;
 }
@@ -832,8 +835,10 @@ void GPerlCompiler::setCALL(GPerlVirtualMachineCode *code, GPerlCell *c)
 	code->dst = dst-1;
 	code->src = idx;
 	code->name = name;
+	code->argc = args_count;
 	code->cur_reg_top = dst-1;
 	reg_type[dst-1] = Object;
+	args_count = 0;
 }
 
 void GPerlCompiler::setBFUNC(GPerlVirtualMachineCode *code, GPerlCell *c)
@@ -956,9 +961,9 @@ GPerlVirtualMachineCode *GPerlCompiler::createJMP(int jmp_num)
 void GPerlCompiler::dumpVMCode(GPerlVirtualMachineCode *code)
 {
 	(void)code;
-	DBG_PL("L[%d] : %s [dst:%d], [src:%d], [jmp:%d], [name:%s], [ivalue: %d], [cur_stack_top: %d], [cur_reg_top: %d]",
+	DBG_PL("L[%d] : %s [dst:%d], [src:%d], [jmp:%d], [name:%s], [ivalue: %d], [cur_stack_top: %d], [cur_reg_top: %d], [argc: %d]",
 		   code->code_num, decl_codes[code->op].name, code->dst, code->src,
-		   code->jmp, code->name, code->v.ivalue, code->cur_stack_top, code->cur_reg_top);
+		   code->jmp, code->name, code->v.ivalue, code->cur_stack_top, code->cur_reg_top, code->argc);
 }
 
 void GPerlCompiler::dumpPureVMCode(GPerlVirtualMachineCode *c)

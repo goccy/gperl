@@ -1,6 +1,7 @@
 #include <gperl.hpp>
 
 sigjmp_buf expand_mem;
+/*
 #define MemoryManager_popObject(o, list) {      \
 		o = list;                               \
 		if (!list->h.next) {                    \
@@ -8,6 +9,11 @@ sigjmp_buf expand_mem;
 		} else {                                \
 			list = list->h.next;                \
 		}                                       \
+	}
+*/
+#define MemoryManager_popObject(o, list) {      \
+		o = list;                               \
+		list = list->h.next;					\
 	}
 
 #define MemoryManager_pushObject(o, list) {     \
@@ -24,8 +30,11 @@ static int memory_leaks = 0;
 
 static void segv_handler(int , siginfo_t *, void *)
 {
+	DBG_PL("segv_handler");
+	if ((intptr_t)mm->freeList == (intptr_t)mm->guard) {
+		siglongjmp(expand_mem, 1);
+	}
 	exit(EXIT_FAILURE);
-	//siglongjmp(expand_mem, 1);
 }
 
 void *safe_malloc(size_t size)
@@ -56,6 +65,20 @@ int leaks(void)
 
 GPerlMemoryManager::GPerlMemoryManager(void)
 {
+	sa.sa_flags = SA_SIGINFO;
+	sigemptyset(&sa.sa_mask);
+	sa.sa_sigaction = segv_handler;
+	if (sigaction(SIGBUS, &sa, NULL) == -1) {
+		fprintf(stderr, "ERROR!!: sigaction\n");
+		exit(EXIT_FAILURE);
+	}
+	pool_size = 0;
+	int pagesize = sysconf(_SC_PAGE_SIZE);
+	posix_memalign((void **)&guard, pagesize, 4 * pagesize);//OBJECT_SIZE);
+    if (mprotect(guard, OBJECT_SIZE, PROT_NONE) == -1) {
+		fprintf(stderr, "ERROR!: not supported mprotect\n");
+		exit(EXIT_FAILURE);
+	}
 	pool_size = 0;
 	max_pool_size = INIT_MEMPOOL_NUM;
 	pools = (GPerlMemPool **)safe_malloc(max_pool_size * PTR_SIZE);
@@ -71,7 +94,9 @@ GPerlMemoryManager::GPerlMemoryManager(void)
 		o->h.next = o + 1;
 		o = o + 1;
 	}
-	o->h.next = NULL;
+	guard_prev_ptr = o;
+	o->h.next = guard;
+	//o->h.next = NULL;
 	freeList = head;
 	for (int i = 0; i < MAX_GLOBAL_MEMORY_SIZE; i++) {
 		global_vmemory[i].ovalue = NULL;
@@ -111,7 +136,10 @@ void GPerlMemoryManager::expandMemPool(void)
 		o->h.next = o + 1;
 		o = o + 1;
 	}
-	o->h.next = NULL;
+	freeList = guard_prev_ptr;
+	guard_prev_ptr = o;
+	//o->h.next = NULL;
+	o->h.next = guard;
 	new_tail->h.next = freeList;
 	freeList = new_head;
 	if (pool_size > max_pool_size - 1) {
@@ -125,19 +153,13 @@ void GPerlMemoryManager::expandMemPool(void)
 	}
 	pools[pool_size] = new_pool;
 	pool_size++;
-    //sa.sa_flags = SA_SIGINFO;
-    //sigemptyset(&sa.sa_mask);
-    //sa.sa_sigaction = segv_handler;
-    //if (sigaction(SIGBUS, &sa, NULL) == -1) {
-	//fprintf(stderr, "ERROR!!: sigaction\n");
-	//exit(EXIT_FAILURE);
-	//}
 }
 
 GPerlObject* GPerlMemoryManager::gmalloc(void) {
 	GPerlObject* ret = NULL;
 	DBG_PL("freeList = [%p]", freeList);
 	MemoryManager_popObject(ret, freeList);
+	/*
 	if (!ret) {
 		(mm->*gc)();
 		MemoryManager_popObject(ret, freeList);
@@ -146,6 +168,7 @@ GPerlObject* GPerlMemoryManager::gmalloc(void) {
 			MemoryManager_popObject(ret, freeList);
 		}
 	}
+	*/
 	return ret;
 }
 
@@ -200,6 +223,11 @@ void GPerlMemoryManager::msgc(void) {
 	traceRoot();
 	gc_sweep();
 	DBG_PL("GC_END");
+}
+
+void GPerlMemoryManager::gcWrapper(void)
+{
+	(this->*gc)();
 }
 
 void GPerlMemoryManager::traceRoot(void)

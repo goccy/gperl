@@ -165,12 +165,10 @@ int callstack_count = 0;
 		callstack->ebp = ebp;							\
 		ebp = esp;										\
 		callstack++;									\
-		callstack->args_size = argc;					\
-		callstack->reg_top = pc->cur_reg_top;			\
+		callstack->args_size = pc->argc;				\
 		callstack->ret_addr = &&L_##NAME##AFTER;		\
 		callstack->pc = pc;								\
 		pc = top;										\
-		argc = 0;                                       \
 		GOTO_NEXTOP();									\
 	L_##NAME##AFTER:									\
 		pc = callstack->pc;								\
@@ -185,19 +183,15 @@ int callstack_count = 0;
 		callstack->ebp = ebp;							\
 		ebp = esp;										\
 		callstack++;									\
-		callstack_count++;								\
 		callstack->ret_addr = &&L_##NAME##AFTER;		\
-		callstack->reg_top = pc->cur_reg_top;			\
-		callstack->args_size = argc;					\
+		callstack->args_size = pc->argc;				\
 		callstack->pc = pc;								\
 		pc = top;										\
-		argc = 0;                                       \
 		GOTO_NEXTOP();									\
 	L_##NAME##AFTER:									\
 		pc = callstack->pc;								\
 		(callstack-1)->reg[dst] = callstack->reg[0];	\
 		callstack--;									\
-		callstack_count--;								\
 		ebp = callstack->ebp;							\
 		esp = ebp;										\
 	}
@@ -206,18 +200,16 @@ int callstack_count = 0;
 		code_ = func_memory[src];                               \
 		top   = code_;                                          \
 		args->list = (callstack+1)->argstack;                   \
-		args->size = argc;										\
+		args->size = pc->argc;									\
 		unsigned int result = jit_compiler.compile(top, &env);  \
 		INT_init(callstack->reg[pc->dst], result);              \
-		argc = 0;                                               \
     }
 
 #define GPERL_JIT_SELFCALL(top, env) {                          \
 		args->list = (callstack+1)->argstack;                   \
-		args->size = argc;                                      \
+		args->size = pc->argc;									\
 		unsigned int result = jit_compiler.compile(top, &env);  \
 		INT_init(callstack->reg[pc->dst], result);              \
-		argc = 0;                                               \
 	}
 
 #define GPERL_SHIFT(src)
@@ -225,14 +217,13 @@ int callstack_count = 0;
 #define GPERL_dSHIFT(src)
 #define GPERL_sSHIFT(src)
 #define GPERL_oSHIFT(src)
-#define GPERL_PUSH(dst, src) (callstack+1)->argstack[src] = callstack->reg[dst]; argc++;
+#define GPERL_PUSH(dst, src) (callstack+1)->argstack[src] = callstack->reg[dst];
 #define GPERL_NEW() do {										\
-		root.callstack_top = callstack;							\
-		root.stack_top_idx = pc->cur_stack_top;					\
+		g_pc = pc;												\
 		OBJECT_init(callstack->reg[pc->dst], pc->_new(pc->v));	\
 	} while (0)
 #define GPERL_NEW_STRING() do {\
-		root.callstack_top = callstack;									\
+		g_pc = pc;														\
 		STRING_init(callstack->reg[pc->dst], (GPerlString *)pc->_new(pc->v)); \
 	} while (0)
 #define GPERL_ARRAY_PUSH(argstack) pc->push(argstack);
@@ -241,6 +232,7 @@ int callstack_count = 0;
 		if (a->size > I(idx)) {                                     \
 			callstack->reg[dst] = a->list[I(idx)];                  \
 		} else {                                                    \
+			g_pc = pc;												\
 			GPerlUndef *undef = new_GPerlUndef();					\
 			OBJECT_init(callstack->reg[dst], undef);                \
 		}                                                           \
@@ -258,6 +250,7 @@ int callstack_count = 0;
 
 
 #define GPERL_ARRAY_DREF(dst, src) do {									\
+		g_pc = pc;														\
 		GPerlArray *a = (GPerlArray *)new_GPerlArray(callstack->reg[src]); \
 		a->h.type = Array;												\
 		OBJECT_init(callstack->reg[dst], a);							\

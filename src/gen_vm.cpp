@@ -7,6 +7,7 @@ using namespace std;
 char shared_buf[128] = {0};//TODO must be variable buffer
 string outbuf = "";
 
+static GPerlVirtualMachineCode *g_pc;
 GPerlValue GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 {
 	static GPerlVirtualMachineCode *top;
@@ -15,7 +16,6 @@ GPerlValue GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 	GPerlValue *stack = createMachineStack();
 	int esp = 0;
 	int ebp = 0;
-	int argc = 0;
 	root.stack_bottom = stack;
 	root.callstack_bottom = callstack;
 	root.global_vmemory = global_vmemory;
@@ -30,6 +30,14 @@ GPerlValue GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 #include "gen_label.cpp"
 	if (sigsetjmp(expand_mem, 1)) {
 		DBG_PL("GC");
+		pc = g_pc;// for -O2 Option
+		callstack->reg_top = pc->cur_reg_top;
+		root.callstack_top = callstack;
+		root.stack_top_idx = pc->cur_stack_top;
+		mm->gcWrapper();
+		if (mm->freeList == mm->guard) {
+			mm->expandMemPool();
+		}
 	}
     DISPATCH_START();
 
@@ -693,7 +701,7 @@ GPerlValue GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 		BREAK();
 	});
 	CASE(ARRAY_PUSH, {
-		GPERL_ARRAY_PUSH(callstack->argstack);
+		GPERL_ARRAY_PUSH((callstack+1)->argstack);
 		pc++;
 		BREAK();
 	});

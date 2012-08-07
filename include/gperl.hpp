@@ -250,17 +250,20 @@ class GPerlMemoryManager {
 public:
 	_GPerlMemPool **pools;
 	_GPerlObject *freeList;
+	_GPerlObject *guard;
+	_GPerlObject *guard_prev_ptr;
 	size_t max_pool_size;
 	size_t pool_size;
     struct sigaction sa;
+	void (GPerlMemoryManager::*gc)();
 
 	GPerlMemoryManager(void);
 	_GPerlObject* gmalloc(void);
 	bool isMarked(_GPerlObject* obj);
 	void expandMemPool(void);
-	void (GPerlMemoryManager::*gc)();
 	void dummy_gc(void);
 	void msgc(void);
+	void gcWrapper(void);
 	void gc_mark(GPerlValue v);
 	void gc_sweep(void);
 	void traceRoot(void);
@@ -342,6 +345,7 @@ typedef struct _GPerlVirtualMachineCode {
 	};
 	int cur_reg_top;
 	int cur_stack_top;
+	int argc; /* for JIT_CALL */
 	const char *name;
 	struct _GPerlVirtualMachineCode *func;
 	void *opnext; /* for direct threading */
@@ -363,7 +367,8 @@ public:
 	const char *declared_fname;
 	int cur_stack_top;
 	int func_index;
-	int args_count;/* for shift */
+	int args_count;/* for CALL */
+	int recv_args_count; /* for ARGMOV */
 	std::map<std::string, int> local_vmap;
 	std::map<std::string, int> global_vmap;
 
