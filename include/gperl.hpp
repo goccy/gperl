@@ -255,17 +255,18 @@ public:
 	size_t max_pool_size;
 	size_t pool_size;
     struct sigaction sa;
-	void (GPerlMemoryManager::*gc)();
+	void (GPerlMemoryManager::*_gc)();
 
 	GPerlMemoryManager(void);
 	_GPerlObject* gmalloc(void);
 	bool isMarked(_GPerlObject* obj);
 	void expandMemPool(void);
-	void dummy_gc(void);
+	void gc(void);
+	void switchGC(void);
+	void dummyGC(void);
 	void msgc(void);
-	void gcWrapper(void);
-	void gc_mark(GPerlValue v);
-	void gc_sweep(void);
+	void mark(GPerlValue v);
+	void sweep(void);
 	void traceRoot(void);
 };
 
@@ -525,7 +526,8 @@ typedef struct _GPerlTraceRoot {
 
 #define PTR_SIZE sizeof(void*)
 #define OBJECT_SIZE (PTR_SIZE * 8)
-#define PAGE_SIZE OBJECT_SIZE * 1024
+#define PAGE_SIZE 4096
+#define MEMORY_POOL_SIZE OBJECT_SIZE * 1024
 #define NAME_RESOLUTION_PREFIX "*"
 #define MAX_GLOBAL_MEMORY_SIZE 128
 #define MAX_MACHINE_STACK_SIZE 1024 * 8 /* 8M */

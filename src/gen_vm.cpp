@@ -33,7 +33,7 @@ GPerlValue GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 		callstack->reg_top = pc->cur_reg_top;
 		root.callstack_top = callstack;
 		root.stack_top_idx = pc->cur_stack_top;
-		mm->gcWrapper();
+		mm->gc();
 		if (mm->freeList == mm->guard) {
 			mm->expandMemPool();
 		}

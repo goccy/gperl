@@ -95,6 +95,10 @@ void GPerl::startEvalScriptMode(int argc, char **argv)
 	char *tmp = script_;
 	char *script = script_;
 	FILE *fp = fopen(filename, "r");
+	if (!fp) {
+		fprintf(stderr, "script not found: %s\n", filename);
+		exit(EXIT_FAILURE);
+	}
 	while (fgets(line, MAX_LINE_SIZE, fp) != NULL) {
 		//DBG_PL("line = [%s]", line);
 		int line_size = strlen(line);
@@ -131,7 +135,7 @@ GPerlValue GPerl::eval(char *script, int argc, char **argv)
 	DBG_PL("-----------------------------------");
 	GPerlVirtualMachine *vm = new GPerlVirtualMachine();
 	DBG_PL("=============<RUNTIME>=============");
-	mm->gc = &GPerlMemoryManager::msgc;
+	mm->switchGC();
 	vm->run(codes);//create threading code
 	return vm->run(codes);//execute code
 }
