@@ -1,16 +1,6 @@
 #include <gperl.hpp>
 
 sigjmp_buf expand_mem;
-/*
-#define MemoryManager_popObject(o, list) {      \
-		o = list;                               \
-		if (!list->h.next) {                    \
-			o = NULL;                           \
-		} else {                                \
-			list = list->h.next;                \
-		}                                       \
-	}
-*/
 #define MemoryManager_popObject(o, list) {      \
 		o = list;                               \
 		list = list->h.next;					\
@@ -31,7 +21,7 @@ static int memory_leaks = 0;
 static void segv_handler(int , siginfo_t *, void *)
 {
 	DBG_PL("segv_handler");
-	if ((intptr_t)mm->freeList == (intptr_t)mm->guard) {
+	if (mm->freeList == mm->guard) {
 		siglongjmp(expand_mem, 1);
 	}
 	exit(EXIT_FAILURE);
@@ -117,10 +107,6 @@ GPerlMemoryManager::GPerlMemoryManager(void)
 	}
 }
 
-bool GPerlMemoryManager::isMarked(GPerlObject* obj) {
-	return (obj->h.mark_flag == 1) ? true: false ;
-}
-
 void GPerlMemoryManager::expandMemPool(void)
 {
 	DBG_PL("Expand Heap");
@@ -198,19 +184,27 @@ void GPerlMemoryManager::gc_mark(GPerlValue v) {
 }
 
 #define MARK_RESET() o->h.mark_flag = 0;
+bool GPerlMemoryManager::isMarked(GPerlObject* obj) {
+	return (obj->h.mark_flag == 1) ? true: false ;
+}
 
+#define IS_Marked(o) o->h.mark_flag
 void GPerlMemoryManager::gc_sweep(void) {
-	size_t i, dead = 0;
-	for (i = 0; i < pool_size; i++) {
+#ifdef DEBUG_MODE
+	size_t dead = 0;
+#endif
+	for (size_t i = 0; i < pool_size; i++) {
 		GPerlMemPool* p = pools[i];
 		GPerlObject* o = p->head;
 		GPerlObject* tail = p->tail;
 		while (o < tail) {
-			if (!isMarked(o) && o->free) {
+			if (!IS_Marked(o) && o->free) {
 				o->free(o);
 				MemoryManager_pushObject(o, freeList);
 				DBG_PL("FREE!!");
+#ifdef DEBUG_MODE
 				dead++;
+#endif
 			} else {
 				MARK_RESET();
 			}

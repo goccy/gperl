@@ -7,7 +7,6 @@ using namespace std;
 char shared_buf[128] = {0};//TODO must be variable buffer
 string outbuf = "";
 
-static GPerlVirtualMachineCode *g_pc;
 GPerlValue GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 {
 	static GPerlVirtualMachineCode *top;
@@ -30,7 +29,7 @@ GPerlValue GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 #include "gen_label.cpp"
 	if (sigsetjmp(expand_mem, 1)) {
 		DBG_PL("GC");
-		pc = g_pc;// for -O2 Option
+		pc = callstack->cur_pc;
 		callstack->reg_top = pc->cur_reg_top;
 		root.callstack_top = callstack;
 		root.stack_top_idx = pc->cur_stack_top;

@@ -438,7 +438,7 @@ typedef struct _GPerlEnv {
 	GPerlValue *argstack;
 	size_t args_size;
 	GPerlVirtualMachineCode *pc;
-	GPerlVirtualMachineCode **cur_pc;
+	GPerlVirtualMachineCode *cur_pc;
 	void *ret_addr;
 	int reg_top;
 	int esp;
@@ -523,11 +523,9 @@ typedef struct _GPerlTraceRoot {
 	GPerlValue *init_values;
 } GPerlTraceRoot;
 
-#define PAGE_SIZE (OBJECT_SIZE * 64)
-//#define PAGE_SIZE 4096
 #define PTR_SIZE sizeof(void*)
 #define OBJECT_SIZE (PTR_SIZE * 8)
-#define MEMORY_POOL_SIZE (OBJECT_SIZE * PAGE_SIZE)
+#define PAGE_SIZE OBJECT_SIZE * 1024
 #define NAME_RESOLUTION_PREFIX "*"
 #define MAX_GLOBAL_MEMORY_SIZE 128
 #define MAX_MACHINE_STACK_SIZE 1024 * 8 /* 8M */

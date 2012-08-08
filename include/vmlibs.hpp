@@ -219,11 +219,11 @@ int callstack_count = 0;
 #define GPERL_oSHIFT(src)
 #define GPERL_PUSH(dst, src) (callstack+1)->argstack[src] = callstack->reg[dst];
 #define GPERL_NEW() do {										\
-		g_pc = pc;												\
+		callstack->cur_pc = pc;									\
 		OBJECT_init(callstack->reg[pc->dst], pc->_new(pc->v));	\
 	} while (0)
 #define GPERL_NEW_STRING() do {\
-		g_pc = pc;														\
+		callstack->cur_pc = pc;									\
 		STRING_init(callstack->reg[pc->dst], (GPerlString *)pc->_new(pc->v)); \
 	} while (0)
 #define GPERL_ARRAY_PUSH(argstack) pc->push(argstack);
@@ -232,7 +232,7 @@ int callstack_count = 0;
 		if (a->size > I(idx)) {                                     \
 			callstack->reg[dst] = a->list[I(idx)];                  \
 		} else {                                                    \
-			g_pc = pc;												\
+			callstack->cur_pc = pc;									\
 			GPerlUndef *undef = new_GPerlUndef();					\
 			OBJECT_init(callstack->reg[dst], undef);                \
 		}                                                           \
@@ -250,7 +250,7 @@ int callstack_count = 0;
 
 
 #define GPERL_ARRAY_DREF(dst, src) do {									\
-		g_pc = pc;														\
+		callstack->cur_pc = pc;											\
 		GPerlArray *a = (GPerlArray *)new_GPerlArray(callstack->reg[src]); \
 		a->h.type = Array;												\
 		OBJECT_init(callstack->reg[dst], a);							\
