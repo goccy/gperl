@@ -263,7 +263,7 @@
 	 "type" : 0,
 	 "const" : 0,
 	 "fast_type" : 0,
-     "args" : [{"argstack" : "callstack->argstack"}]
+     "args" : [{"argstack" : "(callstack+1)->argstack"}]
  },
  {
 	 "code" : "ARRAY_AT",
