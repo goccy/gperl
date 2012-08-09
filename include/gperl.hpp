@@ -342,14 +342,13 @@ typedef struct _GPerlVirtualMachineCode {
 	union {
 		void *code;/* selective inlining code */
 		int jmp;   /* jmp register number */
-		//int ebp;   /* stack base pointer */
 		int idx;   /* array[idx] */
 		GPerlObject *(*_new)(GPerlValue);
 		void (*push)(GPerlValue *);
 		void (*write)(GPerlValue );
 	};
+	int cur_stack_top; /* stack top pointer */
 	int cur_reg_top;
-	int cur_stack_top;
 	int argc; /* for JIT_CALL */
 	const char *name;
 	struct _GPerlVirtualMachineCode *func;
@@ -441,12 +440,9 @@ public:
 typedef struct _GPerlEnv {
 	GPerlValue *reg;
 	GPerlValue *argstack;
-	size_t args_size;
 	GPerlVirtualMachineCode *pc;
 	GPerlVirtualMachineCode *cur_pc;
 	void *ret_addr;
-	int reg_top;
-	int esp;
 	int ebp;
 } GPerlEnv;
 
@@ -519,7 +515,7 @@ typedef struct _GPerlTraceRoot {
 	/* callstack trace for register */
 	GPerlEnv *callstack_top;
 	GPerlEnv *callstack_bottom;
-	/* virtual stack to stack[stack_top_idx] */
+	/* trace stack until stack_bottom[stack_top_idx] */
 	GPerlValue *stack_bottom;
 	int stack_top_idx;
 	/* global variables */
@@ -534,7 +530,7 @@ typedef struct _GPerlTraceRoot {
 #define PTR_SIZE sizeof(void*)
 #define OBJECT_SIZE (PTR_SIZE * 8)
 #define PAGE_SIZE 4096
-#define MEMORY_POOL_SIZE OBJECT_SIZE * 4096 * 16
+#define MEMORY_POOL_SIZE OBJECT_SIZE * 4096
 #define NAME_RESOLUTION_PREFIX "*"
 #define MAX_GLOBAL_MEMORY_SIZE 128
 #define MAX_MACHINE_STACK_SIZE 8 * KB

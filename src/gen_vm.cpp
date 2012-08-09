@@ -7,12 +7,11 @@ char shared_buf[128] = {0};//TODO must be variable buffer
 string outbuf = "";
 GPerlValue GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 {
-	GPerlVirtualMachineCode *pc = codes, *code_ = NULL;
-	GPerlVirtualMachineCode *top = NULL;
-	int esp = 0, ebp = 0;
+	GPerlVirtualMachineCode *pc = codes, *code_ = NULL, *top = NULL;
 	GPerlValue *stack = createMachineStack();
 	GPerlEnv *callstack = createCallStack();
 	GPerlEnv *callstack_bottom = callstack;
+	int esp = 0;
 	root.stack_bottom = stack;
 	root.callstack_bottom = callstack_bottom;
 	root.global_vmemory = global_vmemory;
@@ -447,7 +446,7 @@ GPerlValue GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 		BREAK();
 	});
 	CASE(INC, {
-		int type = TYPE_CHECK(stack[ebp + pc->dst]);
+		int type = TYPE_CHECK(stack[esp + pc->dst]);
 #ifdef STATIC_TYPING_MODE
 		pc->opnext = jmp_table[pc->op + 1 + type];
 #else /* DYNAMIC_TYPING_MODE */
@@ -505,7 +504,7 @@ GPerlValue GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 		BREAK();
 	});
 	CASE(DEC, {
-		int type = TYPE_CHECK(stack[ebp + pc->dst]);
+		int type = TYPE_CHECK(stack[esp + pc->dst]);
 #ifdef STATIC_TYPING_MODE
 		pc->opnext = jmp_table[pc->op + 1 + type];
 #else /* DYNAMIC_TYPING_MODE */

@@ -136,6 +136,6 @@ GPerlValue GPerl::eval(char *script, int argc, char **argv)
 	GPerlVirtualMachine *vm = new GPerlVirtualMachine();
 	DBG_PL("=============<RUNTIME>=============");
 	mm->switchGC();
-	vm->run(codes);//create threading code
-	return vm->run(codes);//execute code
+	//vm->run(codes);//create threading code
+	//return vm->run(codes);//execute code
 }

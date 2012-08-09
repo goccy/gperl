@@ -238,7 +238,7 @@ void GPerlMemoryManager::traceRoot(void)
 	GPerlEnv *callstack_top = root.callstack_top;
 
 	for (;callstack_trace_ptr != callstack_top; callstack_trace_ptr++) {
-		int reg_top_idx = callstack_trace_ptr->reg_top;
+		int reg_top_idx = callstack_trace_ptr->pc->cur_reg_top;
 		for (int i = 0; i < reg_top_idx; i++) {
 			mark(callstack_trace_ptr->reg[i]);
 		}
