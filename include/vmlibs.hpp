@@ -1,5 +1,3 @@
-int callstack_count = 0;
-
 #define L(op) L_##op
 #define DISPATCH_START() {						\
 		callstack->ret_addr = &&L_RETURN;		\
@@ -165,6 +163,7 @@ int callstack_count = 0;
 		callstack->ebp = ebp;							\
 		ebp = esp;										\
 		callstack++;									\
+		callstack_idx++;								\
 		callstack->args_size = pc->argc;				\
 		callstack->ret_addr = &&L_##NAME##AFTER;		\
 		callstack->pc = pc;								\
@@ -174,6 +173,7 @@ int callstack_count = 0;
 		pc = callstack->pc;								\
 		(callstack-1)->reg[dst] = callstack->reg[0];	\
 		callstack--;									\
+		callstack_idx--;								\
 		ebp = callstack->ebp;							\
 		esp = ebp;										\
 	}
@@ -183,6 +183,7 @@ int callstack_count = 0;
 		callstack->ebp = ebp;							\
 		ebp = esp;										\
 		callstack++;									\
+		callstack_idx++;								\
 		callstack->ret_addr = &&L_##NAME##AFTER;		\
 		callstack->args_size = pc->argc;				\
 		callstack->pc = pc;								\
@@ -192,6 +193,7 @@ int callstack_count = 0;
 		pc = callstack->pc;								\
 		(callstack-1)->reg[dst] = callstack->reg[0];	\
 		callstack--;									\
+		callstack_idx--;								\
 		ebp = callstack->ebp;							\
 		esp = ebp;										\
 	}

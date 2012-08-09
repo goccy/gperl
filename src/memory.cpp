@@ -64,7 +64,11 @@ GPerlMemoryManager::GPerlMemoryManager(void)
 	sa.sa_flags = SA_SIGINFO;
 	sigemptyset(&sa.sa_mask);
 	sa.sa_sigaction = segv_handler;
+#ifdef USING_MACOSX
 	if (sigaction(SIGBUS, &sa, NULL) == -1) {
+#else
+	if (sigaction(SIGSEGV, &sa, NULL) == -1) {
+#endif
 		fprintf(stderr, "ERROR!!: sigaction\n");
 		exit(EXIT_FAILURE);
 	}

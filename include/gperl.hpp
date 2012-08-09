@@ -14,6 +14,10 @@
 #include <sys/mman.h>
 #include <setjmp.h>
 
+#ifdef __APPLE__
+#define USING_MACOSX
+#endif
+
 #define EOL '\0'
 #define MAX_LINE_SIZE 128
 #define MAX_TOKEN_SIZE 4096
