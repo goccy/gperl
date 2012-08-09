@@ -8,12 +8,13 @@ string outbuf = "";
 static GPerlEnv *callstack_bottom = NULL;
 GPerlValue GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 {
-	GPerlVirtualMachineCode *pc = codes;
-	size_t callstack_idx = 0;
+	GPerlVirtualMachineCode *pc = codes, *code_ = NULL;
+	volatile size_t callstack_idx = 0;
 	GPerlEnv *callstack = NULL;
-	GPerlVirtualMachineCode *top = NULL, *code_ = NULL;
-	int esp = 0, ebp = 0;
+	static GPerlVirtualMachineCode *top = NULL;
+	volatile int esp = 0, ebp = 0;
 	GPerlValue *stack = createMachineStack();
+
 	if (sigsetjmp(expand_mem, 1)) {
 		DBG_PL("GC");
 		GPerlEnv *callstack_top = callstack_bottom + callstack_idx;
@@ -29,6 +30,7 @@ GPerlValue GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 		if (mm->freeList == mm->guard) {
 			mm->expandMemPool();
 		}
+		goto *pc->opnext;
 	} else {
 		callstack = createCallStack();
 		callstack_bottom = callstack;
@@ -40,7 +42,6 @@ GPerlValue GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 	jit_env.stack = stack;
 	jit_env.args = args;
 #endif
-
 #include "gen_label.cpp"
 
     DISPATCH_START();

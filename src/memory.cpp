@@ -1,4 +1,15 @@
 #include <gperl.hpp>
+#include <sys/time.h>
+#include <time.h>
+
+double total_time = 0.0f;
+double malloc_time = 0.0f;
+double gettimeofday_sec(void)
+{
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+    return tv.tv_sec + tv.tv_usec * 1e-6;
+}
 
 sigjmp_buf expand_mem;
 #define MemoryManager_popObject(o, list) {      \
@@ -181,7 +192,12 @@ void GPerlMemoryManager::mark(GPerlValue v) {
 
 void GPerlMemoryManager::gc(void)
 {
+    //double s1 = gettimeofday_sec();
 	(this->*_gc)();
+    //double s2 = gettimeofday_sec();
+    //double time = s2 - s1;
+    //total_time += time;
+    //fprintf(stderr, "gc_time = [%f]\n", time);
 }
 
 /* switch dummy_gc => msgc (before Runtime) */

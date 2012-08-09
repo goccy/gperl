@@ -94,6 +94,7 @@ GPerlArray *new_GPerlInitArray(GPerlValue *list, size_t asize)
 
 GPerlObject *new_GPerlArray(GPerlValue v)
 {
+	//double s1 = gettimeofday_sec();
 	GPerlArray *a = (GPerlArray *)getObject(v);
 	GPerlArray *ret = (GPerlArray *)mm->gmalloc();
 	size_t size = sizeof(GPerlValue) * a->size;
@@ -104,5 +105,8 @@ GPerlObject *new_GPerlArray(GPerlValue v)
 	ret->mark = Array_mark;
 	ret->free = Array_free;
 	ret->h.type = a->h.type;
+	//double s2 = gettimeofday_sec();
+	//double time = s2 - s1;
+	//malloc_time += time;
 	return (GPerlObject *)ret;
 }

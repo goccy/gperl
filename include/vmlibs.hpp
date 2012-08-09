@@ -4,7 +4,6 @@
 		(callstack+1)->ret_addr = &&L_RETURN;	\
 		goto *jmp_table[pc->op];				\
 	}
-
 #define DISPATCH_END() L_RETURN:
 #define GOTO_NEXTOP() goto *(pc->opnext)
 

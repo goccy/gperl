@@ -528,17 +528,17 @@ typedef struct _GPerlTraceRoot {
 	GPerlValue *init_values;
 } GPerlTraceRoot;
 
-#define PTR_SIZE sizeof(void*)
-#define OBJECT_SIZE (PTR_SIZE * 8)
-#define PAGE_SIZE 4096
-#define MEMORY_POOL_SIZE OBJECT_SIZE * 1024
-#define NAME_RESOLUTION_PREFIX "*"
-#define MAX_GLOBAL_MEMORY_SIZE 128
-#define MAX_MACHINE_STACK_SIZE 1024 * 8 /* 8M */
-#define MAX_INIT_VALUES_SIZE 64
 #define KB 1024
 #define MB KB * KB
 #define MAX_CWB_SIZE 1 * MB
+#define PTR_SIZE sizeof(void*)
+#define OBJECT_SIZE (PTR_SIZE * 8)
+#define PAGE_SIZE 4096
+#define MEMORY_POOL_SIZE OBJECT_SIZE * 4096 * 16
+#define NAME_RESOLUTION_PREFIX "*"
+#define MAX_GLOBAL_MEMORY_SIZE 128
+#define MAX_MACHINE_STACK_SIZE 8 * KB
+#define MAX_INIT_VALUES_SIZE 64
 #define INIT_MEMPOOL_NUM 4
 
 extern GPerlValue global_vmemory[MAX_GLOBAL_MEMORY_SIZE];
@@ -566,3 +566,6 @@ extern GPerlVirtualMachineCode **cur_pc;
 extern GPerlTraceRoot root;
 extern int init_value_idx;
 extern sigjmp_buf expand_mem;
+extern double total_time;
+extern double malloc_time;
+extern double gettimeofday_sec(void);
