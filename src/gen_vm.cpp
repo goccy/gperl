@@ -5,36 +5,17 @@
 using namespace std;
 char shared_buf[128] = {0};//TODO must be variable buffer
 string outbuf = "";
-static GPerlEnv *callstack_bottom = NULL;
 GPerlValue GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 {
 	GPerlVirtualMachineCode *pc = codes, *code_ = NULL;
-	volatile size_t callstack_idx = 0;
-	GPerlEnv *callstack = NULL;
-	static GPerlVirtualMachineCode *top = NULL;
-	volatile int esp = 0, ebp = 0;
+	GPerlVirtualMachineCode *top = NULL;
+	int esp = 0, ebp = 0;
 	GPerlValue *stack = createMachineStack();
-
-	if (sigsetjmp(expand_mem, 1)) {
-		DBG_PL("GC");
-		GPerlEnv *callstack_top = callstack_bottom + callstack_idx;
-		callstack = callstack_top;
-		pc = callstack_top->cur_pc;
-		callstack_top->reg_top = pc->cur_reg_top;
-		root.callstack_bottom = callstack_bottom;
-		root.callstack_top = callstack_top;
-		root.stack_top_idx = pc->cur_stack_top;
-		root.stack_bottom = stack;
-		root.global_vmemory = global_vmemory;
-		mm->gc();
-		if (mm->freeList == mm->guard) {
-			mm->expandMemPool();
-		}
-		goto *pc->opnext;
-	} else {
-		callstack = createCallStack();
-		callstack_bottom = callstack;
-	}
+	GPerlEnv *callstack = createCallStack();
+	GPerlEnv *callstack_bottom = callstack;
+	root.stack_bottom = stack;
+	root.callstack_bottom = callstack_bottom;
+	root.global_vmemory = global_vmemory;
 #ifdef USING_JIT
 	GPerlJITCompiler jit_compiler;
 	GPerlJITEnv jit_env;

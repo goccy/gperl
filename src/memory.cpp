@@ -13,10 +13,15 @@ double gettimeofday_sec(void)
 
 sigjmp_buf expand_mem;
 #define MemoryManager_popObject(o, list) {      \
+		o = list;								\
+		list = list->h.next;					\
+	}
+/*
+#define MemoryManager_popObject(o, list) {      \
 		o = list;                               \
 		list = list->h.next;					\
 	}
-
+*/
 #define MemoryManager_pushObject(o, list) {     \
 		memset(o, 0, OBJECT_SIZE);              \
 		o->h.next = list;                       \
@@ -106,8 +111,8 @@ GPerlMemoryManager::GPerlMemoryManager(void)
 		o = o + 1;
 	}
 	guard_prev_ptr = o;
-	o->h.next = guard;
-	//o->h.next = NULL;
+	//o->h.next = guard;
+	o->h.next = NULL;
 	freeList = head;
 	for (int i = 0; i < MAX_GLOBAL_MEMORY_SIZE; i++) {
 		global_vmemory[i].ovalue = NULL;
@@ -138,8 +143,8 @@ void GPerlMemoryManager::expandMemPool(void)
 	}
 	freeList = guard_prev_ptr;
 	guard_prev_ptr = o;
-	//o->h.next = NULL;
-	o->h.next = guard;
+	o->h.next = NULL;
+	//o->h.next = guard;
 	new_tail->h.next = freeList;
 	freeList = new_head;
 	if (pool_size > max_pool_size - 1) {
@@ -167,6 +172,13 @@ GPerlObject* GPerlMemoryManager::gmalloc(void) {
 		 (gdb) run
 	***/
 	MemoryManager_popObject(ret, freeList);
+	if (freeList == NULL) {
+		gc();
+		if (freeList == NULL) {
+			expandMemPool();
+		}
+		//MemoryManager_popObject(ret, freeList);
+	}
 	return ret;
 }
 
