@@ -667,9 +667,8 @@ void GPerlCompiler::setArrayARGMOV(GPerlVirtualMachineCode *code, GPerlCell *)
 void GPerlCompiler::setARGMOV(GPerlVirtualMachineCode *code, GPerlCell *c)
 {
 	(void)c;
-	//code->op = SHIFT;
 	code->op = ARGMOV;
-	code->dst = 0;
+	code->dst = dst;
 	code->src = recv_args_count;
 	recv_args_count++;
 	reg_type[dst] = Object;
@@ -715,14 +714,30 @@ void GPerlCompiler::setArrayDereference(GPerlVirtualMachineCode *code, GPerlCell
 void GPerlCompiler::setArrayAt(GPerlVirtualMachineCode *code, GPerlCell *c_)
 {
 	GPerlCell *c = c_->left;
-	c->vname.replace(0, 1, "@");
-	c->fname.replace(0, 1, "@");
-	c->rawstr.replace(0, 1, "@");
+	c->vname.replace(c->indent, 1, "@");
+	c->fname.replace(c->indent, 1, "@");
+	c->rawstr.replace(c->indent, 1, "@");
 	int idx = 0;
-	setInstByVMap(code, c, ARRAY_AT, ARRAY_gAT, &idx);
-	c->vname.replace(0, 1, "$");
-	c->fname.replace(0, 1, "$");
-	c->rawstr.replace(0, 1, "$");
+	if (reg_type[dst - 1] == Int) {
+		idx = codes->back()->v.ivalue;
+		dst--;
+		popVMCode();//remove MOV
+		if (c->vname.find("$_") || c->vname.find("@_")) {
+			//ARGMOV
+			code->op = ARGMOV;
+			code->dst = dst;
+			code->src = idx;
+			reg_type[dst] = Object;
+			dst++;
+			return;
+		}
+		//setInstByVMap(code, c, ARRAY_ATC, ARRAY_gATC, &idx);
+	} else {
+		setInstByVMap(code, c, ARRAY_AT, ARRAY_gAT, &idx);
+	}
+	c->vname.replace(c->indent, 1, "$");
+	c->fname.replace(c->indent, 1, "$");
+	c->rawstr.replace(c->indent, 1, "$");
 	code->src = idx;
 	code->idx = dst-1;
 	code->dst = dst;

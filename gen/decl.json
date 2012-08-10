@@ -225,6 +225,11 @@
      "parse_func" : ""
  },
  {
+     "type" : "SpecificValue",
+     "data" : "$_",
+     "parse_func" : ""
+ },
+ {
      "type" : "ProgramArgument",
      "data" : "@ARGV",
      "parse_func" : ""

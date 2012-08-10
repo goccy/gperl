@@ -1,9 +1,8 @@
 sub fib {
-	my $n = shift;
-	if ($n < 3) {
+	if ($_[0] < 3) {
 		return 1;
 	} else {
-		return fib($n - 1) + fib($n - 2);
+		return fib($_[0] - 1) + fib($_[0] - 2);
 	}
 }
 
