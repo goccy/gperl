@@ -12,6 +12,7 @@ GPerlValue GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 	GPerlEnv *callstack = createCallStack();
 	GPerlEnv *callstack_bottom = callstack;
 	GPerlValue *reg = callstack->reg;
+	GPerlValue *argstack = callstack->argstack;
 	int esp = 0;
 	root.stack_bottom = stack;
 	root.callstack_bottom = callstack_bottom;

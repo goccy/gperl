@@ -27,9 +27,9 @@
 #define GPERL_MOV(dst, v) reg[dst] = v
 #define GPERL_vMOV(dst, src) reg[dst] = stack[esp + src]
 #define GPERL_gMOV(dst, src) reg[dst] = global_vmemory[src];
-#define GPERL_ARGMOV(dst, src) reg[dst] = callstack->argstack[src]
+#define GPERL_ARGMOV(dst, src) reg[dst] = argstack[src]
 #define GPERL_ArrayARGMOV(_dst) {                   \
-		args->list = callstack->argstack;           \
+		args->list = argstack;						\
 		args->size = callstack->pc->argc;			\
 		OBJECT_init(reg[_dst], args);				\
 	}
@@ -162,6 +162,7 @@
 		esp += pc->cur_stack_top;						\
 		callstack++;									\
 		reg = callstack->reg;							\
+		argstack = callstack->argstack;					\
 		callstack->ret_addr = &&L_##NAME##AFTER;		\
 		callstack->pc = pc;								\
 		pc = top;										\
@@ -171,6 +172,7 @@
 		(callstack-1)->reg[dst] = reg[0];				\
 		callstack--;									\
 		reg = callstack->reg;							\
+		argstack = callstack->argstack;					\
 		esp = callstack->ebp;							\
 	}
 
@@ -179,6 +181,7 @@
 		esp += pc->cur_stack_top;						\
 		callstack++;									\
 		reg = callstack->reg;							\
+		argstack = callstack->argstack;					\
 		callstack->ret_addr = &&L_##NAME##AFTER;		\
 		callstack->pc = pc;								\
 		pc = top;										\
@@ -188,6 +191,7 @@
 		(callstack-1)->reg[dst] = reg[0];				\
 		callstack--;									\
 		reg = callstack->reg;							\
+		argstack = callstack->argstack;					\
 		esp = callstack->ebp;							\
 	}
 
