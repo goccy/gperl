@@ -224,11 +224,73 @@
      "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}, {"NAME" : "callname"}]
  },
  {
+	 "code" : "FASTCALL0",
+	 "type" : 0,
+	 "const" : 0,
+	 "fast_type" : 2,
+     "args" : [{"arg0" : "pc->arg0"}, {"dst" : "pc->dst"},
+			   {"src" : "pc->src"}, {"NAME" : "callname"}]
+ },
+ {
+	 "code" : "FASTCALL1",
+	 "type" : 0,
+	 "const" : 0,
+	 "fast_type" : 2,
+     "args" : [{"arg0" : "pc->arg0"}, {"arg1" : "pc->arg1"},
+			   {"dst" : "pc->dst"}, {"src" : "pc->src"}, {"NAME" : "callname"}]
+ },
+ {
+	 "code" : "FASTCALL2",
+	 "type" : 0,
+	 "const" : 0,
+	 "fast_type" : 2,
+     "args" : [{"arg0" : "pc->arg0"}, {"arg1" : "pc->arg1"}, {"arg2" : "pc->arg2"},
+			   {"dst" : "pc->dst"}, {"src" : "pc->src"}, {"NAME" : "callname"}]
+ },
+ {
+	 "code" : "FASTCALL3",
+	 "type" : 0,
+	 "const" : 0,
+	 "fast_type" : 2,
+     "args" : [{"arg0" : "pc->arg0"}, {"arg1" : "pc->arg1"}, {"arg2" : "pc->arg2"},
+			   {"arg3" : "pc->arg3"}, {"dst" : "pc->dst"}, {"src" : "pc->src"}, {"NAME" : "callname"}]
+ },
+ {
 	 "code" : "SELFCALL",
 	 "type" : 0,
 	 "const" : 0,
 	 "fast_type" : 2,
      "args" : [{"dst" : "pc->dst"}, {"NAME" : "callname"}]
+ },
+ {
+	 "code" : "SELF_FASTCALL0",
+	 "type" : 0,
+	 "const" : 0,
+	 "fast_type" : 2,
+     "args" : [{"arg0" : "pc->arg0"}, {"dst" : "pc->dst"}, {"NAME" : "callname"}]
+ },
+ {
+	 "code" : "SELF_FASTCALL1",
+	 "type" : 0,
+	 "const" : 0,
+	 "fast_type" : 2,
+     "args" : [{"arg0" : "pc->arg0"}, {"arg1" : "pc->arg1"}, {"dst" : "pc->dst"}, {"NAME" : "callname"}]
+ },
+ {
+	 "code" : "SELF_FASTCALL2",
+	 "type" : 0,
+	 "const" : 0,
+	 "fast_type" : 2,
+     "args" : [{"arg0" : "pc->arg0"}, {"arg1" : "pc->arg1"}, {"arg2" : "pc->arg2"},
+			   {"dst" : "pc->dst"}, {"NAME" : "callname"}]
+ },
+ {
+	 "code" : "SELF_FASTCALL3",
+	 "type" : 0,
+	 "const" : 0,
+	 "fast_type" : 2,
+     "args" : [{"arg0" : "pc->arg0"}, {"arg1" : "pc->arg1"}, {"arg2" : "pc->arg2"},
+			   {"arg3" : "pc->arg3"}, {"dst" : "pc->dst"}, {"NAME" : "callname"}]
  },
  {
 	 "code" : "SHIFT",
@@ -273,7 +335,21 @@
      "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}, {"idx" : "pc->idx"}]
  },
  {
+	 "code" : "ARRAY_ATC",
+	 "type" : 0,
+	 "const" : 0,
+	 "fast_type" : 0,
+     "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}, {"idx" : "pc->idx"}]
+ },
+ {
 	 "code" : "ARRAY_gAT",
+	 "type" : 0,
+	 "const" : 0,
+	 "fast_type" : 0,
+     "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}, {"idx" : "pc->idx"}]
+ },
+ {
+	 "code" : "ARRAY_gATC",
 	 "type" : 0,
 	 "const" : 0,
 	 "fast_type" : 0,

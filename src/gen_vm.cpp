@@ -3,17 +3,19 @@
 #include <vmlibs.hpp>
 
 using namespace std;
+
 char shared_buf[128] = {0};//TODO must be variable buffer
 string outbuf = "";
+
 GPerlValue GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 {
 	GPerlVirtualMachineCode *pc = codes, *code_ = NULL, *top = NULL;
 	GPerlValue *stack = createMachineStack();
 	GPerlEnv *callstack = createCallStack();
+	callstack->ebp = stack;
 	GPerlEnv *callstack_bottom = callstack;
 	GPerlValue *reg = callstack->reg;
 	GPerlValue *argstack = callstack->argstack;
-	int esp = 0;
 	root.stack_bottom = stack;
 	root.callstack_bottom = callstack_bottom;
 	root.global_vmemory = global_vmemory;
@@ -25,7 +27,6 @@ GPerlValue GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 	jit_env.args = args;
 #endif
 #include "gen_label.cpp"
-
     DISPATCH_START();
 
 	CASE(UNDEF, {
@@ -448,7 +449,7 @@ GPerlValue GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 		BREAK();
 	});
 	CASE(INC, {
-		int type = TYPE_CHECK(stack[esp + pc->dst]);
+		int type = TYPE_CHECK(stack[pc->dst]);
 #ifdef STATIC_TYPING_MODE
 		pc->opnext = jmp_table[pc->op + 1 + type];
 #else /* DYNAMIC_TYPING_MODE */
@@ -506,7 +507,7 @@ GPerlValue GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 		BREAK();
 	});
 	CASE(DEC, {
-		int type = TYPE_CHECK(stack[esp + pc->dst]);
+		int type = TYPE_CHECK(stack[pc->dst]);
 #ifdef STATIC_TYPING_MODE
 		pc->opnext = jmp_table[pc->op + 1 + type];
 #else /* DYNAMIC_TYPING_MODE */
@@ -572,7 +573,7 @@ GPerlValue GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 		createDirectThreadingCode(codes, jmp_table);
 		(void)block_table;
 		//createSelectiveInliningCode(codes, jmp_table, block_table);
-		return callstack->reg[0];
+		return reg[0];
 	});
 	CASE(NOP, {
 		GPERL_NOP();
@@ -642,8 +643,48 @@ GPerlValue GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 		pc++;
 		BREAK();
 	});
+	CASE(FASTCALL0, {
+		GPERL_FASTCALL0(pc->arg0, pc->dst, pc->src, FASTCALL0);
+		pc++;
+		BREAK();
+	});
+	CASE(FASTCALL1, {
+		GPERL_FASTCALL1(pc->arg0, pc->arg1, pc->dst, pc->src, FASTCALL1);
+		pc++;
+		BREAK();
+	});
+	CASE(FASTCALL2, {
+		GPERL_FASTCALL2(pc->arg0, pc->arg1, pc->arg2, pc->dst, pc->src, FASTCALL2);
+		pc++;
+		BREAK();
+	});
+	CASE(FASTCALL3, {
+		GPERL_FASTCALL3(pc->arg0, pc->arg1, pc->arg2, pc->arg3, pc->dst, pc->src, FASTCALL3);
+		pc++;
+		BREAK();
+	});
 	CASE(SELFCALL, {
 		GPERL_SELFCALL(pc->dst, SELFCALL);
+		pc++;
+		BREAK();
+	});
+	CASE(SELF_FASTCALL0, {
+		GPERL_SELF_FASTCALL0(pc->arg0, pc->dst, SELF_FASTCALL0);
+		pc++;
+		BREAK();
+	});
+	CASE(SELF_FASTCALL1, {
+		GPERL_SELF_FASTCALL1(pc->arg0, pc->arg1, pc->dst, SELF_FASTCALL1);
+		pc++;
+		BREAK();
+	});
+	CASE(SELF_FASTCALL2, {
+		GPERL_SELF_FASTCALL2(pc->arg0, pc->arg1, pc->arg2, pc->dst, SELF_FASTCALL2);
+		pc++;
+		BREAK();
+	});
+	CASE(SELF_FASTCALL3, {
+		GPERL_SELF_FASTCALL3(pc->arg0, pc->arg1, pc->arg2, pc->arg3, pc->dst, SELF_FASTCALL3);
 		pc++;
 		BREAK();
 	});
@@ -697,8 +738,18 @@ GPerlValue GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 		pc++;
 		BREAK();
 	});
+	CASE(ARRAY_ATC, {
+		GPERL_ARRAY_ATC(pc->dst, pc->src, pc->idx);
+		pc++;
+		BREAK();
+	});
 	CASE(ARRAY_gAT, {
 		GPERL_ARRAY_gAT(pc->dst, pc->src, pc->idx);
+		pc++;
+		BREAK();
+	});
+	CASE(ARRAY_gATC, {
+		GPERL_ARRAY_gATC(pc->dst, pc->src, pc->idx);
 		pc++;
 		BREAK();
 	});
@@ -710,5 +761,5 @@ GPerlValue GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 #include "gen_fast_vmcode.cpp"
 
 	DISPATCH_END();
-	return callstack->reg[0];
+	return reg[0];
 }

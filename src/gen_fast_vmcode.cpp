@@ -2482,6 +2482,86 @@
 		pc++;
 		BREAK();
 	});
+	CASE(A_FASTCALL0, {
+		GPERL_FASTCALL0(pc->arg0, 0, pc->src, A_FASTCALL0);
+		pc++;
+		BREAK();
+	});
+	CASE(B_FASTCALL0, {
+		GPERL_FASTCALL0(pc->arg0, 1, pc->src, B_FASTCALL0);
+		pc++;
+		BREAK();
+	});
+	CASE(C_FASTCALL0, {
+		GPERL_FASTCALL0(pc->arg0, 2, pc->src, C_FASTCALL0);
+		pc++;
+		BREAK();
+	});
+	CASE(D_FASTCALL0, {
+		GPERL_FASTCALL0(pc->arg0, 3, pc->src, D_FASTCALL0);
+		pc++;
+		BREAK();
+	});
+	CASE(A_FASTCALL1, {
+		GPERL_FASTCALL1(pc->arg0, pc->arg1, 0, pc->src, A_FASTCALL1);
+		pc++;
+		BREAK();
+	});
+	CASE(B_FASTCALL1, {
+		GPERL_FASTCALL1(pc->arg0, pc->arg1, 1, pc->src, B_FASTCALL1);
+		pc++;
+		BREAK();
+	});
+	CASE(C_FASTCALL1, {
+		GPERL_FASTCALL1(pc->arg0, pc->arg1, 2, pc->src, C_FASTCALL1);
+		pc++;
+		BREAK();
+	});
+	CASE(D_FASTCALL1, {
+		GPERL_FASTCALL1(pc->arg0, pc->arg1, 3, pc->src, D_FASTCALL1);
+		pc++;
+		BREAK();
+	});
+	CASE(A_FASTCALL2, {
+		GPERL_FASTCALL2(pc->arg0, pc->arg1, pc->arg2, 0, pc->src, A_FASTCALL2);
+		pc++;
+		BREAK();
+	});
+	CASE(B_FASTCALL2, {
+		GPERL_FASTCALL2(pc->arg0, pc->arg1, pc->arg2, 1, pc->src, B_FASTCALL2);
+		pc++;
+		BREAK();
+	});
+	CASE(C_FASTCALL2, {
+		GPERL_FASTCALL2(pc->arg0, pc->arg1, pc->arg2, 2, pc->src, C_FASTCALL2);
+		pc++;
+		BREAK();
+	});
+	CASE(D_FASTCALL2, {
+		GPERL_FASTCALL2(pc->arg0, pc->arg1, pc->arg2, 3, pc->src, D_FASTCALL2);
+		pc++;
+		BREAK();
+	});
+	CASE(A_FASTCALL3, {
+		GPERL_FASTCALL3(pc->arg0, pc->arg1, pc->arg2, pc->arg3, 0, pc->src, A_FASTCALL3);
+		pc++;
+		BREAK();
+	});
+	CASE(B_FASTCALL3, {
+		GPERL_FASTCALL3(pc->arg0, pc->arg1, pc->arg2, pc->arg3, 1, pc->src, B_FASTCALL3);
+		pc++;
+		BREAK();
+	});
+	CASE(C_FASTCALL3, {
+		GPERL_FASTCALL3(pc->arg0, pc->arg1, pc->arg2, pc->arg3, 2, pc->src, C_FASTCALL3);
+		pc++;
+		BREAK();
+	});
+	CASE(D_FASTCALL3, {
+		GPERL_FASTCALL3(pc->arg0, pc->arg1, pc->arg2, pc->arg3, 3, pc->src, D_FASTCALL3);
+		pc++;
+		BREAK();
+	});
 	CASE(A_SELFCALL, {
 		GPERL_SELFCALL(0, A_SELFCALL);
 		pc++;
@@ -2499,6 +2579,86 @@
 	});
 	CASE(D_SELFCALL, {
 		GPERL_SELFCALL(3, D_SELFCALL);
+		pc++;
+		BREAK();
+	});
+	CASE(A_SELF_FASTCALL0, {
+		GPERL_SELF_FASTCALL0(pc->arg0, 0, A_SELF_FASTCALL0);
+		pc++;
+		BREAK();
+	});
+	CASE(B_SELF_FASTCALL0, {
+		GPERL_SELF_FASTCALL0(pc->arg0, 1, B_SELF_FASTCALL0);
+		pc++;
+		BREAK();
+	});
+	CASE(C_SELF_FASTCALL0, {
+		GPERL_SELF_FASTCALL0(pc->arg0, 2, C_SELF_FASTCALL0);
+		pc++;
+		BREAK();
+	});
+	CASE(D_SELF_FASTCALL0, {
+		GPERL_SELF_FASTCALL0(pc->arg0, 3, D_SELF_FASTCALL0);
+		pc++;
+		BREAK();
+	});
+	CASE(A_SELF_FASTCALL1, {
+		GPERL_SELF_FASTCALL1(pc->arg0, pc->arg1, 0, A_SELF_FASTCALL1);
+		pc++;
+		BREAK();
+	});
+	CASE(B_SELF_FASTCALL1, {
+		GPERL_SELF_FASTCALL1(pc->arg0, pc->arg1, 1, B_SELF_FASTCALL1);
+		pc++;
+		BREAK();
+	});
+	CASE(C_SELF_FASTCALL1, {
+		GPERL_SELF_FASTCALL1(pc->arg0, pc->arg1, 2, C_SELF_FASTCALL1);
+		pc++;
+		BREAK();
+	});
+	CASE(D_SELF_FASTCALL1, {
+		GPERL_SELF_FASTCALL1(pc->arg0, pc->arg1, 3, D_SELF_FASTCALL1);
+		pc++;
+		BREAK();
+	});
+	CASE(A_SELF_FASTCALL2, {
+		GPERL_SELF_FASTCALL2(pc->arg0, pc->arg1, pc->arg2, 0, A_SELF_FASTCALL2);
+		pc++;
+		BREAK();
+	});
+	CASE(B_SELF_FASTCALL2, {
+		GPERL_SELF_FASTCALL2(pc->arg0, pc->arg1, pc->arg2, 1, B_SELF_FASTCALL2);
+		pc++;
+		BREAK();
+	});
+	CASE(C_SELF_FASTCALL2, {
+		GPERL_SELF_FASTCALL2(pc->arg0, pc->arg1, pc->arg2, 2, C_SELF_FASTCALL2);
+		pc++;
+		BREAK();
+	});
+	CASE(D_SELF_FASTCALL2, {
+		GPERL_SELF_FASTCALL2(pc->arg0, pc->arg1, pc->arg2, 3, D_SELF_FASTCALL2);
+		pc++;
+		BREAK();
+	});
+	CASE(A_SELF_FASTCALL3, {
+		GPERL_SELF_FASTCALL3(pc->arg0, pc->arg1, pc->arg2, pc->arg3, 0, A_SELF_FASTCALL3);
+		pc++;
+		BREAK();
+	});
+	CASE(B_SELF_FASTCALL3, {
+		GPERL_SELF_FASTCALL3(pc->arg0, pc->arg1, pc->arg2, pc->arg3, 1, B_SELF_FASTCALL3);
+		pc++;
+		BREAK();
+	});
+	CASE(C_SELF_FASTCALL3, {
+		GPERL_SELF_FASTCALL3(pc->arg0, pc->arg1, pc->arg2, pc->arg3, 2, C_SELF_FASTCALL3);
+		pc++;
+		BREAK();
+	});
+	CASE(D_SELF_FASTCALL3, {
+		GPERL_SELF_FASTCALL3(pc->arg0, pc->arg1, pc->arg2, pc->arg3, 3, D_SELF_FASTCALL3);
 		pc++;
 		BREAK();
 	});

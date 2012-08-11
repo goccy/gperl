@@ -467,6 +467,15 @@ GPerlAST *GPerlParser::parse(void)
 				GPerlCell *b = new GPerlCell(ArrayAt, "[]");
 				b->indent = indent;
 				GPerlCell *block = blocks.lastNode();
+				if (block->right) {
+					GPerlCell *right = block->right;
+					right->parent = b;
+					idx->parent = b;
+					b->left = right;
+					b->right = idx;
+					block->right = b;
+					break;
+				}
 				block->parent = b;
 				idx->parent = b;
 				b->left = block;

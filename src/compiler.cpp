@@ -309,6 +309,14 @@ void GPerlCompiler::optimizeFuncCode(vector<GPerlVirtualMachineCode *> *f, strin
 		GPerlVirtualMachineCode *c = *it;
 		if (c->op == CALL && fname == c->name) {
 			c->op = SELFCALL;
+		} else if (c->op == FASTCALL0 && fname == c->name) {
+			c->op = SELF_FASTCALL0;
+		} else if (c->op == FASTCALL1 && fname == c->name) {
+			c->op = SELF_FASTCALL1;
+		} else if (c->op == FASTCALL2 && fname == c->name) {
+			c->op = SELF_FASTCALL2;
+		} else if (c->op == FASTCALL3 && fname == c->name) {
+			c->op = SELF_FASTCALL3;
 		} else if (c->op == NOP || c->op == SETv || c->op == SHIFT) {
 			it = f->erase(it);
 			code_num--;
@@ -420,6 +428,18 @@ void GPerlCompiler::finalCompile(vector<GPerlVirtualMachineCode *> *code)
 			break;
 		case SELFCALL:
 			OPCREATE_TYPE2(SELFCALL);
+			break;
+		case SELF_FASTCALL0:
+			OPCREATE_TYPE2(SELF_FASTCALL0);
+			break;
+		case SELF_FASTCALL1:
+			OPCREATE_TYPE2(SELF_FASTCALL1);
+			break;
+		case SELF_FASTCALL2:
+			OPCREATE_TYPE2(SELF_FASTCALL2);
+			break;
+		case SELF_FASTCALL3:
+			OPCREATE_TYPE2(SELF_FASTCALL3);
 			break;
 		/*========= TYPE3 =========*/
 		case RET:
@@ -722,7 +742,7 @@ void GPerlCompiler::setArrayAt(GPerlVirtualMachineCode *code, GPerlCell *c_)
 		idx = codes->back()->v.ivalue;
 		dst--;
 		popVMCode();//remove MOV
-		if (c->vname.find("$_") || c->vname.find("@_")) {
+		if (c->vname.find("$_") != string::npos || c->vname.find("@_") != string::npos) {
 			//ARGMOV
 			code->op = ARGMOV;
 			code->dst = dst;
@@ -731,15 +751,16 @@ void GPerlCompiler::setArrayAt(GPerlVirtualMachineCode *code, GPerlCell *c_)
 			dst++;
 			return;
 		}
-		//setInstByVMap(code, c, ARRAY_ATC, ARRAY_gATC, &idx);
+		code->idx = idx;
+		setInstByVMap(code, c, ARRAY_ATC, ARRAY_gATC, &idx);
 	} else {
 		setInstByVMap(code, c, ARRAY_AT, ARRAY_gAT, &idx);
+		code->idx = dst-1;
 	}
 	c->vname.replace(c->indent, 1, "$");
 	c->fname.replace(c->indent, 1, "$");
 	c->rawstr.replace(c->indent, 1, "$");
 	code->src = idx;
-	code->idx = dst-1;
 	code->dst = dst;
 	reg_type[dst] = Object;
 	dst++;
@@ -843,10 +864,52 @@ void GPerlCompiler::setEscapeStackNum(GPerlVirtualMachineCode *code, GPerlCell *
 
 void GPerlCompiler::setCALL(GPerlVirtualMachineCode *code, GPerlCell *c)
 {
+	if (args_count < 5) {
+		if (args_count == 1) {
+			GPerlVirtualMachineCode *arg = codes->back();
+			code->arg0 = arg->dst;
+			popVMCode();
+			code->op = FASTCALL0;
+		} else if (args_count == 2) {
+			GPerlVirtualMachineCode *arg = codes->back();
+			code->arg1 = arg->dst;
+			popVMCode();
+			arg = codes->back();
+			code->arg0 = arg->dst;
+			popVMCode();
+			code->op = FASTCALL1;
+		} else if (args_count == 3) {
+			GPerlVirtualMachineCode *arg = codes->back();
+			code->arg2 = arg->dst;
+			popVMCode();
+			arg = codes->back();
+			code->arg1 = arg->dst;
+			popVMCode();
+			arg = codes->back();
+			code->arg0 = arg->dst;
+			popVMCode();
+			code->op = FASTCALL2;
+		} else if (args_count == 4) {
+			GPerlVirtualMachineCode *arg = codes->back();
+			code->arg3 = arg->dst;
+			popVMCode();
+			arg = codes->back();
+			code->arg2 = arg->dst;
+			popVMCode();
+			arg = codes->back();
+			code->arg1 = arg->dst;
+			popVMCode();
+			arg = codes->back();
+			code->arg0 = arg->dst;
+			popVMCode();
+			code->op = FASTCALL3;
+		}
+	} else {
+		code->op = CALL;
+	}
 	const char *name = cstr(c->fname);
 	int idx = getFuncIndex(name);
 	setEscapeStackNum(code, c);
-	code->op = CALL;
 	code->dst = dst-1;
 	code->src = idx;
 	code->name = name;
@@ -976,9 +1039,9 @@ GPerlVirtualMachineCode *GPerlCompiler::createJMP(int jmp_num)
 void GPerlCompiler::dumpVMCode(GPerlVirtualMachineCode *code)
 {
 	(void)code;
-	DBG_PL("L[%d] : %s [dst:%d], [src:%d], [jmp:%d], [name:%s], [ivalue: %d], [cur_stack_top: %d], [cur_reg_top: %d], [argc: %d]",
+	DBG_PL("L[%d] : %s [dst:%d], [src:%d], [jmp:%d], [name:%s], [ivalue: %d], [cur_stack_top: %d], [cur_reg_top: %d], [argc: %d], [arg0 : %d], [arg1: %d], [arg2: %d]",
 		   code->code_num, decl_codes[code->op].name, code->dst, code->src,
-		   code->jmp, code->name, code->v.ivalue, code->cur_stack_top, code->cur_reg_top, code->argc);
+		   code->jmp, code->name, code->v.ivalue, code->cur_stack_top, code->cur_reg_top, code->argc, code->arg0, code->arg1, code->arg2);
 }
 
 void GPerlCompiler::dumpPureVMCode(GPerlVirtualMachineCode *c)

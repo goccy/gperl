@@ -1,13 +1,10 @@
 sub tarai{
-	my $x = shift;
-	my $y = shift;
-	my $z = shift;
-    if ($x <= $y) {
-        return $y;
+    if ($_[0] <= $_[1]) {
+        return $_[1];
     } else {
-        return &tarai(&tarai($x - 1, $y, $z),
-					  &tarai($y - 1, $z, $x),
-					  &tarai($z - 1, $x, $y));
+        return &tarai(&tarai($_[0] - 1, $_[1], $_[2]),
+					  &tarai($_[1] - 1, $_[2], $_[0]),
+					  &tarai($_[2] - 1, $_[0], $_[1]));
     }
 }
 

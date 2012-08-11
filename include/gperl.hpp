@@ -350,6 +350,10 @@ typedef struct _GPerlVirtualMachineCode {
 	int cur_stack_top; /* stack top pointer */
 	int cur_reg_top;
 	int argc; /* for JIT_CALL */
+	int arg0;
+	int arg1;
+	int arg2;
+	int arg3;
 	const char *name;
 	struct _GPerlVirtualMachineCode *func;
 	void *opnext; /* for direct threading */
@@ -438,12 +442,12 @@ public:
 };
 
 typedef struct _GPerlEnv {
+	GPerlVirtualMachineCode *pc;
 	GPerlValue *reg;
 	GPerlValue *argstack;
-	GPerlVirtualMachineCode *pc;
-	GPerlVirtualMachineCode *cur_pc;
+	GPerlValue *ebp;
 	void *ret_addr;
-	int ebp;
+	GPerlVirtualMachineCode *cur_pc;
 } GPerlEnv;
 
 #include <sys/mman.h>

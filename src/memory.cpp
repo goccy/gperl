@@ -243,10 +243,11 @@ void GPerlMemoryManager::traceRoot(void)
 			mark(callstack_trace_ptr->reg[i]);
 		}
 	}
-	GPerlValue *stack = root.stack_bottom;
-	int stack_top = callstack_top->ebp + root.stack_top_idx;
-	for (int i = 0; i < stack_top; i++) {
-		mark(stack[i]);
+	GPerlValue *stack_bottom = root.stack_bottom;
+	GPerlValue *stack_top = callstack_top->ebp + root.stack_top_idx;
+	GPerlValue *stack_trace_ptr = stack_bottom;
+	for (; stack_trace_ptr != stack_top; stack_trace_ptr++) {
+		mark(*stack_trace_ptr);
 	}
 	GPerlValue *global_vmemory = root.global_vmemory;
 	for (int i = 0; global_vmemory[i].ovalue != NULL; i++) {

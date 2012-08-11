@@ -286,15 +286,15 @@ string outbuf = \"\";
 
 int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 {
-	static GPerlVirtualMachineCode *top;
-	GPerlVirtualMachineCode *pc = codes, *code_ = NULL;
+	GPerlVirtualMachineCode *pc = codes, *code_ = NULL, *top = NULL;
+	GPerlValue *stack = createMachineStack();
 	GPerlEnv *callstack = createCallStack();
-	GPerlValue stack[MAX_STACK_MEMORY_SIZE];
-	int esp = 0;
-	int ebp = 0;
-	int argc = 0;
+	callstack->ebp = stack;
+	GPerlEnv *callstack_bottom = callstack;
+	GPerlValue *reg = callstack->reg;
+	GPerlValue *argstack = callstack->argstack;
 	root.stack_bottom = stack;
-	root.callstack_bottom = callstack;
+	root.callstack_bottom = callstack_bottom;
 	root.global_vmemory = global_vmemory;
 #ifdef USING_JIT
 	GPerlJITCompiler jit_compiler;
@@ -303,11 +303,7 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 	jit_env.stack = stack;
 	jit_env.args = args;
 #endif
-
 #include \"gen_label.cpp\"
-	if (sigsetjmp(expand_mem, 1)) {
-		DBG_PL(\"GC\");
-	}
     DISPATCH_START();
 
 ";
@@ -381,7 +377,7 @@ sub gen_vm_run_code {
 		goto *jmp_table[pc->op + 1 + type];
 #endif
 ";
-				$check_code =~ s/callstack\-\>reg\[pc\-\>dst\]/stack[ebp + pc->dst]/ if ($_ eq "INC" || $_ eq "DEC");
+				$check_code =~ s/callstack\-\>reg\[pc\-\>dst\]/stack[pc->dst]/ if ($_ eq "INC" || $_ eq "DEC");
 				$check_code =~ s/callstack\-\>reg\[pc\-\>dst\]/global_vmemory[pc->dst]/ if ($_ eq "gINC" || $_ eq "gDEC");
 				$ret .= $check_code;
 			} else {
@@ -417,6 +413,8 @@ sub gen_fast_vm_code {
 		foreach (@inst_names) {
 			my $orig = $_;
 			$ret .= "\tCASE(${_}, {\n";
+			$_ =~ /_(.*)/;
+			my $name = $1;
 			my @_code = split("_", $_);
 			my $fast_prefix = substr($_code[0], 0, 1);
 			my $fast_prefix2 = substr($_code[0], 1, 1);
@@ -512,10 +510,10 @@ sub gen_fast_vm_code {
             } elsif ($_code[1] =~ /ADDC/ || $_code[1] =~ /SUBC/ ||
                      $_code[1] =~ /MULC/ || $_code[1] =~ /DIVC/) {
                 $decl_args =~ s/pc->src/pc->v/;
-                $ret .= "\t\tGPERL_${_code[1]}(" . $decl_args . ");\n";
+                $ret .= "\t\tGPERL_${name}(" . $decl_args . ");\n";
                 $ret .= "\t\tpc++;\n";
 			} else {
-				$ret .= "\t\tGPERL_${_code[1]}(" . $decl_args . ");\n";
+				$ret .= "\t\tGPERL_${name}(" . $decl_args . ");\n";
 				$ret .= "\t\tpc++;\n";
 			}
 			$ret .= "\t\tBREAK();\n";
