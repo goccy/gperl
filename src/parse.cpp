@@ -47,6 +47,8 @@ GPerlCell::GPerlCell(GPerlT type_, string name) : type(type_), vidx(0)
 	argsize = 0;
 	if (type_ == Int) {
 		data.idata = atoi(cstr(name));
+	} else if (type_ == Double) {
+		data.ddata = atof(cstr(name));
 	} else if (type == String) {
 		data.sdata = (char *)cstr(name);
 	} else {
@@ -259,7 +261,7 @@ GPerlAST *GPerlParser::parse(void)
 			break;
 		}
 		case Var: case ArrayVar: case ArgumentArray:
-		case Int: case String: case Call: case BuiltinFunc: {
+		case Int: case Double: case String: case Call: case BuiltinFunc: {
 			parseValue(t, &blocks, NULL);
 			break;
 		}

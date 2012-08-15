@@ -275,7 +275,7 @@
 	 "parse_func" : ""
  },
  {
-	 "type" : "Float",
+	 "type" : "Double",
 	 "data" : "",
 	 "parse_func" : ""
  },

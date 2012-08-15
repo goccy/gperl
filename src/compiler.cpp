@@ -470,6 +470,8 @@ GPerlVirtualMachineCode *GPerlCompiler::getPureCodes(vector<GPerlVirtualMachineC
 #define INT(O) i ## O
 #define INTC(O) i ## O ## C
 #define STRING(O) s ## O
+#define DOUBLE(O) d ## O
+#define DOUBLEC(O) d ## O ## C
 
 #define SET_OPCODE(T) {							\
 		dst--;									\
@@ -477,6 +479,9 @@ GPerlVirtualMachineCode *GPerlCompiler::getPureCodes(vector<GPerlVirtualMachineC
 		switch (reg_type[dst - 1]) {			\
 		case Int:								\
 			code->op = INT(T);					\
+			break;								\
+		case Double:							\
+			code->op = DOUBLE(T);				\
 			break;								\
 		case Object:							\
 			switch (reg_type[dst]) {			\
@@ -505,8 +510,9 @@ GPerlVirtualMachineCode *GPerlCompiler::createVMCode(GPerlCell *c)
 	GPerlVirtualMachineCode *code = new GPerlVirtualMachineCode();
 	code->code_num = code_num;
 	switch (c->type) {
-	case Int: case String:
-	case List: case ArrayRef:
+	case Int: case Double:
+	case String: case List:
+	case ArrayRef:
 		setMOV(code, c);
 		break;
 	case Add:
@@ -624,6 +630,10 @@ void GPerlCompiler::setMOV(GPerlVirtualMachineCode *code, GPerlCell *c)
 	switch (type) {
 	case Int:
 		INT_init(code->v, c->data.idata);
+		code->op = MOV;
+		break;
+	case Double:
+		DOUBLE_init(code->v, c->data.ddata);
 		code->op = MOV;
 		break;
 	case String:

@@ -122,6 +122,11 @@ vector<GPerlToken *> *GPerlTokenizer::tokenize(char *script)
 				token_idx++;
 				break;
 			}
+			if (script[i] == '.' && ('0' <= token[0] && token[0] <= '9')) {
+				token[token_idx] = script[i];
+				token_idx++;
+				break;
+			}
 			if (token[0] != EOL) {
 				//DBG_PL("token = [%s]", token);
 				if (token[0] == '@' && script[i] == '{') {
@@ -320,8 +325,13 @@ void GPerlTokenizer::annotateTokens(vector<GPerlToken *> *tokens)
 			vardecl_list.push_back(t->data);
 			cur_type = GlobalArrayVar;
 		} else if (t->data == "0" || atoi(cstr(t->data)) != 0) {
-			t->info = getTokenInfo("Int", NULL);
-			cur_type = Int;
+			if (t->data.find(".") != string::npos) {
+				t->info = getTokenInfo("Double", NULL);
+				cur_type = Double;
+			} else {
+				t->info = getTokenInfo("Int", NULL);
+				cur_type = Int;
+			}
 		} else if (cur_type == FunctionDecl) {
 			t->info = getTokenInfo("Function", NULL);
 			cur_type = Function;

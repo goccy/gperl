@@ -137,7 +137,7 @@ public:
 	std::string rawstr;
 	union {
 		int idata;
-		float fdata;
+		double ddata;
 		char *sdata;
 		void *pdata; /* other Object */
 	} data;
