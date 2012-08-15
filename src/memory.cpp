@@ -77,24 +77,7 @@ int leaks(void)
 
 GPerlMemoryManager::GPerlMemoryManager(void)
 {
-	sa.sa_flags = SA_SIGINFO;
-	sigemptyset(&sa.sa_mask);
-	sa.sa_sigaction = segv_handler;
-#ifdef USING_MACOSX
-	if (sigaction(SIGBUS, &sa, NULL) == -1) {
-#else
-	if (sigaction(SIGSEGV, &sa, NULL) == -1) {
-#endif
-		fprintf(stderr, "ERROR!!: sigaction\n");
-		exit(EXIT_FAILURE);
-	}
 	pool_size = 0;
-	int pagesize = sysconf(_SC_PAGE_SIZE);
-	posix_memalign((void **)&guard, pagesize, 4 * pagesize);
-    if (mprotect(guard, OBJECT_SIZE, PROT_NONE) == -1) {
-		fprintf(stderr, "ERROR!: not supported mprotect\n");
-		exit(EXIT_FAILURE);
-	}
 	pool_size = 0;
 	max_pool_size = INIT_MEMPOOL_NUM;
 	pools = (GPerlMemPool **)safe_malloc(max_pool_size * PTR_SIZE);
@@ -144,7 +127,6 @@ void GPerlMemoryManager::expandMemPool(void)
 	freeList = guard_prev_ptr;
 	guard_prev_ptr = o;
 	o->h.next = NULL;
-	//o->h.next = guard;
 	new_tail->h.next = freeList;
 	freeList = new_head;
 	if (pool_size > max_pool_size - 1) {
@@ -162,15 +144,7 @@ void GPerlMemoryManager::expandMemPool(void)
 
 GPerlObject* GPerlMemoryManager::gmalloc(void) {
 	GPerlObject* ret = NULL;
-	DBG_PL("freeList = [%p]", freeList);
-	/*** ======= for GDB Debugging on MacOSX =======
-		 If happend "Program received signal EXC_BAD_ACCESS,
-		 Could not access memory. Reason: KERN_PROTECTION_FAILURE",
-		 sets gdb the command "set dont-handle-bad-access 1" before running your program.
-		 (example)
-		 (gdb) set dont-handle-bad-access 1
-		 (gdb) run
-	***/
+	//DBG_PL("freeList = [%p]", freeList);
 	MemoryManager_popObject(ret, freeList);
 	if (freeList == NULL) {
 		gc();

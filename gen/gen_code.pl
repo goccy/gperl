@@ -281,18 +281,17 @@ my $run_init =
 
 using namespace std;
 
-char shared_buf[128] = {0};//TODO must be variable buffer
-string outbuf = \"\";
-
-int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
+GPerlValue GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 {
 	GPerlVirtualMachineCode *pc = codes, *code_ = NULL, *top = NULL;
 	GPerlValue *stack = createMachineStack();
 	GPerlEnv *callstack = createCallStack();
+	GPerlValue *argstack = callstack->argstack;
+	GPerlValue *reg = callstack->reg;
 	callstack->ebp = stack;
 	GPerlEnv *callstack_bottom = callstack;
-	GPerlValue *reg = callstack->reg;
-	GPerlValue *argstack = callstack->argstack;
+	char shared_buf[128] = {0};//TODO must be variable buffer
+	string outbuf = \"\";
 	root.stack_bottom = stack;
 	root.callstack_bottom = callstack_bottom;
 	root.global_vmemory = global_vmemory;
@@ -309,8 +308,8 @@ int GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 ";
 
 my $type_check_code =
-"		int dst_type = TYPE_CHECK(callstack->reg[pc->dst]);
-		int src_type = TYPE_CHECK(callstack->reg[pc->src]);
+"		int dst_type = TYPE_CHECK(reg[pc->dst]);
+		int src_type = TYPE_CHECK(reg[pc->src]);
 #ifdef STATIC_TYPING_MODE
 		pc->opnext = jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
 #else /* DYNAMIC_TYPING_MODE */
@@ -370,15 +369,15 @@ sub gen_vm_run_code {
                 $ret .= "\t\tpc++;\n";
 			} elsif ($_ eq "WRITE" || $_ eq "INC" || $_ eq "gINC" || $_ eq "DEC" || $_ eq "gDEC") {
 				my $check_code .=
-"		int type = TYPE_CHECK(callstack->reg[pc->dst]);
+"		int type = TYPE_CHECK(reg[pc->dst]);
 #ifdef STATIC_TYPING_MODE
 		pc->opnext = jmp_table[pc->op + 1 + type];
 #else /* DYNAMIC_TYPING_MODE */
 		goto *jmp_table[pc->op + 1 + type];
 #endif
 ";
-				$check_code =~ s/callstack\-\>reg\[pc\-\>dst\]/stack[pc->dst]/ if ($_ eq "INC" || $_ eq "DEC");
-				$check_code =~ s/callstack\-\>reg\[pc\-\>dst\]/global_vmemory[pc->dst]/ if ($_ eq "gINC" || $_ eq "gDEC");
+				$check_code =~ s/reg\[pc\-\>dst\]/stack[pc->dst]/ if ($_ eq "INC" || $_ eq "DEC");
+				$check_code =~ s/reg\[pc\-\>dst\]/global_vmemory[pc->dst]/ if ($_ eq "gINC" || $_ eq "gDEC");
 				$ret .= $check_code;
 			} else {
 				$ret .= "\t\tGPERL_${_}(" . $decl_args . ");\n";
@@ -388,7 +387,7 @@ sub gen_vm_run_code {
 				$ret .= "\t\tcreateDirectThreadingCode(codes, jmp_table);\n";
 				$ret .= "\t\t(void)block_table;\n";
 				$ret .= "\t\t//createSelectiveInliningCode(codes, jmp_table, block_table);\n";
-				$ret .= "\t\treturn 0;\n";
+				$ret .= "\t\treturn reg[0];\n";
 			} else {
 				$ret .= "\t\tBREAK();\n";
 			}
@@ -397,7 +396,7 @@ sub gen_vm_run_code {
 	}
 	$ret .= "#include \"gen_fast_vmcode.cpp\"\n\n";
 	$ret .= "\tDISPATCH_END();\n";
-	$ret .= "\treturn I(0);\n";
+	$ret .= "\treturn reg[0];\n";
 	$ret .= "}\n";
 	return $ret;
 }
