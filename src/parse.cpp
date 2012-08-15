@@ -126,8 +126,12 @@ void GPerlParser::parseValue(GPerlToken *t, GPerlNodes *blocks, GPerlScope *scop
 				}
 				block->argsize = scope->root->argsize;
 			} else if (scope && scope->size == 1) {
-				block->vargs[0] = scope->root;
-				block->argsize = 1;
+				if (scope->root->type == Return) {
+					//void argument
+				} else {
+					block->vargs[0] = scope->root;
+					block->argsize = 1;
+				}
 			} else {
 				GPerlCell *v = new GPerlCell(type, t->data);
 				v->indent = indent;

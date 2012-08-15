@@ -865,7 +865,9 @@ void GPerlCompiler::setEscapeStackNum(GPerlVirtualMachineCode *code, GPerlCell *
 void GPerlCompiler::setCALL(GPerlVirtualMachineCode *code, GPerlCell *c)
 {
 	if (args_count < 5) {
-		if (args_count == 1) {
+		if (args_count == 0) {
+			code->op = CALL;
+		} else if (args_count == 1) {
 			GPerlVirtualMachineCode *arg = codes->back();
 			code->arg0 = arg->dst;
 			popVMCode();
