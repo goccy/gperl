@@ -22,6 +22,7 @@ typedef enum {
 	VarDecl,
 	FunctionDecl,
 	Assign,
+	Is,
 	IsNot,
 	BuiltinFunc,
 	IfStmt,
@@ -66,6 +67,7 @@ typedef enum {
 	Call,
 	Argument,
 	List,
+	Default,
 	Undefined,
 } GPerlT;
 

@@ -412,6 +412,72 @@ GPerlValue GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 		GPERL_iCMP_JMPC(!=, pc->dst, pc->v);
 		BREAK();
 	});
+	CASE(IS, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+#ifdef STATIC_TYPING_MODE
+		pc->opnext = jmp_table[pc->op + 1 + type];
+#else /* DYNAMIC_TYPING_MODE */
+		goto *jmp_table[pc->op + 1 + type];
+#endif
+		BREAK();
+	});
+	CASE(dIS, {
+		GPERL_dIS(pc->dst, pc->v);
+		BREAK();
+	});
+	CASE(iIS, {
+		GPERL_iIS(pc->dst, pc->v);
+		BREAK();
+	});
+	CASE(sIS, {
+		GPERL_sIS(pc->dst, pc->v);
+		BREAK();
+	});
+	CASE(oIS, {
+		GPERL_oIS(pc->dst, pc->v);
+		BREAK();
+	});
+	CASE(dISC, {
+		GPERL_dIS(pc->dst, pc->v);
+		BREAK();
+	});
+	CASE(iISC, {
+		GPERL_iIS(pc->dst, pc->v);
+		BREAK();
+	});
+	CASE(ISNOT, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+#ifdef STATIC_TYPING_MODE
+		pc->opnext = jmp_table[pc->op + 1 + type];
+#else /* DYNAMIC_TYPING_MODE */
+		goto *jmp_table[pc->op + 1 + type];
+#endif
+		BREAK();
+	});
+	CASE(dISNOT, {
+		GPERL_dISNOT(pc->dst, pc->v);
+		BREAK();
+	});
+	CASE(iISNOT, {
+		GPERL_iISNOT(pc->dst, pc->v);
+		BREAK();
+	});
+	CASE(sISNOT, {
+		GPERL_sISNOT(pc->dst, pc->v);
+		BREAK();
+	});
+	CASE(oISNOT, {
+		GPERL_oISNOT(pc->dst, pc->v);
+		BREAK();
+	});
+	CASE(dISNOTC, {
+		GPERL_dISNOT(pc->dst, pc->v);
+		BREAK();
+	});
+	CASE(iISNOTC, {
+		GPERL_iISNOT(pc->dst, pc->v);
+		BREAK();
+	});
 	CASE(StringADD, {
 		GPERL_StringADD(pc->dst, pc->v);
 		pc++;

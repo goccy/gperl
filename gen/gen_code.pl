@@ -358,6 +358,32 @@ sub gen_vm_run_code {
                 }
             } elsif ($_ =~ /JMP/) {
                 $ret .= "\t\tGPERL_${_}(" . $decl_args . ");\n";
+            } elsif ($_ =~ /IS/) {
+                my $prefix = substr($_, 0, 1);
+                $prefix = "" if ($prefix =~ /I/);
+                if ($_ =~ /C$/) {
+                    $decl_args =~ s/pc->src/pc->v/;
+                    if ($_ =~ /NOT/) {
+                        $ret .= "\t\tGPERL_${prefix}ISNOT(" . $decl_args . ");\n";
+                    } else {
+                        $ret .= "\t\tGPERL_${prefix}IS(" . $decl_args . ");\n";
+                    }
+                } elsif ($prefix eq "") {
+                    $ret .=
+                        "		int type = TYPE_CHECK(reg[pc->dst]);
+#ifdef STATIC_TYPING_MODE
+		pc->opnext = jmp_table[pc->op + 1 + type];
+#else /* DYNAMIC_TYPING_MODE */
+		goto *jmp_table[pc->op + 1 + type];
+#endif
+";
+                } else {
+                    if ($_ =~ /NOT/) {
+                        $ret .= "\t\tGPERL_${prefix}ISNOT(" . $decl_args . ");\n";
+                    } else {
+                        $ret .= "\t\tGPERL_${prefix}IS(" . $decl_args . ");\n";
+                    }
+                }
             } elsif ($_ =~ /THCODE/) {
             } elsif ($_ eq "ADD" || $_ eq "SUB" ||
                      $_ eq "MUL" || $_ eq "DIV") {

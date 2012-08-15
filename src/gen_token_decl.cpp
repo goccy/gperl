@@ -22,6 +22,7 @@ GPerlTokenInfo decl_tokens[] = {
 	{VarDecl, "VarDecl", "my"},
 	{FunctionDecl, "FunctionDecl", "sub"},
 	{Assign, "Assign", "="},
+	{Is, "Is", ""},
 	{IsNot, "IsNot", "!"},
 	{BuiltinFunc, "BuiltinFunc", "print"},
 	{BuiltinFunc, "BuiltinFunc", "push"},
@@ -69,6 +70,7 @@ GPerlTokenInfo decl_tokens[] = {
 	{Call, "Call", ""},
 	{Argument, "Argument", ""},
 	{List, "List", ""},
+	{Default, "Default", "undef"},
 	{Undefined, "Undefined", ""},
 };
 

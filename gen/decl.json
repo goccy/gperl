@@ -115,6 +115,11 @@
 	 "parse_func" : ""
  },
  {
+	 "type" : "Is",
+	 "data" : "",
+	 "parse_func" : ""
+ },
+ {
 	 "type" : "IsNot",
 	 "data" : "!",
 	 "parse_func" : ""
@@ -347,6 +352,11 @@
  {
 	 "type" : "List",
 	 "data" : "",
+	 "parse_func" : ""
+ },
+ {
+	 "type" : "Default",
+	 "data" : "undef",
 	 "parse_func" : ""
  },
  {

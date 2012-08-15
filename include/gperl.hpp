@@ -395,6 +395,8 @@ public:
 	void setEscapeStackNum(GPerlVirtualMachineCode *code, GPerlCell *c);
 	void setMOV(GPerlVirtualMachineCode *code, GPerlCell *c);
 	void setVMOV(GPerlVirtualMachineCode *code, GPerlCell *c);
+	void setIS(GPerlVirtualMachineCode *code, GPerlCell *c);
+	void setISNOT(GPerlVirtualMachineCode *code, GPerlCell *c);
 	void setINC(GPerlVirtualMachineCode *code, GPerlCell *c);
 	void setDEC(GPerlVirtualMachineCode *code, GPerlCell *c);
 	void setLET(GPerlVirtualMachineCode *code, GPerlCell *c);

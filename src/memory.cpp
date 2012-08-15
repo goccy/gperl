@@ -34,15 +34,6 @@ GPerlTraceRoot root;
 int init_value_idx = 0;
 static int memory_leaks = 0;
 
-static void segv_handler(int , siginfo_t *, void *)
-{
-	DBG_PL("segv_handler");
-	if (mm->freeList == mm->guard) {
-		siglongjmp(expand_mem, 1);
-	}
-	exit(EXIT_FAILURE);
-}
-
 void *safe_malloc(size_t size)
 {
 	void *ret = malloc(size);

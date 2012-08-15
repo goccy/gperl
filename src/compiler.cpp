@@ -545,6 +545,12 @@ GPerlVirtualMachineCode *GPerlCompiler::createVMCode(GPerlCell *c)
 	case NotEqual:
 		SET_OPCODE(JNE);
 		break;
+	case IsNot:
+		setISNOT(code, c);
+		break;
+	case Is:
+		setIS(code, c);
+		break;
 	case StringAdd:
 		SET_OPCODE(StringADD);
 		break;
@@ -655,6 +661,9 @@ void GPerlCompiler::setMOV(GPerlVirtualMachineCode *code, GPerlCell *c)
 			switch (v->type) {
 			case Int:
 				INT_init(list[i], v->data.idata);
+				break;
+			case Double:
+				DOUBLE_init(list[i], v->data.ddata);
 				break;
 			case String:
 				STRING_init(list[i], new_GPerlInitString(v->data.sdata, strlen(v->data.sdata) + 1));
@@ -776,6 +785,20 @@ void GPerlCompiler::setArrayAt(GPerlVirtualMachineCode *code, GPerlCell *c_)
 	dst++;
 }
 
+void GPerlCompiler::setIS(GPerlVirtualMachineCode *code, GPerlCell *)
+{
+	code->op = IS;
+	code->dst = dst - 1;
+	code->jmp = 1;
+}
+
+void GPerlCompiler::setISNOT(GPerlVirtualMachineCode *code, GPerlCell *)
+{
+	code->op = ISNOT;
+	code->dst = dst - 1;
+	code->jmp = 1;
+}
+
 void GPerlCompiler::setINC(GPerlVirtualMachineCode *code, GPerlCell *c_)
 {
 	GPerlCell *c = c_->left;
@@ -847,6 +870,29 @@ void GPerlCompiler::setSETv(GPerlVirtualMachineCode *code, GPerlCell *c)
 	code->name = name;
 	declared_vname = name;
 	cur_stack_top = c->vidx + 1;
+	if (!c->parent) {
+		//not initialization
+		GPerlVirtualMachineCode *mov = new GPerlVirtualMachineCode();
+		mov->op = MOV;
+		mov->code_num = code_num;
+		mov->dst = dst;
+		dst++;
+		GPerlUndef *undef = new_GPerlUndef();
+		OBJECT_init(mov->v, undef);
+		addVMCode(mov);
+		dumpVMCode(mov);
+		GPerlVirtualMachineCode *let = new GPerlVirtualMachineCode();
+		let->code_num = code_num;
+		let->dst = dst;
+		int idx = 0;
+		setInstByVMap(let, c, LET, gLET, &idx);
+		let->dst = idx;
+		let->src = dst-1;
+		variable_types[idx] = reg_type[0];
+		declared_vname = NULL;
+		addVMCode(let);
+		dumpVMCode(let);
+	}
 }
 
 void GPerlCompiler::setEscapeStackNum(GPerlVirtualMachineCode *code, GPerlCell *)

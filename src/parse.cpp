@@ -289,6 +289,12 @@ GPerlAST *GPerlParser::parse(void)
 			blocks.swapLastNode(b);
 			break;
 		}
+		case IsNot: {
+			DBG_PL("[%s]:LAST BLOCK->PARENT", cstr(t->data));
+			GPerlCell *b = new GPerlCell(t->info.type, t->data);
+			blocks.pushNode(b);
+			break;
+		}
 		case Assign: {
 			DBG_PL("ASSIGN:LAST BLOCK->PARENT");
 			GPerlCell *block = NULL;
@@ -352,6 +358,18 @@ GPerlAST *GPerlParser::parse(void)
 				funcFlag = false;
 			} else if (ifStmtFlag) {
 				GPerlCell *cond = blocks.lastNode();
+				if (cond->type != IsNot &&
+					(cond->type == Var || cond->type == ArrayVar ||
+					 cond->type == ArgumentArray || cond->type == Int ||
+					 cond->type == Double || cond->type == String ||
+					 cond->type == Call || cond->type == BuiltinFunc)) {
+					//isOperation
+					GPerlCell *is = new GPerlCell(Is, "defined");
+					GPerlCell *tmp = cond;
+					tmp->parent = is;
+					cond = is;
+					cond->left = tmp;
+				}
 				blocks.popNode();
 				root->cond = cond;
 				cond->parent = root;

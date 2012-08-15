@@ -112,6 +112,20 @@
      "args" : [{"op" : "!="}, {"dst" : "pc->dst"}, {"src" : "pc->src"}]
  },
  {
+	 "code" : "IS",
+	 "type" : 1,
+	 "const" : 1,
+	 "fast_type" : 0,
+	 "args" : [{"dst" : "pc->dst"}, {"v" : "pc->v"}]
+ },
+ {
+	 "code" : "ISNOT",
+	 "type" : 1,
+	 "const" : 1,
+	 "fast_type" : 0,
+	 "args" : [{"dst" : "pc->dst"}, {"v" : "pc->v"}]
+ },
+ {
 	 "code" : "StringADD",
 	 "type" : 1,
 	 "const" : 1,

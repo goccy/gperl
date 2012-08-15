@@ -111,6 +111,135 @@
 #define GPERL_sCMP_JMPC(op, dst, src) {}
 #define GPERL_oCMP_JMPC(op, dst, src) {}
 
+#define GPERL_iISNOT(dst, v) {					\
+		if (!I(dst)) {							\
+			pc++;								\
+		} else {								\
+			pc += pc->jmp;						\
+		}										\
+	}
+
+#define GPERL_iISNOTC(dst, v) {					\
+		if (!v.ivalue) {						\
+			pc++;								\
+		} else {								\
+			pc += pc->jmp;						\
+		}										\
+	}
+#define GPERL_dISNOT(dst, v) {					\
+		if (!D(dst)) {							\
+			pc++;								\
+		} else {								\
+			pc += pc->jmp;						\
+		}										\
+	}
+
+#define GPERL_dISNOTC(dst, v) {					\
+		if (!v.dvalue) {						\
+			pc++;								\
+		} else {								\
+			pc += pc->jmp;						\
+		}										\
+	}
+
+#define GPERL_sISNOT(dst, v) {					\
+		if (getLength(reg[dst]) == 1) {			\
+			pc++;								\
+		} else {								\
+			pc += pc->jmp;						\
+		}										\
+	}
+
+#define GPERL_sISNOTC(dst, v) {					\
+		if (getLength(reg[dst]) == 1) {			\
+			pc++;								\
+		} else {								\
+			pc += pc->jmp;						\
+		}										\
+	}
+
+#define GPERL_oISNOT(dst, v) {									\
+		GPerlObject *o = (GPerlObject *)getObject(reg[dst]);	\
+		if (o->h.type == Undefined) {							\
+			pc++;												\
+		} else {												\
+			pc += pc->jmp;										\
+		}														\
+	}
+
+#define GPERL_oISNOTC(dst, v) {							\
+		GPerlObject *o = (GPerlObject *)getObject(v);	\
+		if (o->h.type == Undefined) {					\
+			pc++;										\
+		} else {										\
+			pc += pc->jmp;								\
+		}												\
+	}
+#define GPERL_iIS(dst, v) {						\
+		if (I(dst)) {							\
+			pc++;								\
+		} else {								\
+			pc += pc->jmp;						\
+		}										\
+	}
+
+#define GPERL_iISC(dst, v) {					\
+		if (v.ivalue) {							\
+			pc++;								\
+		} else {								\
+			pc += pc->jmp;						\
+		}										\
+	}
+#define GPERL_dIS(dst, v) {						\
+		if (D(dst)) {							\
+			pc++;								\
+		} else {								\
+			pc += pc->jmp;						\
+		}										\
+	}
+
+#define GPERL_dISC(dst, v) {					\
+		if (v.dvalue) {							\
+			pc++;								\
+		} else {								\
+			pc += pc->jmp;						\
+		}										\
+	}
+
+#define GPERL_sIS(dst, v) {						\
+		if (getLength(reg[dst]) != 1) {			\
+			pc++;								\
+		} else {								\
+			pc += pc->jmp;						\
+		}										\
+	}
+
+#define GPERL_sISC(dst, v) {					\
+		if (getLength(reg[dst]) != 1) {			\
+			pc++;								\
+		} else {								\
+			pc += pc->jmp;						\
+		}										\
+	}
+
+#define GPERL_oIS(dst, v) {										\
+		GPerlObject *o = (GPerlObject *)getObject(reg[dst]);	\
+		if (o->h.type != Undefined) {							\
+			pc++;												\
+		} else {												\
+			pc += pc->jmp;										\
+		}														\
+	}
+
+#define GPERL_oISC(dst, v) {							\
+		GPerlObject *o = (GPerlObject *)getObject(v);	\
+		if (o->h.type != Undefined) {					\
+			pc++;										\
+		} else {										\
+			pc += pc->jmp;								\
+		}												\
+	}
+
 #define GPERL_iINC(dst) stack[dst].ivalue++
 #define GPERL_dINC(dst) stack[dst].dvalue++
 #define GPERL_sINC(dst)

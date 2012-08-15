@@ -58,7 +58,6 @@ void Array_mark(GPerlObject* o)
 	for (size_t i = 0; i < size; i++) {
 		GPerlValue v = a->list[i];
 		switch (TYPE_CHECK(v)) {
-		case 0: case 1: break;
 		case 2:
 			((GPerlString *)getStringObj(v))->h.mark_flag = 1;
 			break;
