@@ -27,6 +27,8 @@ typedef enum {
 	BuiltinFunc,
 	IfStmt,
 	ElseStmt,
+	ElsifStmt,
+	UnlessStmt,
 	Comma,
 	SemiColon,
 	LeftParenthesis,

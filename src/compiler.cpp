@@ -36,8 +36,8 @@ GPerlVirtualMachineCode *GPerlCompiler::compile(GPerlAST *ast)
 }
 
 #define GOTO_LEFT_LEAFNODE(path) for (; path->left; path = path->left) {}
-#define isRIGHT_LEAF_NODE(branch) branch->left == NULL && branch->right == NULL && branch->argsize == 0 && branch->type != IfStmt
-#define isNotFALSE_STMT(branch) branch->type != IfStmt
+#define isRIGHT_LEAF_NODE(branch) branch->left == NULL && branch->right == NULL && branch->argsize == 0 && branch->type != IfStmt && branch->type != ElsifStmt
+#define isNotFALSE_STMT(branch) branch->type != IfStmt && branch->type != ElsifStmt
 
 void GPerlCompiler::compile_(GPerlCell *path)
 {
@@ -66,7 +66,7 @@ void GPerlCompiler::genVMCode(GPerlCell *path) {
 	GPerlVirtualMachineCode *code;
 	if (path->type == Call || path->type == BuiltinFunc) {
 		genFunctionCallCode(path);
-	} else if (path->type == IfStmt) {
+	} else if (path->type == IfStmt || path->type == ElsifStmt) {
 		genIfStmtCode(path);
 	} else if (path->type == WhileStmt) {
 		genWhileStmtCode(path);
@@ -563,7 +563,7 @@ GPerlVirtualMachineCode *GPerlCompiler::createVMCode(GPerlCell *c)
 	case ArrayDereference:
 		setArrayDereference(code, c);
 		break;
-	case IfStmt: case WhileStmt: case ForStmt:
+	case IfStmt: case WhileStmt: case ForStmt: case ElsifStmt:
 		code->op = NOP;
 		break;
 	case GlobalVarDecl: case LocalVarDecl: case VarDecl:

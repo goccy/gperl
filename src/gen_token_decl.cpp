@@ -30,6 +30,8 @@ GPerlTokenInfo decl_tokens[] = {
 	{BuiltinFunc, "BuiltinFunc", "undef"},
 	{IfStmt, "IfStmt", "if"},
 	{ElseStmt, "ElseStmt", "else"},
+	{ElsifStmt, "ElsifStmt", "elsif"},
+	{UnlessStmt, "UnlessStmt", "unless"},
 	{Comma, "Comma", ","},
 	{SemiColon, "SemiColon", ";"},
 	{LeftParenthesis, "LeftParenthesis", "("},

@@ -292,6 +292,7 @@ void GPerlTokenizer::annotateTokens(vector<GPerlToken *> *tokens)
 			data == "print" || data == "push"  ||
 			data == "ref"   || data == "undef" ||
 			data == "if"    || data == "else"  ||
+			data == "elsif" || data == "unless"||
 			data == "my"    || data == "sub"   ||
 			data == "shift" || data == "while" ||
 			data == "for"   || data == "foreach" ||

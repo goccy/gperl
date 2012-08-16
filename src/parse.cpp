@@ -207,7 +207,9 @@ GPerlAST *GPerlParser::parse(void)
 	GPerlNodes blocks;
 	bool isVarDeclFlag = false;
 	bool ifStmtFlag = false;
+	bool unlessStmtFlag = false;
 	bool elseStmtFlag = false;
+	bool elsifStmtFlag = false;
 	bool funcFlag = false;
 	bool whileStmtFlag = false;
 	bool forStmtFlag = false;
@@ -319,6 +321,22 @@ GPerlAST *GPerlParser::parse(void)
 			ifStmtFlag = true;
 			break;
 		}
+		case ElsifStmt: {
+			if (root->type != IfStmt && root->type != ElsifStmt) {
+				fprintf(stderr, "Parse Error!! near by elsif\n");
+				exit(EXIT_FAILURE);
+			}
+			GPerlScope *elsif_stmt = new GPerlScope();
+			elsif_stmt->root = new GPerlCell(ElsifStmt, t->data);
+			root->false_stmt = elsif_stmt;
+			root = root->false_stmt->root;
+			elsifStmtFlag = true;
+			break;
+		}
+		case UnlessStmt: {
+			unlessStmtFlag = true;
+			break;
+		}
 		case WhileStmt: {
 			root = new GPerlCell(WhileStmt, t->data);
 			ast->add(root);
@@ -378,6 +396,28 @@ GPerlAST *GPerlParser::parse(void)
 				GPerlScope *scope = parse();
 				root->true_stmt = scope;
 				ifStmtFlag = false;
+			} else if (elsifStmtFlag) {
+				GPerlCell *cond = blocks.lastNode();
+				if (cond->type != IsNot &&
+					(cond->type == Var || cond->type == ArrayVar ||
+					 cond->type == ArgumentArray || cond->type == Int ||
+					 cond->type == Double || cond->type == String ||
+					 cond->type == Call || cond->type == BuiltinFunc)) {
+					//isOperation
+					GPerlCell *is = new GPerlCell(Is, "defined");
+					GPerlCell *tmp = cond;
+					tmp->parent = is;
+					cond = is;
+					cond->left = tmp;
+				}
+				blocks.popNode();
+				root->cond = cond;
+				cond->parent = root;
+				MOVE_NEXT_TOKEN();
+				DBG_PL("-----------elsifstmt------------");
+				GPerlScope *scope = parse();
+				root->true_stmt = scope;
+				elsifStmtFlag = false;
 			} else if (elseStmtFlag) {
 				MOVE_NEXT_TOKEN();
 				DBG_PL("-----------elsestmt------------");

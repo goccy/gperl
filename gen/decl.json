@@ -155,6 +155,16 @@
 	 "parse_func" : ""
  },
  {
+ 	 "type" : "ElsifStmt",
+	 "data" : "elsif",
+	 "parse_func" : ""
+ },
+ {
+ 	 "type" : "UnlessStmt",
+	 "data" : "unless",
+	 "parse_func" : ""
+ },
+ {
 	 "type" : "Comma",
 	 "data" : ",",
 	 "parse_func" : ""
