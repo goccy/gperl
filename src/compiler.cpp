@@ -593,6 +593,9 @@ GPerlVirtualMachineCode *GPerlCompiler::createVMCode(GPerlCell *c)
 	case Assign:
 		setLET(code, c);
 		break;
+	case AddEqual:
+		setOpAssign(code, c);
+		break;
 	case ArrayAt:
 		setArrayAt(code, c);
 		break;
@@ -844,6 +847,35 @@ void GPerlCompiler::setVMOV(GPerlVirtualMachineCode *code, GPerlCell *c)
 		reg_type[dst] = Object;
 	}
 	dst++;
+}
+
+void GPerlCompiler::setOpAssign(GPerlVirtualMachineCode *_code, GPerlCell *c)
+{
+	DBG_PL("OpAssign");
+	GPerlVirtualMachineCode *vmov = new GPerlVirtualMachineCode();
+	setVMOV(vmov, c->left);
+	addVMCode(vmov);
+	dumpVMCode(vmov);
+	GPerlVirtualMachineCode *code = new GPerlVirtualMachineCode();
+	switch (c->type) {
+	case AddEqual:
+		SET_OPCODE(ADD);
+		break;
+	case SubEqual:
+		SET_OPCODE(SUB);
+		break;
+	case MulEqual:
+		SET_OPCODE(MUL);
+		break;
+	case DivEqual:
+		SET_OPCODE(DIV);
+		break;
+	default:
+		break;
+	}
+	addVMCode(code);
+	dumpVMCode(code);
+	setLET(_code, c);
 }
 
 void GPerlCompiler::setLET(GPerlVirtualMachineCode *code, GPerlCell *c)

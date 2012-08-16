@@ -58,9 +58,6 @@
 #include <gen_token.hpp>
 #include <gen_vmcode.hpp>
 
-#define MAX_ARGSTACK_SIZE 8
-#define MAX_CALLSTACK_SIZE 128
-
 #define DECL(T, S) {T, #T, S}
 extern GPerlTokenInfo decl_tokens[];
 extern GPerlCodeInfo decl_codes[];
@@ -106,6 +103,7 @@ public:
 	GPerlTokenInfo getTokenInfo(const char *name, const char *data);
 	bool search(std::vector<std::string> list, std::string str);
 };
+#define MAX_ARGSTACK_SIZE 8
 
 class GPerlAST;
 typedef GPerlAST GPerlScope;
@@ -399,6 +397,7 @@ public:
 	void setISNOT(GPerlVirtualMachineCode *code, GPerlCell *c);
 	void setINC(GPerlVirtualMachineCode *code, GPerlCell *c);
 	void setDEC(GPerlVirtualMachineCode *code, GPerlCell *c);
+	void setOpAssign(GPerlVirtualMachineCode *code, GPerlCell *c);
 	void setLET(GPerlVirtualMachineCode *code, GPerlCell *c);
 	void setSETv(GPerlVirtualMachineCode *code, GPerlCell *c);
 	void setCALL(GPerlVirtualMachineCode *code, GPerlCell *c);
@@ -542,6 +541,7 @@ typedef struct _GPerlTraceRoot {
 #define MAX_MACHINE_STACK_SIZE 8 * KB
 #define MAX_INIT_VALUES_SIZE 64
 #define INIT_MEMPOOL_NUM 4
+#define MAX_CALLSTACK_SIZE 4096
 
 extern GPerlValue global_vmemory[MAX_GLOBAL_MEMORY_SIZE];
 extern GPerlValue init_values[MAX_INIT_VALUES_SIZE];

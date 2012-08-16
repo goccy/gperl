@@ -118,7 +118,9 @@ void GPerlParser::parseValue(GPerlToken *t, GPerlNodes *blocks, GPerlScope *scop
 {
 	GPerlT type = t->info.type;
 	GPerlCell *block = (blocks->block_num > 0) ? blocks->lastNode() : NULL;
-	if (block && block->type != Assign && block->type != Return) {
+	if (block && block->type != Assign && block->type != Return &&
+		block->type != AddEqual && block->type != SubEqual &&
+		block->type != MulEqual && block->type != DivEqual) {
 		DBG_PL("%s", block->info.name);
 		if (block->type == Call || block->type == BuiltinFunc) {
 			DBG_PL("[%s]:NEW BLOCK->BLOCKS", cstr(t->data));
@@ -287,7 +289,7 @@ GPerlAST *GPerlParser::parse(void)
 			break;
 		case Add: case Sub: case Mul: case Div: case Greater: case Less: case StringAdd:
 		case GreaterEqual: case LessEqual: case EqualEqual: case NotEqual: case Inc:
-		case LeftShift: case RightShift: case AddEqual: case SubEqual: case MulEqual: case DivEqual:{
+		case LeftShift: case RightShift: {
 			DBG_PL("[%s]:LAST BLOCK->PARENT", cstr(t->data));
 			GPerlCell *block = blocks.lastNode();
 			GPerlCell *b = new GPerlCell(t->info.type, t->data);
@@ -302,7 +304,7 @@ GPerlAST *GPerlParser::parse(void)
 			blocks.pushNode(b);
 			break;
 		}
-		case Assign: {
+		case Assign: case AddEqual: case SubEqual: case MulEqual: case DivEqual: {
 			DBG_PL("ASSIGN:LAST BLOCK->PARENT");
 			GPerlCell *block = NULL;
 			if (blocks.block_num > 0) {
@@ -311,7 +313,7 @@ GPerlAST *GPerlParser::parse(void)
 			} else {
 				fprintf(stderr, "ERROR:syntax error!!\n");
 			}
-			GPerlCell *assign = new GPerlCell(Assign, t->data);
+			GPerlCell *assign = new GPerlCell(t->info.type, t->data);
 			assign->indent = indent;
 			assign->vname = block->vname;
 			block->parent = assign;
