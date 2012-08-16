@@ -679,6 +679,9 @@ void GPerlCompiler::setMOV(GPerlVirtualMachineCode *code, GPerlCell *c)
 		if (type == ArrayRef) {
 			GPerlArray *a = (GPerlArray *)getObject(code->v);
 			a->h.type = ArrayRef;
+		} else {
+			GPerlArray *a = (GPerlArray *)getObject(code->v);
+			a->h.type = Array;
 		}
 		init_values[init_value_idx] = code->v;
 		init_value_idx++;
@@ -989,6 +992,9 @@ void GPerlCompiler::setBFUNC(GPerlVirtualMachineCode *code, GPerlCell *c)
 		}
 		code->op = ARRAY_PUSH;//ARRAY_PUSH;
 		code->push = Array_push;
+	} else if (c->rawstr == "ref") {
+		DBG_PL("Ref");
+		code->op = REF;
 	}
 }
 

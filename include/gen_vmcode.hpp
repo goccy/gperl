@@ -123,6 +123,7 @@ typedef enum {
 	sWRITE,
 	oWRITE,
 	FLUSH,
+	REF,
 	JMP,
 	LET,
 	gLET,

@@ -280,6 +280,16 @@
 		fprintf(stdout, "%s", cwb);						\
 		clear_cwb();                                    \
 	}
+static inline int GPERL_REF(GPerlValue arg)
+{
+	int ret = 0;
+	GPerlObject *o = (GPerlObject *)getObject(arg);
+	if (o->h.type == ArrayRef) {
+		ret = 1;
+	}
+	return ret;
+}
+
 #define GPERL_JMP() pc += pc->jmp
 #define GPERL_FUNCSET(func, dst) setToFuncMemory(func, dst)
 #define GPERL_SETv(name, dst)

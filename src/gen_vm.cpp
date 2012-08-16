@@ -679,6 +679,11 @@ GPerlValue GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 		pc++;
 		BREAK();
 	});
+	CASE(REF, {
+		INT_init(reg[0], GPERL_REF((callstack+1)->argstack[0]));
+		pc++;
+		BREAK();
+	});
 	CASE(JMP, {
 		GPERL_JMP();
 		BREAK();

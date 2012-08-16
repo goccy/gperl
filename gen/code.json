@@ -196,6 +196,13 @@
      "args" : []
  },
  {
+	 "code" : "REF",
+	 "type" : 0,
+	 "const" : 0,
+	 "fast_type" : 0,
+     "args" : [{"argstack" : "(callstack+1)->argstack[0]"}]
+ },
+ {
 	 "code" : "JMP",
 	 "type" : 0,
 	 "const" : 0,

@@ -32,8 +32,8 @@ GPerlCell::GPerlCell(GPerlT type_, string name) : type(type_), vidx(0)
 		if (type_ == decl_tokens[i].type) {
 			if (name == "BuiltinFunc") {
 				for (int j = 0; j < Undefined; j++) {
-					if (name == decl_tokens[i].data) {
-						info = decl_tokens[i];
+					if (name == decl_tokens[j].data) {
+						info = decl_tokens[j];
 						break;
 					}
 				}
@@ -188,6 +188,10 @@ void GPerlParser::parseValue(GPerlToken *t, GPerlNodes *blocks, GPerlScope *scop
 			b->indent = indent;
 			blocks->pushNode(b);
 		} else if (scope && scope->root->argsize == 0) {
+			GPerlCell *b = scope->root;
+			b->indent = indent;
+			blocks->pushNode(b);
+		} else if (scope && (scope->root->type == BuiltinFunc || scope->root->type == Call)) {
 			GPerlCell *b = scope->root;
 			b->indent = indent;
 			blocks->pushNode(b);
