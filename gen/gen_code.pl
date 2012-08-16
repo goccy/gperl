@@ -386,10 +386,12 @@ sub gen_vm_run_code {
                 }
             } elsif ($_ =~ /THCODE/) {
             } elsif ($_ eq "ADD" || $_ eq "SUB" ||
-                     $_ eq "MUL" || $_ eq "DIV") {
+                     $_ eq "MUL" || $_ eq "DIV" ||
+                     $_ eq "LSHIFT" || $_ eq "RSHIFT") {
                 $ret .= $type_check_code;
             } elsif ($_ =~ /ADDC/ || $_ =~ /SUBC/ ||
-                     $_ =~ /MULC/ || $_ =~ /DIVC/) {
+                     $_ =~ /MULC/ || $_ =~ /DIVC/ ||
+                     $_ =~ /LSHIFTC/ || $_ =~ /RSHIFTC/) {
                 $decl_args =~ s/pc->src/pc->v/;
                 $ret .= "\t\tGPERL_${_}(" . $decl_args . ");\n";
                 $ret .= "\t\tpc++;\n";
@@ -405,6 +407,9 @@ sub gen_vm_run_code {
                 $check_code =~ s/reg\[pc\-\>dst\]/stack[pc->dst]/ if ($_ eq "INC" || $_ eq "DEC");
                 $check_code =~ s/reg\[pc\-\>dst\]/global_vmemory[pc->dst]/ if ($_ eq "gINC" || $_ eq "gDEC");
                 $ret .= $check_code;
+            } elsif ($_ eq "REF") {
+                $ret .= "\t\tINT_init(reg[0], GPERL_${_}(" . $decl_args . "));\n";
+                $ret .= "\t\tpc++;\n";
             } else {
                 $ret .= "\t\tGPERL_${_}(" . $decl_args . ");\n";
                 $ret .= "\t\tpc++;\n";
@@ -530,10 +535,12 @@ sub gen_fast_vm_code {
                     $ret .= "\t\tGPERL_${prefix}CMP_JMP(" . $decl_args . ");\n";
                 }
             } elsif ($_code[1] eq "ADD" || $_code[1] eq "SUB" ||
-                     $_code[1] eq "MUL" || $_code[1] eq "DIV") {
+                     $_code[1] eq "MUL" || $_code[1] eq "DIV" ||
+                     $_code[1] eq "LSHIFT" || $_code[1] eq "RSHIFT") {
                 $ret .= $type_check_code;
             } elsif ($_code[1] =~ /ADDC/ || $_code[1] =~ /SUBC/ ||
-                     $_code[1] =~ /MULC/ || $_code[1] =~ /DIVC/) {
+                     $_code[1] =~ /MULC/ || $_code[1] =~ /DIVC/ ||
+                     $_code[1] =~ /LSHIFTC/ || $_code[1] =~ /RSHIFTC/) {
                 $decl_args =~ s/pc->src/pc->v/;
                 $ret .= "\t\tGPERL_${name}(" . $decl_args . ");\n";
                 $ret .= "\t\tpc++;\n";

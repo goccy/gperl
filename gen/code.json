@@ -70,6 +70,20 @@
      "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}]
  },
  {
+	 "code" : "LSHIFT",
+	 "type" : 1,
+	 "const" : 1,
+	 "fast_type" : 1,
+     "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}]
+ },
+ {
+	 "code" : "RSHIFT",
+	 "type" : 1,
+	 "const" : 1,
+	 "fast_type" : 1,
+     "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}]
+ },
+ {
 	 "code" : "JG",
 	 "type" : 1,
 	 "const" : 1,

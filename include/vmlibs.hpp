@@ -43,6 +43,26 @@
 #define GPERL_dADDC(dst, v) D(dst) += v.dvalue
 #define GPERL_sADDC(dst, src)
 
+#define GPERL_iLSHIFT(dst, src) I(dst) <<= I(src)
+#define GPERL_dLSHIFT(dst, src)
+#define GPERL_sLSHIFT(dst, src)
+#define GPERL_oLSHIFT(dst, src)
+#define GPERL_LSHIFTC(dst, src)
+#define GPERL_iLSHIFTC(dst, v) I(dst) <<= v.ivalue
+#define GPERL_dLSHIFTC(dst, v)
+#define GPERL_sLSHIFTC(dst, src)
+#define GPERL_oLSHIFTC(dst, src)
+
+#define GPERL_iRSHIFT(dst, src) I(dst) >>= I(src)
+#define GPERL_dRSHIFT(dst, src)
+#define GPERL_sRSHIFT(dst, src)
+#define GPERL_oRSHIFT(dst, src)
+#define GPERL_RSHIFTC(dst, src)
+#define GPERL_iRSHIFTC(dst, v) I(dst) >>= v.ivalue
+#define GPERL_dRSHIFTC(dst, v)
+#define GPERL_sRSHIFTC(dst, src)
+#define GPERL_oRSHIFTC(dst, src)
+
 #define GPERL_StringADD(dst, v)
 #define GPERL_iStringADD(dst, v)
 #define GPERL_dStringADD(dst, v)

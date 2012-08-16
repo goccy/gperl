@@ -527,6 +527,12 @@ GPerlVirtualMachineCode *GPerlCompiler::createVMCode(GPerlCell *c)
 	case Div:
 		SET_OPCODE(DIV);
 		break;
+	case LeftShift:
+		SET_OPCODE(LSHIFT);
+		break;
+	case RightShift:
+		SET_OPCODE(RSHIFT);
+		break;
 	case Greater:
 		SET_OPCODE(JG);
 		break;

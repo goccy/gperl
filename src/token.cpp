@@ -157,6 +157,13 @@ vector<GPerlToken *> *GPerlTokenizer::tokenize(char *script)
 					tmp[0] = script[i];
 					tokens->push_back(new GPerlToken(string(tmp) + "="));
 					i++;
+			} else if ((i + 1 < script_size) &&
+					   (script[i] == '<' && script[i + 1] == '<') ||
+					   (script[i] == '>' && script[i + 1] == '>')) {
+				tmp[0] = script[i];
+				tmp[1] = script[i + 1];
+				tokens->push_back(new GPerlToken(string(tmp)));
+				i++;
 			} else if ((i + 1 < script_size) && script[i] == '+' && script[i + 1] == '+') {
 				tokens->push_back(new GPerlToken("++"));
 				i++;

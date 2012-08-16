@@ -286,7 +286,8 @@ GPerlAST *GPerlParser::parse(void)
 			}
 			break;
 		case Add: case Sub: case Mul: case Div: case Greater: case Less: case StringAdd:
-		case GreaterEqual: case LessEqual: case EqualEqual: case NotEqual: case Inc: {
+		case GreaterEqual: case LessEqual: case EqualEqual: case NotEqual: case Inc:
+		case LeftShift: case RightShift: case AddEqual: case SubEqual: case MulEqual: case DivEqual:{
 			DBG_PL("[%s]:LAST BLOCK->PARENT", cstr(t->data));
 			GPerlCell *block = blocks.lastNode();
 			GPerlCell *b = new GPerlCell(t->info.type, t->data);

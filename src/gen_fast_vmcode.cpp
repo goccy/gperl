@@ -1038,6 +1038,566 @@
 		pc++;
 		BREAK();
 	});
+	CASE(AB_LSHIFT, {
+		int dst_type = TYPE_CHECK(reg[pc->dst]);
+		int src_type = TYPE_CHECK(reg[pc->src]);
+#ifdef STATIC_TYPING_MODE
+		pc->opnext = jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
+#else /* DYNAMIC_TYPING_MODE */
+		goto *jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
+#endif
+		BREAK();
+	});
+	CASE(AB_dLSHIFT, {
+		GPERL_dLSHIFT(0, 1);
+		pc++;
+		BREAK();
+	});
+	CASE(AB_iLSHIFT, {
+		GPERL_iLSHIFT(0, 1);
+		pc++;
+		BREAK();
+	});
+	CASE(AB_sLSHIFT, {
+		GPERL_sLSHIFT(0, 1);
+		pc++;
+		BREAK();
+	});
+	CASE(AB_oLSHIFT, {
+		GPERL_oLSHIFT(0, 1);
+		pc++;
+		BREAK();
+	});
+	CASE(AC_LSHIFT, {
+		int dst_type = TYPE_CHECK(reg[pc->dst]);
+		int src_type = TYPE_CHECK(reg[pc->src]);
+#ifdef STATIC_TYPING_MODE
+		pc->opnext = jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
+#else /* DYNAMIC_TYPING_MODE */
+		goto *jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
+#endif
+		BREAK();
+	});
+	CASE(AC_dLSHIFT, {
+		GPERL_dLSHIFT(0, 2);
+		pc++;
+		BREAK();
+	});
+	CASE(AC_iLSHIFT, {
+		GPERL_iLSHIFT(0, 2);
+		pc++;
+		BREAK();
+	});
+	CASE(AC_sLSHIFT, {
+		GPERL_sLSHIFT(0, 2);
+		pc++;
+		BREAK();
+	});
+	CASE(AC_oLSHIFT, {
+		GPERL_oLSHIFT(0, 2);
+		pc++;
+		BREAK();
+	});
+	CASE(AD_LSHIFT, {
+		int dst_type = TYPE_CHECK(reg[pc->dst]);
+		int src_type = TYPE_CHECK(reg[pc->src]);
+#ifdef STATIC_TYPING_MODE
+		pc->opnext = jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
+#else /* DYNAMIC_TYPING_MODE */
+		goto *jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
+#endif
+		BREAK();
+	});
+	CASE(AD_dLSHIFT, {
+		GPERL_dLSHIFT(0, 3);
+		pc++;
+		BREAK();
+	});
+	CASE(AD_iLSHIFT, {
+		GPERL_iLSHIFT(0, 3);
+		pc++;
+		BREAK();
+	});
+	CASE(AD_sLSHIFT, {
+		GPERL_sLSHIFT(0, 3);
+		pc++;
+		BREAK();
+	});
+	CASE(AD_oLSHIFT, {
+		GPERL_oLSHIFT(0, 3);
+		pc++;
+		BREAK();
+	});
+	CASE(BC_LSHIFT, {
+		int dst_type = TYPE_CHECK(reg[pc->dst]);
+		int src_type = TYPE_CHECK(reg[pc->src]);
+#ifdef STATIC_TYPING_MODE
+		pc->opnext = jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
+#else /* DYNAMIC_TYPING_MODE */
+		goto *jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
+#endif
+		BREAK();
+	});
+	CASE(BC_dLSHIFT, {
+		GPERL_dLSHIFT(1, 2);
+		pc++;
+		BREAK();
+	});
+	CASE(BC_iLSHIFT, {
+		GPERL_iLSHIFT(1, 2);
+		pc++;
+		BREAK();
+	});
+	CASE(BC_sLSHIFT, {
+		GPERL_sLSHIFT(1, 2);
+		pc++;
+		BREAK();
+	});
+	CASE(BC_oLSHIFT, {
+		GPERL_oLSHIFT(1, 2);
+		pc++;
+		BREAK();
+	});
+	CASE(BD_LSHIFT, {
+		int dst_type = TYPE_CHECK(reg[pc->dst]);
+		int src_type = TYPE_CHECK(reg[pc->src]);
+#ifdef STATIC_TYPING_MODE
+		pc->opnext = jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
+#else /* DYNAMIC_TYPING_MODE */
+		goto *jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
+#endif
+		BREAK();
+	});
+	CASE(BD_dLSHIFT, {
+		GPERL_dLSHIFT(1, 3);
+		pc++;
+		BREAK();
+	});
+	CASE(BD_iLSHIFT, {
+		GPERL_iLSHIFT(1, 3);
+		pc++;
+		BREAK();
+	});
+	CASE(BD_sLSHIFT, {
+		GPERL_sLSHIFT(1, 3);
+		pc++;
+		BREAK();
+	});
+	CASE(BD_oLSHIFT, {
+		GPERL_oLSHIFT(1, 3);
+		pc++;
+		BREAK();
+	});
+	CASE(CD_LSHIFT, {
+		int dst_type = TYPE_CHECK(reg[pc->dst]);
+		int src_type = TYPE_CHECK(reg[pc->src]);
+#ifdef STATIC_TYPING_MODE
+		pc->opnext = jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
+#else /* DYNAMIC_TYPING_MODE */
+		goto *jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
+#endif
+		BREAK();
+	});
+	CASE(CD_dLSHIFT, {
+		GPERL_dLSHIFT(2, 3);
+		pc++;
+		BREAK();
+	});
+	CASE(CD_iLSHIFT, {
+		GPERL_iLSHIFT(2, 3);
+		pc++;
+		BREAK();
+	});
+	CASE(CD_sLSHIFT, {
+		GPERL_sLSHIFT(2, 3);
+		pc++;
+		BREAK();
+	});
+	CASE(CD_oLSHIFT, {
+		GPERL_oLSHIFT(2, 3);
+		pc++;
+		BREAK();
+	});
+	CASE(A_LSHIFTC, {
+		GPERL_LSHIFTC(0, pc->v);
+		pc++;
+		BREAK();
+	});
+	CASE(A_dLSHIFTC, {
+		GPERL_dLSHIFTC(0, pc->v);
+		pc++;
+		BREAK();
+	});
+	CASE(A_iLSHIFTC, {
+		GPERL_iLSHIFTC(0, pc->v);
+		pc++;
+		BREAK();
+	});
+	CASE(A_sLSHIFTC, {
+		GPERL_sLSHIFTC(0, pc->v);
+		pc++;
+		BREAK();
+	});
+	CASE(A_oLSHIFTC, {
+		GPERL_oLSHIFTC(0, pc->v);
+		pc++;
+		BREAK();
+	});
+	CASE(B_LSHIFTC, {
+		GPERL_LSHIFTC(1, pc->v);
+		pc++;
+		BREAK();
+	});
+	CASE(B_dLSHIFTC, {
+		GPERL_dLSHIFTC(1, pc->v);
+		pc++;
+		BREAK();
+	});
+	CASE(B_iLSHIFTC, {
+		GPERL_iLSHIFTC(1, pc->v);
+		pc++;
+		BREAK();
+	});
+	CASE(B_sLSHIFTC, {
+		GPERL_sLSHIFTC(1, pc->v);
+		pc++;
+		BREAK();
+	});
+	CASE(B_oLSHIFTC, {
+		GPERL_oLSHIFTC(1, pc->v);
+		pc++;
+		BREAK();
+	});
+	CASE(C_LSHIFTC, {
+		GPERL_LSHIFTC(2, pc->v);
+		pc++;
+		BREAK();
+	});
+	CASE(C_dLSHIFTC, {
+		GPERL_dLSHIFTC(2, pc->v);
+		pc++;
+		BREAK();
+	});
+	CASE(C_iLSHIFTC, {
+		GPERL_iLSHIFTC(2, pc->v);
+		pc++;
+		BREAK();
+	});
+	CASE(C_sLSHIFTC, {
+		GPERL_sLSHIFTC(2, pc->v);
+		pc++;
+		BREAK();
+	});
+	CASE(C_oLSHIFTC, {
+		GPERL_oLSHIFTC(2, pc->v);
+		pc++;
+		BREAK();
+	});
+	CASE(D_LSHIFTC, {
+		GPERL_LSHIFTC(3, pc->v);
+		pc++;
+		BREAK();
+	});
+	CASE(D_dLSHIFTC, {
+		GPERL_dLSHIFTC(3, pc->v);
+		pc++;
+		BREAK();
+	});
+	CASE(D_iLSHIFTC, {
+		GPERL_iLSHIFTC(3, pc->v);
+		pc++;
+		BREAK();
+	});
+	CASE(D_sLSHIFTC, {
+		GPERL_sLSHIFTC(3, pc->v);
+		pc++;
+		BREAK();
+	});
+	CASE(D_oLSHIFTC, {
+		GPERL_oLSHIFTC(3, pc->v);
+		pc++;
+		BREAK();
+	});
+	CASE(AB_RSHIFT, {
+		int dst_type = TYPE_CHECK(reg[pc->dst]);
+		int src_type = TYPE_CHECK(reg[pc->src]);
+#ifdef STATIC_TYPING_MODE
+		pc->opnext = jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
+#else /* DYNAMIC_TYPING_MODE */
+		goto *jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
+#endif
+		BREAK();
+	});
+	CASE(AB_dRSHIFT, {
+		GPERL_dRSHIFT(0, 1);
+		pc++;
+		BREAK();
+	});
+	CASE(AB_iRSHIFT, {
+		GPERL_iRSHIFT(0, 1);
+		pc++;
+		BREAK();
+	});
+	CASE(AB_sRSHIFT, {
+		GPERL_sRSHIFT(0, 1);
+		pc++;
+		BREAK();
+	});
+	CASE(AB_oRSHIFT, {
+		GPERL_oRSHIFT(0, 1);
+		pc++;
+		BREAK();
+	});
+	CASE(AC_RSHIFT, {
+		int dst_type = TYPE_CHECK(reg[pc->dst]);
+		int src_type = TYPE_CHECK(reg[pc->src]);
+#ifdef STATIC_TYPING_MODE
+		pc->opnext = jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
+#else /* DYNAMIC_TYPING_MODE */
+		goto *jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
+#endif
+		BREAK();
+	});
+	CASE(AC_dRSHIFT, {
+		GPERL_dRSHIFT(0, 2);
+		pc++;
+		BREAK();
+	});
+	CASE(AC_iRSHIFT, {
+		GPERL_iRSHIFT(0, 2);
+		pc++;
+		BREAK();
+	});
+	CASE(AC_sRSHIFT, {
+		GPERL_sRSHIFT(0, 2);
+		pc++;
+		BREAK();
+	});
+	CASE(AC_oRSHIFT, {
+		GPERL_oRSHIFT(0, 2);
+		pc++;
+		BREAK();
+	});
+	CASE(AD_RSHIFT, {
+		int dst_type = TYPE_CHECK(reg[pc->dst]);
+		int src_type = TYPE_CHECK(reg[pc->src]);
+#ifdef STATIC_TYPING_MODE
+		pc->opnext = jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
+#else /* DYNAMIC_TYPING_MODE */
+		goto *jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
+#endif
+		BREAK();
+	});
+	CASE(AD_dRSHIFT, {
+		GPERL_dRSHIFT(0, 3);
+		pc++;
+		BREAK();
+	});
+	CASE(AD_iRSHIFT, {
+		GPERL_iRSHIFT(0, 3);
+		pc++;
+		BREAK();
+	});
+	CASE(AD_sRSHIFT, {
+		GPERL_sRSHIFT(0, 3);
+		pc++;
+		BREAK();
+	});
+	CASE(AD_oRSHIFT, {
+		GPERL_oRSHIFT(0, 3);
+		pc++;
+		BREAK();
+	});
+	CASE(BC_RSHIFT, {
+		int dst_type = TYPE_CHECK(reg[pc->dst]);
+		int src_type = TYPE_CHECK(reg[pc->src]);
+#ifdef STATIC_TYPING_MODE
+		pc->opnext = jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
+#else /* DYNAMIC_TYPING_MODE */
+		goto *jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
+#endif
+		BREAK();
+	});
+	CASE(BC_dRSHIFT, {
+		GPERL_dRSHIFT(1, 2);
+		pc++;
+		BREAK();
+	});
+	CASE(BC_iRSHIFT, {
+		GPERL_iRSHIFT(1, 2);
+		pc++;
+		BREAK();
+	});
+	CASE(BC_sRSHIFT, {
+		GPERL_sRSHIFT(1, 2);
+		pc++;
+		BREAK();
+	});
+	CASE(BC_oRSHIFT, {
+		GPERL_oRSHIFT(1, 2);
+		pc++;
+		BREAK();
+	});
+	CASE(BD_RSHIFT, {
+		int dst_type = TYPE_CHECK(reg[pc->dst]);
+		int src_type = TYPE_CHECK(reg[pc->src]);
+#ifdef STATIC_TYPING_MODE
+		pc->opnext = jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
+#else /* DYNAMIC_TYPING_MODE */
+		goto *jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
+#endif
+		BREAK();
+	});
+	CASE(BD_dRSHIFT, {
+		GPERL_dRSHIFT(1, 3);
+		pc++;
+		BREAK();
+	});
+	CASE(BD_iRSHIFT, {
+		GPERL_iRSHIFT(1, 3);
+		pc++;
+		BREAK();
+	});
+	CASE(BD_sRSHIFT, {
+		GPERL_sRSHIFT(1, 3);
+		pc++;
+		BREAK();
+	});
+	CASE(BD_oRSHIFT, {
+		GPERL_oRSHIFT(1, 3);
+		pc++;
+		BREAK();
+	});
+	CASE(CD_RSHIFT, {
+		int dst_type = TYPE_CHECK(reg[pc->dst]);
+		int src_type = TYPE_CHECK(reg[pc->src]);
+#ifdef STATIC_TYPING_MODE
+		pc->opnext = jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
+#else /* DYNAMIC_TYPING_MODE */
+		goto *jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
+#endif
+		BREAK();
+	});
+	CASE(CD_dRSHIFT, {
+		GPERL_dRSHIFT(2, 3);
+		pc++;
+		BREAK();
+	});
+	CASE(CD_iRSHIFT, {
+		GPERL_iRSHIFT(2, 3);
+		pc++;
+		BREAK();
+	});
+	CASE(CD_sRSHIFT, {
+		GPERL_sRSHIFT(2, 3);
+		pc++;
+		BREAK();
+	});
+	CASE(CD_oRSHIFT, {
+		GPERL_oRSHIFT(2, 3);
+		pc++;
+		BREAK();
+	});
+	CASE(A_RSHIFTC, {
+		GPERL_RSHIFTC(0, pc->v);
+		pc++;
+		BREAK();
+	});
+	CASE(A_dRSHIFTC, {
+		GPERL_dRSHIFTC(0, pc->v);
+		pc++;
+		BREAK();
+	});
+	CASE(A_iRSHIFTC, {
+		GPERL_iRSHIFTC(0, pc->v);
+		pc++;
+		BREAK();
+	});
+	CASE(A_sRSHIFTC, {
+		GPERL_sRSHIFTC(0, pc->v);
+		pc++;
+		BREAK();
+	});
+	CASE(A_oRSHIFTC, {
+		GPERL_oRSHIFTC(0, pc->v);
+		pc++;
+		BREAK();
+	});
+	CASE(B_RSHIFTC, {
+		GPERL_RSHIFTC(1, pc->v);
+		pc++;
+		BREAK();
+	});
+	CASE(B_dRSHIFTC, {
+		GPERL_dRSHIFTC(1, pc->v);
+		pc++;
+		BREAK();
+	});
+	CASE(B_iRSHIFTC, {
+		GPERL_iRSHIFTC(1, pc->v);
+		pc++;
+		BREAK();
+	});
+	CASE(B_sRSHIFTC, {
+		GPERL_sRSHIFTC(1, pc->v);
+		pc++;
+		BREAK();
+	});
+	CASE(B_oRSHIFTC, {
+		GPERL_oRSHIFTC(1, pc->v);
+		pc++;
+		BREAK();
+	});
+	CASE(C_RSHIFTC, {
+		GPERL_RSHIFTC(2, pc->v);
+		pc++;
+		BREAK();
+	});
+	CASE(C_dRSHIFTC, {
+		GPERL_dRSHIFTC(2, pc->v);
+		pc++;
+		BREAK();
+	});
+	CASE(C_iRSHIFTC, {
+		GPERL_iRSHIFTC(2, pc->v);
+		pc++;
+		BREAK();
+	});
+	CASE(C_sRSHIFTC, {
+		GPERL_sRSHIFTC(2, pc->v);
+		pc++;
+		BREAK();
+	});
+	CASE(C_oRSHIFTC, {
+		GPERL_oRSHIFTC(2, pc->v);
+		pc++;
+		BREAK();
+	});
+	CASE(D_RSHIFTC, {
+		GPERL_RSHIFTC(3, pc->v);
+		pc++;
+		BREAK();
+	});
+	CASE(D_dRSHIFTC, {
+		GPERL_dRSHIFTC(3, pc->v);
+		pc++;
+		BREAK();
+	});
+	CASE(D_iRSHIFTC, {
+		GPERL_iRSHIFTC(3, pc->v);
+		pc++;
+		BREAK();
+	});
+	CASE(D_sRSHIFTC, {
+		GPERL_sRSHIFTC(3, pc->v);
+		pc++;
+		BREAK();
+	});
+	CASE(D_oRSHIFTC, {
+		GPERL_oRSHIFTC(3, pc->v);
+		pc++;
+		BREAK();
+	});
 	CASE(A_JG, {
 		int dst_type = TYPE_CHECK(reg[pc->dst]);
 		int src_type = TYPE_CHECK(reg[pc->src]);
