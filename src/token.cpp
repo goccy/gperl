@@ -8,213 +8,252 @@ GPerlToken::GPerlToken(string data_, int idx_) : data(data_), idx(idx_), indent(
 }
 
 GPerlTokenizer::GPerlTokenizer(void)
+  : isStringStarted(false), escapeFlag(false),
+	mdOperationFlag(false), token_idx(0), max_token_size(0)
 {
 }
 
-vector<GPerlToken *> *GPerlTokenizer::tokenize(char *script)
+void GPerlTokenizer::scanDoubleQuote(GPerlTokens *tks)
+{
+	if (isStringStarted) {
+		GPerlToken *t = new GPerlToken(string(token));
+		t->info = getTokenInfo("String", NULL);
+		tks->push_back(t);
+		memset(token, 0, max_token_size);
+		token_idx = 0;
+		isStringStarted = false;
+	} else {
+		isStringStarted = true;
+	}
+	escapeFlag = false;
+}
+
+void GPerlTokenizer::scanEscapeChar(GPerlTokens *tks, char ch)
+{
+	if (isStringStarted) {
+		token[token_idx] = ch;
+		token_idx++;
+		return;
+	}
+	if (token[0] != EOL) {
+		tks->push_back(new GPerlToken(string(token)));
+		memset(token, 0, max_token_size);
+		token_idx = 0;
+	}
+	escapeFlag = false;
+}
+
+void GPerlTokenizer::scanNewLineKeyword(void)
+{
+	if (escapeFlag) {
+		token[token_idx] = '\n';
+	} else {
+		token[token_idx] = 'n';
+	}
+	token_idx++;
+	escapeFlag = false;
+}
+
+void GPerlTokenizer::scanMDOperator(GPerlTokens *tks, char op)
+{
+	char tmp[2] = {0};
+	if (isStringStarted) {
+		token[token_idx] = op;
+		token_idx++;
+		return;
+	}
+	if (token[0] != EOL) {
+		if (atoi(token) != 0) {
+			//----previous token is number---
+			//insert LEFT CURLY BRACE
+			//DBG_PL("token = [(]");
+			tmp[0] = '(';
+			tks->push_back(new GPerlToken(string(tmp)));
+			mdOperationFlag = true;//to insert RIGHT CURLY BRACE
+		}
+		tks->push_back(new GPerlToken(string(token)));
+		memset(token, 0, max_token_size);
+	} else if (!mdOperationFlag && atoi(cstr(tks->back()->data)) != 0) {
+		//----previous token is number---
+		//previous token is white space
+		//insert LEFT CURLY BRACE
+		//DBG_PL("token = [(]");
+		tmp[0] = '(';
+		tks->insert(tks->end()-1, new GPerlToken(string(tmp)));
+		mdOperationFlag = true;//to insert RIGHT CURLY BRACE
+	}
+	tmp[0] = op;
+	tks->push_back(new GPerlToken(string(tmp)));
+	token_idx = 0;
+	escapeFlag = false;
+}
+
+bool GPerlTokenizer::scanNegativeNumber(char number)
+{
+	char num_buffer[2] = {0};
+	if (!isStringStarted) {
+		num_buffer[0] = number;
+		if (atoi(num_buffer) > 0) {
+			//negative number
+			token[token_idx] = '-';
+			token_idx++;
+			return true;
+		}
+	}
+	return false;
+}
+
+int GPerlTokenizer::scanSymbol(GPerlTokens *tks, char symbol, char next_ch)
+{
+	int ret = 0;
+	if (isStringStarted) {
+		token[token_idx] = symbol;
+		token_idx++;
+		return ret;
+	}
+	if (symbol == '.' && ('0' <= token[0] && token[0] <= '9')) {
+		//double value
+		token[token_idx] = symbol;
+		token_idx++;
+		return ret;
+	}
+	if (token[0] != EOL) {
+		if (token[0] == '@' && symbol == '{') {
+			tks->push_back(new GPerlToken("@{"));
+			memset(token, 0, max_token_size);
+			token_idx = 0;
+			escapeFlag = false;
+			return ret;
+		} else {
+			tks->push_back(new GPerlToken(string(token)));
+			memset(token, 0, max_token_size);
+		}
+	}
+	char tmp[2] = {0};
+	if (mdOperationFlag &&
+		(symbol == ',' || symbol == '+' ||
+		 symbol == '-' || symbol == ';')) {
+		//insert RIGHT CURLY BRACE
+		//DBG_PL("token = [)]");
+		tmp[0] = ')';
+		tks->push_back(new GPerlToken(string(tmp)));
+		mdOperationFlag = false;
+	}
+	if (next_ch == '=') {
+		switch (symbol) {
+		case '<': case '>': case '=': case '.': case '!':
+		case '+': case '-': case '*': case '/':
+			tmp[0] = symbol;
+			tks->push_back(new GPerlToken(string(tmp) + "="));
+			ret = 1;
+			break;
+		default:
+			break;
+		}
+	} else if ((symbol == '<' && next_ch == '<') ||
+			   (symbol == '>' && next_ch == '>') ||
+			   (symbol == '+' && next_ch == '+') ||
+			   (symbol == '-' && next_ch == '-')) {
+		tmp[0] = symbol;
+		tmp[1] = next_ch;
+		tks->push_back(new GPerlToken(string(tmp)));
+		ret = 1;
+	} else {
+		tmp[0] = symbol;
+		tks->push_back(new GPerlToken(string(tmp)));
+	}
+	token_idx = 0;
+	escapeFlag = false;
+	return ret;
+}
+
+void GPerlTokenizer::scanSymbol(GPerlTokens *tks, char symbol)
+{
+	if (isStringStarted) {
+		token[token_idx] = symbol;
+		token_idx++;
+		return;
+	}
+	if (symbol == '.' && ('0' <= token[0] && token[0] <= '9')) {
+		//double value
+		token[token_idx] = symbol;
+		token_idx++;
+		return;
+	}
+	if (token[0] != EOL) {
+		if (token[0] == '@' && symbol == '{') {
+			tks->push_back(new GPerlToken("@{"));
+			memset(token, 0, max_token_size);
+			token_idx = 0;
+			escapeFlag = false;
+			return;
+		} else {
+			tks->push_back(new GPerlToken(string(token)));
+			memset(token, 0, max_token_size);
+		}
+	}
+	char tmp[2] = {0};
+	if (mdOperationFlag &&
+		(symbol == ',' || symbol == '+' ||
+		 symbol == '-' || symbol == ';')) {
+		//insert RIGHT CURLY BRACE
+		//DBG_PL("token = [)]");
+		tmp[0] = ')';
+		tks->push_back(new GPerlToken(string(tmp)));
+		mdOperationFlag = false;
+	}
+	tmp[0] = symbol;
+	tks->push_back(new GPerlToken(string(tmp)));
+	token_idx = 0;
+	escapeFlag = false;
+}
+
+GPerlTokens *GPerlTokenizer::tokenize(char *script)
 {
 	size_t i = 0;
-	char token[MAX_TOKEN_SIZE] = {0};
-	int token_idx = 0;
-	vector<GPerlToken*> *tokens = new vector<GPerlToken *>();
-	bool isStringStarted = false;
-	bool escapeFlag = false;
-	bool mdOperationFlag = false;/*multi or div operation flag*/
 	size_t script_size = strlen(script) + 1;
-	char num_buffer[2] = {0};
+	max_token_size = script_size;
+	token = (char *)safe_malloc(max_token_size);
+	GPerlTokens *tokens = new GPerlTokens();
 	while (script[i] != EOL) {
-		//DBG_PL("[%c]", script[i]);
 		switch (script[i]) {
 		case '\"':
-			if (isStringStarted) {
-				//token[token_idx] = script[i];
-				//DBG_PL("token = [%s]", token);
-				GPerlToken *t = new GPerlToken(string(token));
-				t->info = getTokenInfo("String", NULL);
-				tokens->push_back(t);
-				memset(token, 0, MAX_TOKEN_SIZE);
-				token_idx = 0;
-				isStringStarted = false;
-			} else {
-				isStringStarted = true;
-			}
-			escapeFlag = false;
+			scanDoubleQuote(tokens);
 			break;
 		case ' ': case '\t':
-			if (isStringStarted) {
-				token[token_idx] = script[i];
-				token_idx++;
-				break;
-			}
-			if (token[0] != EOL) {
-				//DBG_PL("token = [%s]", token);
-				tokens->push_back(new GPerlToken(string(token)));
-				memset(token, 0, MAX_TOKEN_SIZE);
-				token_idx = 0;
-			}
-			escapeFlag = false;
+			scanEscapeChar(tokens, script[i]);
 			break;
 		case '\\':
 			escapeFlag = true;
 			break;
 		case 'n':
-			if (escapeFlag) {
-				token[token_idx] = '\n';
-			} else {
-				token[token_idx] = 'n';
-			}
-			token_idx++;
-			escapeFlag = false;
+			scanNewLineKeyword();
 			break;
-		case '*': case '/' : {
-			char tmp[2] = {0};
-			if (isStringStarted) {
-				token[token_idx] = script[i];
-				token_idx++;
+		case '*': case '/' :
+			scanMDOperator(tokens, script[i]);
+			break;
+		case '-':
+			if (i + 1 < script_size &&
+				scanNegativeNumber(script[i + 1])) {
 				break;
 			}
-			if (token[0] != EOL) {
-				//DBG_PL("***** token = [%s]", token);
-				if (atoi(token) != 0) {
-					//----previous token is number---
-					//insert LEFT CURLY BRACE
-					//DBG_PL("token = [(]");
-					tmp[0] = '(';
-					tokens->push_back(new GPerlToken(string(tmp)));
-					mdOperationFlag = true;//to insert RIGHT CURLY BRACE
-				}
-				tokens->push_back(new GPerlToken(string(token)));
-				memset(token, 0, MAX_TOKEN_SIZE);
-			} else if (!mdOperationFlag && atoi(cstr(tokens->back()->data)) != 0) {
-				//----previous token is number---
-				//previous token is white space
-				//insert LEFT CURLY BRACE
-				//DBG_PL("token = [(]");
-				tmp[0] = '(';
-				tokens->insert(tokens->end()-1, new GPerlToken(string(tmp)));
-				mdOperationFlag = true;//to insert RIGHT CURLY BRACE
-			}
-			//DBG_PL("token = [%c]", script[i]);
-			tmp[0] = script[i];
-			tokens->push_back(new GPerlToken(string(tmp)));
-			token_idx = 0;
-			escapeFlag = false;
-			break;
-		}
-		case '-':
-			if (!isStringStarted && i + 1 < script_size) {
-				num_buffer[0] = script[i + 1];
-				if (atoi(num_buffer) > 0) {
-					//negative number
-					token[token_idx] = script[i];
-					token_idx++;
-					break;
-				}
-				num_buffer[0] = 0;
-			}
-			//through
+			//fall through
 		case ',': case ':': case ';': case '=': case '+':
-		case '<': case '>': case '&': case '.':
+		case '<': case '>': case '&': case '.': case '!':
 		case '(': case ')': case '{': case '}':
 		case '[': case ']': {
-			if (isStringStarted) {
-				token[token_idx] = script[i];
-				token_idx++;
-				break;
-			}
-			if (script[i] == '.' && ('0' <= token[0] && token[0] <= '9')) {
-				token[token_idx] = script[i];
-				token_idx++;
-				break;
-			}
-			if (token[0] != EOL) {
-				//DBG_PL("token = [%s]", token);
-				if (token[0] == '@' && script[i] == '{') {
-					tokens->push_back(new GPerlToken("@{"));
-					memset(token, 0, MAX_TOKEN_SIZE);
-					token_idx = 0;
-					escapeFlag = false;
-					break;
-				} else {
-					tokens->push_back(new GPerlToken(string(token)));
-					memset(token, 0, MAX_TOKEN_SIZE);
-				}
-			}
-			char tmp[2] = {0};
-			if (mdOperationFlag &&
-				(script[i] == ',' || script[i] == '+' || script[i] == '-' || script[i] == ';')) {
-				//insert RIGHT CURLY BRACE
-				//DBG_PL("token = [)]");
-				tmp[0] = ')';
-				tokens->push_back(new GPerlToken(string(tmp)));
-				mdOperationFlag = false;
-			}
-			if ((i + 1 < script_size) &&
-				((script[i] == '<' || script[i] == '>' || script[i] == '=' || script[i] == '.' ||
-				  script[i] == '+' || script[i] == '-' || script[i] == '*' || script[i] == '/') &&
-				 (script[i + 1] == '='))) {
-					//DBG_PL("token = [%c=]", script[i]);
-					tmp[0] = script[i];
-					tokens->push_back(new GPerlToken(string(tmp) + "="));
-					i++;
-			} else if ((i + 1 < script_size) &&
-					   (script[i] == '<' && script[i + 1] == '<') ||
-					   (script[i] == '>' && script[i + 1] == '>')) {
-				tmp[0] = script[i];
-				tmp[1] = script[i + 1];
-				tokens->push_back(new GPerlToken(string(tmp)));
-				i++;
-			} else if ((i + 1 < script_size) && script[i] == '+' && script[i + 1] == '+') {
-				tokens->push_back(new GPerlToken("++"));
-				i++;
-			} else if ((i + 1 < script_size) && script[i] == '-' && script[i + 1] == '-') {
-				tokens->push_back(new GPerlToken("--"));
-				i++;
+			if (i + 1 < script_size) {
+				i += scanSymbol(tokens, script[i], script[i + 1]);
 			} else {
-				//DBG_PL("token = [%c]", script[i]);
-				tmp[0] = script[i];
-				tokens->push_back(new GPerlToken(string(tmp)));
+				scanSymbol(tokens, script[i]);
 			}
-			token_idx = 0;
-			escapeFlag = false;
-			break;
-		}
-		case '!': {
-			if (isStringStarted) {
-				token[token_idx] = script[i];
-				token_idx++;
-				break;
-			}
-			if (token[0] != EOL) {
-				//DBG_PL("token = [%s]", token);
-				tokens->push_back(new GPerlToken(string(token)));
-				memset(token, 0, MAX_TOKEN_SIZE);
-			}
-			char tmp[2] = {0};
-			if (i + 1 < script_size && script[i + 1] == '=') {
-				//DBG_PL("token = [%c=]", script[i]);
-				tmp[0] = script[i];
-				tokens->push_back(new GPerlToken(string(tmp) + "="));
-				i++;
-			} else {
-				//DBG_PL("token = [%c]", script[i]);
-				tmp[0] = script[i];
-				tokens->push_back(new GPerlToken(string(tmp)));
-			}
-			token_idx = 0;
-			escapeFlag = false;
-			break;
-		}
-		case '0': case '1': case '2': case '3': case '4': case '5':
-		case '6': case '7': case '8': case '9': {
-			token[token_idx] = script[i];
-			token_idx++;
-			escapeFlag = false;
 			break;
 		}
 		case '\n':
 			escapeFlag = false;
 			break;
+		case '0': case '1': case '2': case '3': case '4': case '5':
+		case '6': case '7': case '8': case '9':
 		default:
 			token[token_idx] = script[i];
 			token_idx++;

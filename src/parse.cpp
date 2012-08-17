@@ -234,12 +234,14 @@ GPerlAST *GPerlParser::parse(void)
 			if (isVarDeclFlag) {
 				DBG_PL("[%s]:NEW BLOCK => BLOCKS", cstr(t->data));
 				DBG_PL("vidx = [%d]", vidx);
+				/*
 				string prefix = "";
 				for (int i = 0; i < indent; i++) {
 					prefix += string(NAME_RESOLUTION_PREFIX);
 				}
+				*/
 				//DBG_PL("prefix = [%s]", cstr(prefix));
-				GPerlCell *var = new GPerlCell(LocalVarDecl, prefix + t->data);
+				GPerlCell *var = new GPerlCell(LocalVarDecl, t->data);
 				var->indent = indent;
 				var->setVariableIdx(vidx);
 				blocks.pushNode(var);
@@ -253,12 +255,14 @@ GPerlAST *GPerlParser::parse(void)
 		case GlobalVar: case GlobalArrayVar: {
 			DBG_PL("[%s]:NEW BLOCK => BLOCKS", cstr(t->data));
 			DBG_PL("vidx = [%d]", vidx);
+			/*
 			string prefix = "";
 			for (int i = 0; i < indent; i++) {
 				prefix += string(NAME_RESOLUTION_PREFIX);
 			}
+			*/
 			//DBG_PL("prefix = [%s]", cstr(prefix));
-			GPerlCell *gvar = new GPerlCell(GlobalVarDecl, prefix + t->data);
+			GPerlCell *gvar = new GPerlCell(GlobalVarDecl, t->data);
 			DBG_PL("INDENT = [%d]", indent);
 			gvar->indent = indent;
 			gvar->setVariableIdx(vidx);
@@ -268,7 +272,18 @@ GPerlAST *GPerlParser::parse(void)
 			vidx++;
 			break;
 		}
-		case Var: case ArrayVar: case ArgumentArray:
+		case Var: {
+			/*
+			DBG_PL("vidx = [%d]", vidx);
+			string prefix = "";
+			for (int i = 0; i < indent; i++) {
+				prefix += string(NAME_RESOLUTION_PREFIX);
+			}
+			t->data = prefix + t->data;
+			*/
+			//fall through
+		}
+		case ArrayVar: case ArgumentArray:
 		case Int: case Double: case String: case Call: case BuiltinFunc: {
 			parseValue(t, &blocks, NULL);
 			break;
@@ -314,7 +329,7 @@ GPerlAST *GPerlParser::parse(void)
 				fprintf(stderr, "ERROR:syntax error!!\n");
 			}
 			GPerlCell *assign = new GPerlCell(t->info.type, t->data);
-			assign->indent = indent;
+			assign->indent = block->indent;
 			assign->vname = block->vname;
 			block->parent = assign;
 			assign->left = block;

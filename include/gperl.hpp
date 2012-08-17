@@ -94,9 +94,24 @@ public:
 	GPerlToken(std::string data_, int idx_ = 0);
 };
 
+typedef std::vector<GPerlToken *> GPerlTokens;
 class GPerlTokenizer {
 public:
+	bool isStringStarted;
+	bool escapeFlag;
+	bool mdOperationFlag;/*multi or div operation flag*/
+	char *token;
+	int token_idx;
+	int max_token_size;
+
 	GPerlTokenizer(void);
+	void scanDoubleQuote(GPerlTokens *tks);
+	void scanEscapeChar(GPerlTokens *tks, char ch);
+	void scanNewLineKeyword(void);
+	void scanMDOperator(GPerlTokens *tks, char op);
+	bool scanNegativeNumber(char num);
+	int scanSymbol(GPerlTokens *tks, char symbol, char next_ch);
+	void scanSymbol(GPerlTokens *tks, char symbol);
 	std::vector<GPerlToken *> *tokenize(char *script);
 	void annotateTokens(std::vector<GPerlToken *> *tokens);
 	void dump(std::vector<GPerlToken *> *tokens);

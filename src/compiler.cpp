@@ -740,15 +740,16 @@ void GPerlCompiler::setInstByVMap(GPerlVirtualMachineCode *code, GPerlCell *c,
 			c->vname = prefix + c->vname;
 			code->name = cstr(c->vname);
 			goto BREAK;
-		} else if (global_vmap.find(prefix + c->vname) != global_vmap.end()) {
-			*idx = global_vmap[prefix + c->vname];
-			code->op = gop;
-			c->vname = prefix + c->vname;
-			code->name = cstr(c->vname);
-			goto BREAK;
 		}
 	}
-	fprintf(stderr, "ERROR: cannot find variable name : [%s]", cstr(c->vname));
+	if (global_vmap.find(c->vname) != global_vmap.end()) {
+		*idx = global_vmap[c->vname];
+		code->op = gop;
+		c->vname = c->vname;
+		code->name = cstr(c->vname);
+		goto BREAK;
+	}
+	fprintf(stderr, "ERROR: cannot find variable name : [%s]\n", cstr(c->vname));
 	code->op = MOV;
 BREAK:;
 }
@@ -765,9 +766,9 @@ void GPerlCompiler::setArrayDereference(GPerlVirtualMachineCode *code, GPerlCell
 void GPerlCompiler::setArrayAt(GPerlVirtualMachineCode *code, GPerlCell *c_)
 {
 	GPerlCell *c = c_->left;
-	c->vname.replace(c->indent, 1, "@");
-	c->fname.replace(c->indent, 1, "@");
-	c->rawstr.replace(c->indent, 1, "@");
+	c->vname.replace(0, 1, "@");
+	c->fname.replace(0, 1, "@");
+	c->rawstr.replace(0, 1, "@");
 	int idx = 0;
 	if (reg_type[dst - 1] == Int) {
 		idx = codes->back()->v.ivalue;
@@ -788,9 +789,9 @@ void GPerlCompiler::setArrayAt(GPerlVirtualMachineCode *code, GPerlCell *c_)
 		setInstByVMap(code, c, ARRAY_AT, ARRAY_gAT, &idx);
 		code->idx = dst-1;
 	}
-	c->vname.replace(c->indent, 1, "$");
-	c->fname.replace(c->indent, 1, "$");
-	c->rawstr.replace(c->indent, 1, "$");
+	c->vname.replace(0, 1, "$");
+	c->fname.replace(0, 1, "$");
+	c->rawstr.replace(0, 1, "$");
 	code->src = idx;
 	code->dst = dst;
 	reg_type[dst] = Object;
@@ -881,6 +882,7 @@ void GPerlCompiler::setOpAssign(GPerlVirtualMachineCode *_code, GPerlCell *c)
 void GPerlCompiler::setLET(GPerlVirtualMachineCode *code, GPerlCell *c)
 {
 	int idx = 0;
+	c->indent = c->left->indent;
 	setInstByVMap(code, c, LET, gLET, &idx);
 	code->dst = idx;
 	code->src = dst-1;
@@ -896,8 +898,12 @@ void GPerlCompiler::setSETv(GPerlVirtualMachineCode *code, GPerlCell *c)
 		global_vmap[c->vname] = c->vidx;
 		break;
 	case LocalVarDecl: case VarDecl:
-		if (c->vname.find("*") != string::npos) {
-			local_vmap[c->vname] = c->vidx;
+		if (c->indent > 0) {
+			string prefix = "";
+			for (int i = 0; i < c->indent; i++) {
+				prefix += string(NAME_RESOLUTION_PREFIX);
+			}
+			local_vmap[prefix + c->vname] = c->vidx;
 		} else {
 			global_vmap[c->vname] = c->vidx;
 		}
