@@ -25,7 +25,7 @@ GPerlString *new_GPerlInitString(char *s, size_t len)
 	return str;
 }
 
-GPerlObject *new_GPerlString(GPerlValue v)
+GPerlObject *new_GPerlString(GPerlValue v, GPerlValue *)
 {
 	char *s = getRawString(v);
 	size_t len = getLength(v);

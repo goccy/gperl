@@ -55,18 +55,23 @@ void Array_mark(GPerlObject* o)
 	GPerlArray *a = (GPerlArray *)o;
 	a->h.mark_flag = 1;
 	size_t size = a->size;
+	//DBG_PL("-----------------------");
 	for (size_t i = 0; i < size; i++) {
 		GPerlValue v = a->list[i];
+		//DBG_P("Array_mark:");
 		switch (TYPE_CHECK(v)) {
 		case 2:
+			//DBG_PL("String_mark");
 			((GPerlString *)getStringObj(v))->h.mark_flag = 1;
 			break;
 		case 3: {
+			//DBG_PL("Object_mark");
 			GPerlObject *o = (GPerlObject *)getObject(v);
-			o->mark(o);
+			if (!o->h.mark_flag && o->mark) o->mark(o);
 			break;
 		}
 		default:
+			//DBG_PL("");
 			break;
 		}
 	}
@@ -76,6 +81,7 @@ void Array_free(GPerlObject *o)
 {
 	DBG_PL("Array_free");
 	GPerlArray *a = (GPerlArray *)o;
+	a->size = 0;
 	GPerlValue *list = a->list;
 	safe_free(list, sizeof(GPerlValue) * a->size);
 }
@@ -91,21 +97,17 @@ GPerlArray *new_GPerlInitArray(GPerlValue *list, size_t asize)
 	return a;
 }
 
-GPerlObject *new_GPerlArray(GPerlValue v)
+GPerlObject *new_GPerlArray(GPerlValue v, GPerlValue *args)
 {
-	//double s1 = gettimeofday_sec();
 	GPerlArray *a = (GPerlArray *)getObject(v);
 	GPerlArray *ret = (GPerlArray *)mm->gmalloc();
 	size_t size = sizeof(GPerlValue) * a->size;
 	ret->list = (GPerlValue *)safe_malloc(size);
-	memcpy(ret->list, a->list, size);
+	memcpy(ret->list, args, size);
 	ret->size = a->size;
 	ret->write = Array_write;
 	ret->mark = Array_mark;
 	ret->free = Array_free;
 	ret->h.type = a->h.type;
-	//double s2 = gettimeofday_sec();
-	//double time = s2 - s1;
-	//malloc_time += time;
 	return (GPerlObject *)ret;
 }

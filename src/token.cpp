@@ -129,7 +129,7 @@ int GPerlTokenizer::scanSymbol(GPerlTokens *tks, char symbol, char next_ch)
 			memset(token, 0, max_token_size);
 		}
 	}
-	char tmp[2] = {0};
+	char tmp[3] = {0};
 	if (mdOperationFlag &&
 		(symbol == ',' || symbol == '+' ||
 		 symbol == '-' || symbol == ';')) {
@@ -204,6 +204,7 @@ void GPerlTokenizer::scanSymbol(GPerlTokens *tks, char symbol)
 	}
 	tmp[0] = symbol;
 	tks->push_back(new GPerlToken(string(tmp)));
+	memset(token, 0, max_token_size);
 	token_idx = 0;
 	escapeFlag = false;
 }

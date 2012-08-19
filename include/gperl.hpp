@@ -154,7 +154,7 @@ public:
 		char *sdata;
 		void *pdata; /* other Object */
 	} data;
-	int vidx; /* variable idx */
+	int vidx; /* local variable idx */
 	int indent;
 	GPerlCell(GPerlT type_);
 	GPerlCell(GPerlT type_, std::string name);
@@ -196,7 +196,8 @@ class GPerlParser {
 public:
 	int iterate_count;
 	int func_iterate_count;
-	int vidx; /* variable idx */
+	int vidx; /* local variable idx */
+	int gidx; /* global variable idx */
 	int vcount; /* variable count in scope block */
 	int indent;
 	int argc;
@@ -258,7 +259,7 @@ public:
 
 #define MAX_REG_SIZE 32
 #define MAX_VARIABLE_NUM 128
-#define MAX_FUNC_NUM 128
+#define MAX_FUNC_NUM 4096
 
 struct _GPerlObject;
 struct _GPerlMemPool;
@@ -356,7 +357,7 @@ typedef struct _GPerlVirtualMachineCode {
 		void *code;/* selective inlining code */
 		int jmp;   /* jmp register number */
 		int idx;   /* array[idx] */
-		GPerlObject *(*_new)(GPerlValue);
+		GPerlObject *(*_new)(GPerlValue v, GPerlValue *args);
 		void (*push)(GPerlValue *);
 		void (*write)(GPerlValue );
 	};
@@ -567,9 +568,9 @@ extern char *cwb;
 extern GPerlArgsArray *args;
 extern GPerlUndef *new_GPerlUndef(void);
 extern GPerlArray *new_GPerlInitArray(GPerlValue *list, size_t asize);
-extern GPerlObject *new_GPerlArray(GPerlValue v);
+extern GPerlObject *new_GPerlArray(GPerlValue v, GPerlValue *args);
 extern GPerlString *new_GPerlInitString(char *s, size_t len);
-extern GPerlObject *new_GPerlString(GPerlValue v);
+extern GPerlObject *new_GPerlString(GPerlValue v, GPerlValue *args);
 extern void Undef_write(GPerlValue );
 extern void Array_push(GPerlValue *);
 extern void Array_write(GPerlValue );

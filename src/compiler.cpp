@@ -660,11 +660,20 @@ void GPerlCompiler::setMOV(GPerlVirtualMachineCode *code, GPerlCell *c)
 		init_value_idx++;
 		break;
 	case List: case ArrayRef: {
+		size_t argsize = c->argsize;
+		int dststack[argsize];
+		for (size_t i = 0; i < argsize; i++) {
+			compile_(c->vargs[i]);
+			dststack[i] = dst;
+		}
+		for (size_t i = 0; i < argsize; i++) {
+			addPushCode(i, dststack[i]);
+		}
 		code->op = NEW;
 		code->_new = new_GPerlArray;
 		size_t size = sizeof(GPerlValue) * (c->argsize + 1);
 		GPerlValue *list = (GPerlValue *)safe_malloc(size);
-		memset(list, 0, size);
+		/*
 		for (int i = 0; i < c->argsize; i++) {
 			GPerlCell *v = c->vargs[i];
 			switch (v->type) {
@@ -684,6 +693,7 @@ void GPerlCompiler::setMOV(GPerlVirtualMachineCode *code, GPerlCell *c)
 				break;
 			}
 		}
+		*/
 		OBJECT_init(code->v, new_GPerlInitArray(list, c->argsize));
 		if (type == ArrayRef) {
 			GPerlArray *a = (GPerlArray *)getObject(code->v);
@@ -832,7 +842,7 @@ void GPerlCompiler::setVMOV(GPerlVirtualMachineCode *code, GPerlCell *c)
 {
 	GPerlCell *parent = c->parent;
 	if (parent && parent->left == c &&
-		(parent->type == Assign || parent->type == Inc ||
+		(parent->type == Assign || parent->type == Inc || parent->type == Dec ||
 		 parent->type == ArrayAt)) {
 		code->op = NOP;
 		//code_num--;
@@ -1040,6 +1050,7 @@ void GPerlCompiler::setBFUNC(GPerlVirtualMachineCode *code, GPerlCell *c)
 		DBG_PL("Ref");
 		code->op = REF;
 	}
+	args_count = 0;
 }
 
 void GPerlCompiler::setFUNC(GPerlVirtualMachineCode *code, GPerlCell *c)

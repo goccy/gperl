@@ -103,6 +103,7 @@ GPerlMemoryManager::GPerlMemoryManager(void)
 void GPerlMemoryManager::expandMemPool(void)
 {
 	DBG_PL("Expand Heap");
+	fprintf(stderr, "Expand Heap\n");
 	GPerlMemPool* new_pool = (GPerlMemPool*)safe_malloc(sizeof(GPerlMemPool));
 	new_pool->body = (GPerlObject *)safe_malloc(MEMORY_POOL_SIZE);
 	new_pool->size = MEMORY_POOL_SIZE;
@@ -156,7 +157,8 @@ void GPerlMemoryManager::mark(GPerlValue v) {
 	}
 	case 3: {
 		GPerlObject *o = (GPerlObject *)getObject(v);
-		o->mark(o);
+		DBG_PL("o->h.mark_flag = [%d]", o->h.mark_flag);
+		if (!o->h.mark_flag) o->mark(o);
 		break;
 	}
 	default:
@@ -203,8 +205,10 @@ void GPerlMemoryManager::traceRoot(void)
 	GPerlEnv *callstack_top = root.callstack_top;
 
 	for (;callstack_trace_ptr != callstack_top; callstack_trace_ptr++) {
-		int reg_top_idx = callstack_trace_ptr->pc->cur_reg_top;
+		DBG_PL("callstack => next");
+		int reg_top_idx = callstack_trace_ptr->cur_pc->cur_reg_top;
 		for (int i = 0; i < reg_top_idx; i++) {
+			DBG_PL("mark register[%d]", i);
 			mark(callstack_trace_ptr->reg[i]);
 		}
 	}
@@ -212,14 +216,17 @@ void GPerlMemoryManager::traceRoot(void)
 	GPerlValue *stack_top = callstack_top->ebp + root.stack_top_idx;
 	GPerlValue *stack_trace_ptr = stack_bottom;
 	for (; stack_trace_ptr != stack_top; stack_trace_ptr++) {
+		DBG_PL("mark stack");
 		mark(*stack_trace_ptr);
 	}
 	GPerlValue *global_vmemory = root.global_vmemory;
 	for (int i = 0; global_vmemory[i].ovalue != NULL; i++) {
+		DBG_PL("mark global_vmemory");
 		mark(global_vmemory[i]);
 	}
 	GPerlValue *linit_values = init_values;
 	for (int i = 0; i < init_value_idx; i++) {
+		DBG_PL("mark init_values");
 		mark(linit_values[i]);
 	}
 }

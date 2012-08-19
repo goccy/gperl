@@ -63,13 +63,15 @@ void GPerlCell::setVariableIdx(int idx)
 	vidx = idx;
 }
 
-GPerlParser::GPerlParser(vector<GPerlToken *> *tokens, int _argc, char **_argv) : argc(_argc), argv(_argv)
+GPerlParser::GPerlParser(vector<GPerlToken *> *tokens, int _argc, char **_argv)
+	: argc(_argc), argv(_argv)
 {
 	it = tokens->begin();
 	end = tokens->end();
 	iterate_count = 0;
 	func_iterate_count = 0;
 	vidx = 0;
+	gidx = 0;
 	vcount = 0;
 	indent = 0;
 }
@@ -123,8 +125,11 @@ void GPerlParser::parseValue(GPerlToken *t, GPerlNodes *blocks, GPerlScope *scop
 		block->type != MulEqual && block->type != DivEqual) {
 		DBG_PL("%s", block->info.name);
 		if (block->type == Call || block->type == BuiltinFunc) {
-			DBG_PL("[%s]:NEW BLOCK->BLOCKS", cstr(t->data));
-			if (scope && scope->root->argsize > 0) {
+			DBG_PL("[%s]:NEW BLOCK->BLOCKS[%d]", cstr(t->data), __LINE__);
+			if (scope && scope->root->type == Call || scope->root->type == BuiltinFunc) {
+				block->vargs[0] = scope->root;
+				block->argsize = 1;
+			} else if (scope && scope->root->argsize > 0) {
 				for (int i = 0; i < scope->root->argsize; i++) {
 					block->vargs[i] = scope->root->vargs[i];
 				}
@@ -198,7 +203,7 @@ void GPerlParser::parseValue(GPerlToken *t, GPerlNodes *blocks, GPerlScope *scop
 			b->indent = indent;
 			blocks->pushNode(b);
 		} else {
-			DBG_PL("[%s]:NEW BLOCK->BLOCKS", cstr(t->data));
+			DBG_PL("[%s]:NEW BLOCK->BLOCKS[%d]", cstr(t->data), __LINE__);
 			GPerlCell *b = (scope) ? scope->root->vargs[0] : new GPerlCell(type, t->data);
 			b->indent = indent;
 			blocks->pushNode(b);
@@ -234,60 +239,44 @@ GPerlAST *GPerlParser::parse(void)
 			if (isVarDeclFlag) {
 				DBG_PL("[%s]:NEW BLOCK => BLOCKS", cstr(t->data));
 				DBG_PL("vidx = [%d]", vidx);
-				/*
-				string prefix = "";
-				for (int i = 0; i < indent; i++) {
-					prefix += string(NAME_RESOLUTION_PREFIX);
+				DBG_PL("indent = [%d]", indent);
+				if (indent > 0) {
+					GPerlCell *var = new GPerlCell(LocalVarDecl, t->data);
+					var->indent = indent;
+					var->setVariableIdx(vidx);
+					blocks.pushNode(var);
+					isVarDeclFlag = false;
+					vcount++;
+					vidx++;
+				} else {
+					DBG_PL("gidx = [%d]", gidx);
+					GPerlCell *gvar = new GPerlCell(GlobalVarDecl, t->data);
+					gvar->indent = indent;
+					gvar->setVariableIdx(gidx);
+					blocks.pushNode(gvar);
+					isVarDeclFlag = false;
+					gidx++;
 				}
-				*/
-				//DBG_PL("prefix = [%s]", cstr(prefix));
-				GPerlCell *var = new GPerlCell(LocalVarDecl, t->data);
-				var->indent = indent;
-				var->setVariableIdx(vidx);
-				blocks.pushNode(var);
-				isVarDeclFlag = false;
-				vcount++;
-				vidx++;
 			} else {
 				fprintf(stderr, "ERROR:syntax error!!\n");
 			}
 			break;
 		case GlobalVar: case GlobalArrayVar: {
 			DBG_PL("[%s]:NEW BLOCK => BLOCKS", cstr(t->data));
-			DBG_PL("vidx = [%d]", vidx);
-			/*
-			string prefix = "";
-			for (int i = 0; i < indent; i++) {
-				prefix += string(NAME_RESOLUTION_PREFIX);
-			}
-			*/
-			//DBG_PL("prefix = [%s]", cstr(prefix));
-			GPerlCell *gvar = new GPerlCell(GlobalVarDecl, t->data);
+			DBG_PL("gidx = [%d]", gidx);
 			DBG_PL("INDENT = [%d]", indent);
+			GPerlCell *gvar = new GPerlCell(GlobalVarDecl, t->data);
 			gvar->indent = indent;
-			gvar->setVariableIdx(vidx);
+			gvar->setVariableIdx(gidx);
 			blocks.pushNode(gvar);
 			isVarDeclFlag = false;
-			vcount++;
-			vidx++;
+			gidx++;
 			break;
 		}
-		case Var: {
-			/*
-			DBG_PL("vidx = [%d]", vidx);
-			string prefix = "";
-			for (int i = 0; i < indent; i++) {
-				prefix += string(NAME_RESOLUTION_PREFIX);
-			}
-			t->data = prefix + t->data;
-			*/
-			//fall through
-		}
-		case ArrayVar: case ArgumentArray:
-		case Int: case Double: case String: case Call: case BuiltinFunc: {
+		case Var: case ArrayVar: case ArgumentArray:
+		case Int: case Double: case String: case Call: case BuiltinFunc:
 			parseValue(t, &blocks, NULL);
 			break;
-		}
 		case Shift:
 			if (blocks.block_num > 0 && blocks.lastNode()->type == Assign) {
 				GPerlCell *assign = blocks.lastNode();
@@ -303,7 +292,7 @@ GPerlAST *GPerlParser::parse(void)
 			}
 			break;
 		case Add: case Sub: case Mul: case Div: case Greater: case Less: case StringAdd:
-		case GreaterEqual: case LessEqual: case EqualEqual: case NotEqual: case Inc:
+		case GreaterEqual: case LessEqual: case EqualEqual: case NotEqual: case Inc: case Dec:
 		case LeftShift: case RightShift: {
 			DBG_PL("[%s]:LAST BLOCK->PARENT", cstr(t->data));
 			GPerlCell *block = blocks.lastNode();
@@ -566,7 +555,11 @@ GPerlAST *GPerlParser::parse(void)
 				idx->parent = b;
 				b->left = block;
 				b->right = idx;
-				blocks.swapLastNode(b);
+				blocks.popNode();
+				//blocks.swapLastNode(b);
+				GPerlScope *scope = new GPerlScope();
+				scope->add(b);
+				parseValue(t, &blocks, scope);
 			} else {
 				parseValue(t, &blocks, scope);
 			}
