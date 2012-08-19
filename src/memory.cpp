@@ -171,6 +171,7 @@ void GPerlMemoryManager::mark(GPerlValue v) {
 
 void GPerlMemoryManager::gc(void)
 {
+	fprintf(stderr, "gc\n");
     //double s1 = gettimeofday_sec();
 	(this->*_gc)();
     //double s2 = gettimeofday_sec();

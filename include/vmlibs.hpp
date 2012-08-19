@@ -558,9 +558,9 @@ static inline int GPERL_REF(GPerlValue arg)
 #define GPERL_sSHIFT(src)
 #define GPERL_oSHIFT(src)
 #define GPERL_PUSH(dst, src) (callstack+1)->argstack[src] = reg[dst];
-#define GPERL_NEW() do {										\
-		root.callstack_top = callstack;							\
-		root.stack_top_idx = pc->cur_stack_top;					\
+#define GPERL_NEW() do {												\
+		root.callstack_top = callstack;									\
+		root.stack_top_idx = pc->cur_stack_top;							\
 		callstack->cur_pc = pc;											\
 		OBJECT_init(reg[pc->dst], pc->_new(pc->v, (callstack+1)->argstack)); \
 	} while (0)

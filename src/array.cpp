@@ -101,7 +101,7 @@ GPerlObject *new_GPerlArray(GPerlValue v, GPerlValue *args)
 {
 	GPerlArray *a = (GPerlArray *)getObject(v);
 	GPerlArray *ret = (GPerlArray *)mm->gmalloc();
-	size_t size = sizeof(GPerlValue) * a->size;
+	size_t size = sizeof(GPerlValue) * (a->size + 1);
 	ret->list = (GPerlValue *)safe_malloc(size);
 	memcpy(ret->list, args, size);
 	ret->size = a->size;

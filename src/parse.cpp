@@ -361,6 +361,7 @@ GPerlAST *GPerlParser::parse(void)
 			break;
 		}
 		case Function: {
+			vidx = 0;
 			blocks.pushNode(new GPerlCell(Function, t->data));
 			funcFlag = true;
 			break;
@@ -483,12 +484,13 @@ GPerlAST *GPerlParser::parse(void)
 		}
 		case RightBrace: {
 			DBG_PL("RIGHT BRACE:");
-			vidx -= vcount;
-			DBG_PL("vidx = [%d]\n", vidx);
-			indent--;
 			if (ast->size == 0 && blocks.block_num == 1) {
 				//for {Array/Hash}Dereference
 				ast->add(blocks.lastNode());
+			} else {
+				vidx -= vcount;
+				DBG_PL("vidx = [%d]\n", vidx);
+				indent--;
 			}
 			return ast;
 		}

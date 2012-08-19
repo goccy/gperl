@@ -3,14 +3,15 @@ sub bottomup_tree {
     my $value = $_[0];
     my $depth = $_[1];
     if (!$depth) {
+        print("value = ", $value, "\n");
         return $value;
     } else {
         my $value2 = $value * 2;
         $depth--;
         print("value2 = ", $value2, "\n");
         print("depth = ", $depth, "\n");
-        my $ret = [bottomup_tree($value2 - 1, $depth), bottomup_tree($value2, $depth), $value];
-        return $ret;
+        print("value = ", $value, "\n");
+        return [bottomup_tree($value - 1, $depth), bottomup_tree($value2, $depth), $value];
     }
 }
 
@@ -34,6 +35,7 @@ sub check_tree {
     print("value2 = ", $value2, "\n");
     return $value + $value2;
 }
+
 my $max_depth = 12;
 my $min_depth = 4;
 
@@ -43,7 +45,7 @@ if ($min_depth + 2 > $max_depth) {
 
 my $stretch_depth = $max_depth + 1;
 my $stretch_tree = bottomup_tree(0, $stretch_depth);
-print("stretch tree of depth $stretch_depth\t check: ", check_tree($stretch_tree), "\n");
+print("stretch tree of depth stretch_depth\t check: ", check_tree($stretch_tree), "\n");
 
 my $longlived_tree = bottomup_tree(0, $max_depth);
 
@@ -57,4 +59,4 @@ for (my $depth = $min_depth; $depth <= $max_depth; $depth += 2) {
     print(2 * $iterations, "\t trees of depth $depth\t check: ", $check, "\n");
 }
 
-print("long lived tree of depth $max_depth\t check: ", check_tree($longlived_tree), "\n");
+print("long lived tree of depth max_depth\t check: ", check_tree($longlived_tree), "\n");
