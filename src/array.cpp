@@ -53,25 +53,22 @@ void Array_write(GPerlValue o)
 void Array_mark(GPerlObject* o)
 {
 	GPerlArray *a = (GPerlArray *)o;
-	a->h.mark_flag = 1;
 	size_t size = a->size;
-	//DBG_PL("-----------------------");
+	a->h.mark_flag = 1;
+	//DBG_PL("MARKING");
 	for (size_t i = 0; i < size; i++) {
 		GPerlValue v = a->list[i];
-		//DBG_P("Array_mark:");
 		switch (TYPE_CHECK(v)) {
 		case 2:
-			//DBG_PL("String_mark");
+			//DBG_PL("MARKING");
 			((GPerlString *)getStringObj(v))->h.mark_flag = 1;
 			break;
 		case 3: {
-			//DBG_PL("Object_mark");
 			GPerlObject *o = (GPerlObject *)getObject(v);
-			if (!o->h.mark_flag && o->mark) o->mark(o);
+			if (!o->h.mark_flag) o->mark(o);
 			break;
 		}
 		default:
-			//DBG_PL("");
 			break;
 		}
 	}
@@ -79,7 +76,7 @@ void Array_mark(GPerlObject* o)
 
 void Array_free(GPerlObject *o)
 {
-	DBG_PL("Array_free");
+	//DBG_PL("Array_free");
 	GPerlArray *a = (GPerlArray *)o;
 	a->size = 0;
 	GPerlValue *list = a->list;

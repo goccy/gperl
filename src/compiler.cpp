@@ -936,6 +936,8 @@ void GPerlCompiler::setSETv(GPerlVirtualMachineCode *code, GPerlCell *c)
 		dst++;
 		GPerlUndef *undef = new_GPerlUndef();
 		OBJECT_init(mov->v, undef);
+		init_values[init_value_idx] = mov->v;
+		init_value_idx++;
 		addVMCode(mov);
 		dumpVMCode(mov);
 		GPerlVirtualMachineCode *let = new GPerlVirtualMachineCode();

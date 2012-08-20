@@ -3,7 +3,7 @@ using namespace std;
 
 static void String_free(GPerlObject *o)
 {
-	DBG_PL("String_free");
+	//DBG_PL("String_free");
 	GPerlString *s = (GPerlString *)o;
 	safe_free(s->s, s->len);
 }
@@ -11,6 +11,7 @@ static void String_free(GPerlObject *o)
 static void String_mark(GPerlObject *o)
 {
 	o->h.mark_flag = 1;
+	DBG_PL("MARKING");
 }
 
 GPerlString *new_GPerlInitString(char *s, size_t len)

@@ -3,6 +3,7 @@
 static void Undef_mark(GPerlObject *o)
 {
 	o->h.mark_flag = 1;
+	//DBG_PL("MARKING");
 }
 
 static void Undef_free(GPerlObject *){}
