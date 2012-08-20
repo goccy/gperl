@@ -134,15 +134,16 @@ void GPerlMemoryManager::expandMemPool(void)
 }
 
 GPerlObject* GPerlMemoryManager::gmalloc(void) {
-	GPerlObject* ret = NULL;
-	//DBG_PL("freeList = [%p]", freeList);
-	MemoryManager_popObject(ret, freeList);
-	if (freeList == NULL) {
+	GPerlObject *ret = freeList;
+	//MemoryManager_popObject(ret, freeList);
+	if (ret == NULL) {
 		gc();
 		if (freeList == NULL) {
 			expandMemPool();
 		}
 		MemoryManager_popObject(ret, freeList);
+	} else {
+		freeList = freeList->h.next;
 	}
 	//DBG_PL("malloc");
 	return ret;
@@ -203,15 +204,19 @@ void GPerlMemoryManager::traceRoot(void)
 	GPerlEnv *callstack_bottom = root.callstack_bottom;
 	GPerlEnv *callstack_trace_ptr = callstack_bottom;
 	GPerlEnv *callstack_top = root.callstack_top;
-	for (;callstack_trace_ptr != callstack_top; callstack_trace_ptr++) {
-		int reg_top_idx = callstack_trace_ptr->cur_pc->cur_reg_top;
-		for (int j = 0; j < reg_top_idx; j++) {
-			mark(callstack_trace_ptr->reg[j]);
+	for (;callstack_trace_ptr != callstack_top + 1; callstack_trace_ptr++) {
+		if (callstack_trace_ptr->cur_pc) {
+			int reg_top_idx = callstack_trace_ptr->cur_pc->cur_reg_top;
+			for (int j = 0; j < reg_top_idx; j++) {
+				mark(callstack_trace_ptr->reg[j]);
+			}
 		}
+		//if (callstack_trace_ptr->pc) {
 		int argc = callstack_trace_ptr->pc->argc;
 		for (int k = 0; k < argc; k++) {
 			mark(callstack_trace_ptr->argstack[k]);
 		}
+		//}
 	}
 	GPerlValue *stack_bottom = root.stack_bottom;
 	GPerlValue *stack_top = callstack_top->ebp + callstack_top->pc->cur_stack_top + root.stack_top_idx;

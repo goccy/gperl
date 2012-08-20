@@ -1,4 +1,3 @@
-my $called_count = 0;
 sub bottomup_tree {
     my $value = $_[0];
     my $depth = $_[1];
@@ -17,7 +16,6 @@ sub check_tree {
     my $left = $deref_arg[0];
     my $right = $deref_arg[1];
     my $value = $deref_arg[2];
-    $called_count++;
     my $value2;
     if (ref($left)) {
         $value2 = check_tree($left) - check_tree($right);
