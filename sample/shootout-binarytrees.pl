@@ -34,17 +34,18 @@ if ($min_depth + 2 > $max_depth) {
 
 my $stretch_depth = $max_depth + 1;
 my $stretch_tree = bottomup_tree(0, $stretch_depth);
-print("stretch tree of depth stretch_depth\t check: ", check_tree($stretch_tree), "\n");
+my $check = check_tree($stretch_tree);
+print("stretch tree of depth ", $stretch_depth, "\t check: ", $check, "\n");
 my $longlived_tree = bottomup_tree(0, $max_depth);
 
 for (my $depth = $min_depth; $depth <= $max_depth; $depth += 2) {
     my $iterations = 2 << ($max_depth - $depth + $min_depth - 1);
-    my $check = 0;
+    $check = 0;
     for (my $i = 1; $i < $iterations; $i++) {
         $check += check_tree(bottomup_tree(0, $depth));
         $check += check_tree(bottomup_tree(0, $depth));
     }
-    print(2 * $iterations, "\t trees of depth depth\t check: ", $check, "\n");
+    print(2 * $iterations, "\t trees of depth ", $depth, "\t check: ", $check, "\n");
 }
 
-print("long lived tree of depth max_depth\t check: ", check_tree($longlived_tree), "\n");
+print("long lived tree of depth ", $max_depth, "\t check: ", check_tree($longlived_tree), "\n");

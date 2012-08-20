@@ -54,6 +54,17 @@ void GPerlTokenizer::scanNewLineKeyword(void)
 	escapeFlag = false;
 }
 
+void GPerlTokenizer::scanTabKeyword(void)
+{
+	if (escapeFlag) {
+		token[token_idx] = '\t';
+	} else {
+		token[token_idx] = 't';
+	}
+	token_idx++;
+	escapeFlag = false;
+}
+
 void GPerlTokenizer::scanMDOperator(GPerlTokens *tks, char op)
 {
 	char tmp[2] = {0};
@@ -229,6 +240,9 @@ GPerlTokens *GPerlTokenizer::tokenize(char *script)
 			break;
 		case 'n':
 			scanNewLineKeyword();
+			break;
+		case 't':
+			scanTabKeyword();
 			break;
 		case '*': case '/' :
 			scanMDOperator(tokens, script[i]);

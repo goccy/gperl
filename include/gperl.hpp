@@ -108,6 +108,7 @@ public:
 	void scanDoubleQuote(GPerlTokens *tks);
 	void scanEscapeChar(GPerlTokens *tks, char ch);
 	void scanNewLineKeyword(void);
+	void scanTabKeyword(void);
 	void scanMDOperator(GPerlTokens *tks, char op);
 	bool scanNegativeNumber(char num);
 	int scanSymbol(GPerlTokens *tks, char symbol, char next_ch);
@@ -551,7 +552,7 @@ typedef struct _GPerlTraceRoot {
 #define PTR_SIZE sizeof(void*)
 #define OBJECT_SIZE (PTR_SIZE * 8)
 #define PAGE_SIZE 4096
-#define MEMORY_POOL_SIZE OBJECT_SIZE * 4096 * 2
+#define MEMORY_POOL_SIZE OBJECT_SIZE * 4096 * 8
 #define NAME_RESOLUTION_PREFIX "*"
 #define MAX_GLOBAL_MEMORY_SIZE 128
 #define MAX_MACHINE_STACK_SIZE 8 * KB
