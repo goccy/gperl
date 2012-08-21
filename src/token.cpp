@@ -9,7 +9,8 @@ GPerlToken::GPerlToken(string data_, int idx_) : data(data_), idx(idx_), indent(
 
 GPerlTokenizer::GPerlTokenizer(void)
   : isStringStarted(false), escapeFlag(false),
-	mdOperationFlag(false), token_idx(0), max_token_size(0)
+	mdOperationFlag(false), commentFlag(false),
+	token_idx(0), max_token_size(0)
 {
 }
 
@@ -220,6 +221,8 @@ void GPerlTokenizer::scanSymbol(GPerlTokens *tks, char symbol)
 	escapeFlag = false;
 }
 
+#define isSKIP() commentFlag
+
 GPerlTokens *GPerlTokenizer::tokenize(char *script)
 {
 	size_t i = 0;
@@ -230,33 +233,66 @@ GPerlTokens *GPerlTokenizer::tokenize(char *script)
 	while (script[i] != EOL) {
 		switch (script[i]) {
 		case '\"':
+			if (isSKIP()) break;
 			scanDoubleQuote(tokens);
 			break;
+		case '#':
+			if (isSKIP()) break;
+			if (isStringStarted) {
+				token[token_idx] = script[i];
+				token_idx++;
+				break;
+			}
+			while (script[i] != '\n' && i < script_size) {i++;}
+			break;
 		case ' ': case '\t':
+			if (isSKIP()) break;
 			scanEscapeChar(tokens, script[i]);
 			break;
 		case '\\':
+			if (isSKIP()) break;
 			escapeFlag = true;
 			break;
 		case 'n':
+			if (isSKIP()) break;
 			scanNewLineKeyword();
 			break;
 		case 't':
+			if (isSKIP()) break;
 			scanTabKeyword();
 			break;
 		case '*': case '/' :
+			if (isSKIP()) break;
 			scanMDOperator(tokens, script[i]);
 			break;
 		case '-':
+			if (isSKIP()) break;
 			if (i + 1 < script_size &&
 				scanNegativeNumber(script[i + 1])) {
 				break;
 			}
 			//fall through
-		case ',': case ':': case ';': case '=': case '+':
+		case '=':
+			if (0 < i && i + 1 < script_size &&
+				script[i - 1] == '\n' && isalnum(script[i + 1])) {
+				//multi-line comment flag
+				if (i + 3 < script_size &&
+					script[i + 1] == 'c' && script[i + 2] == 'u' && script[i + 3] == 't')  {
+					DBG_PL("commentFlag => OFF");
+					i += 3;
+					commentFlag = false;
+					break;
+				} else {
+					DBG_PL("commentFlag => ON");
+					commentFlag = true;
+				}
+			}
+			//fall through
+		case ',': case ':': case ';': case '+':
 		case '<': case '>': case '&': case '.': case '!':
 		case '(': case ')': case '{': case '}':
 		case '[': case ']': {
+			if (isSKIP()) break;
 			if (i + 1 < script_size) {
 				i += scanSymbol(tokens, script[i], script[i + 1]);
 			} else {
@@ -265,11 +301,13 @@ GPerlTokens *GPerlTokenizer::tokenize(char *script)
 			break;
 		}
 		case '\n':
+			if (isSKIP()) break;
 			escapeFlag = false;
 			break;
 		case '0': case '1': case '2': case '3': case '4': case '5':
 		case '6': case '7': case '8': case '9':
 		default:
+			if (isSKIP()) break;
 			token[token_idx] = script[i];
 			token_idx++;
 			escapeFlag = false;

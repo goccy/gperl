@@ -100,6 +100,7 @@ public:
 	bool isStringStarted;
 	bool escapeFlag;
 	bool mdOperationFlag;/*multi or div operation flag*/
+	bool commentFlag;
 	char *token;
 	int token_idx;
 	int max_token_size;
@@ -552,7 +553,7 @@ typedef struct _GPerlTraceRoot {
 #define PTR_SIZE sizeof(void*)
 #define OBJECT_SIZE (PTR_SIZE * 8)
 #define PAGE_SIZE 4096
-#define MEMORY_POOL_SIZE OBJECT_SIZE * 4096 * 8
+#define MEMORY_POOL_SIZE OBJECT_SIZE * 4096 * 16
 #define NAME_RESOLUTION_PREFIX "*"
 #define MAX_GLOBAL_MEMORY_SIZE 128
 #define MAX_MACHINE_STACK_SIZE 8 * KB
