@@ -781,6 +781,16 @@ GPerlValue GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 		pc++;
 		BREAK();
 	});
+	CASE(MLET, {
+		GPERL_MLET(pc->dst, pc->src, pc->idx);
+		pc++;
+		BREAK();
+	});
+	CASE(gMLET, {
+		GPERL_gMLET(pc->dst, pc->src, pc->idx);
+		pc++;
+		BREAK();
+	});
 	CASE(SETv, {
 		GPERL_SETv(pc->name, pc->dst);
 		pc++;

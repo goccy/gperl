@@ -418,6 +418,7 @@ public:
 	void setOpAssign(GPerlVirtualMachineCode *code, GPerlCell *c);
 	void setLET(GPerlVirtualMachineCode *code, GPerlCell *c);
 	void setSETv(GPerlVirtualMachineCode *code, GPerlCell *c);
+	void setMultiSETv(GPerlVirtualMachineCode *code, GPerlCell *c);
 	void setCALL(GPerlVirtualMachineCode *code, GPerlCell *c);
 	void setBFUNC(GPerlVirtualMachineCode *code, GPerlCell *c);
 	void setFUNC(GPerlVirtualMachineCode *code, GPerlCell *c);

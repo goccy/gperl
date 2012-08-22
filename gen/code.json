@@ -238,6 +238,20 @@
      "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}]
  },
  {
+	 "code" : "MLET",
+	 "type" : 0,
+	 "const" : 0,
+	 "fast_type" : 2,
+     "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}, {"idx" : "pc->idx"}]
+ },
+ {
+	 "code" : "gMLET",
+	 "type" : 0,
+	 "const" : 0,
+	 "fast_type" : 0,
+     "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}, {"idx" : "pc->idx"}]
+ },
+ {
 	 "code" : "SETv",
 	 "type" : 0,
 	 "const" : 0,
