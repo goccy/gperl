@@ -297,7 +297,7 @@
 	}
 
 #define GPERL_FLUSH() {                                 \
-		fprintf(stderr, "%s", cwb);						\
+		fprintf(stderr, "%s", cwb->buf);				\
 		clear_cwb();                                    \
 	}
 static inline int GPERL_REF(GPerlValue arg)

@@ -13,9 +13,15 @@ GPerl::GPerl(int argc, char **argv)
 	}
 }
 
+GPerl::~GPerl()
+{
+	free_cwb(cwb);
+}
+
 void GPerl::init(void)
 {
-	cwb = (char *)safe_malloc(MAX_CWB_SIZE);
+	//cwb = (char *)safe_malloc(MAX_CWB_SIZE);
+	cwb = init_cwb(MAX_CWB_SIZE);
 	mm = new GPerlMemoryManager();
 }
 

@@ -77,6 +77,7 @@ public:
 	int brace_count;
 
 	GPerl(int argc, char **argv);
+	~GPerl();
 	void init(void);
 	int checkBrace(char *line);
 	void startInteractiveMode(void);
@@ -469,6 +470,12 @@ typedef struct _GPerlEnv {
 	GPerlVirtualMachineCode *cur_pc;
 } GPerlEnv;
 
+typedef struct _GPerlCWB {
+	char* buf;
+	size_t idx;
+	size_t bufsize;
+} GPerlCWB;
+
 #include <sys/mman.h>
 #include <unistd.h>
 typedef struct _InstBlock {
@@ -553,7 +560,8 @@ typedef struct _GPerlTraceRoot {
 #define PTR_SIZE sizeof(void*)
 #define OBJECT_SIZE (PTR_SIZE * 8)
 #define PAGE_SIZE 4096
-#define MEMORY_POOL_SIZE OBJECT_SIZE * 4096 * 16
+#define MEMORY_POOL_SIZE OBJECT_SIZE * 4096
+//#define MEMORY_POOL_SIZE OBJECT_SIZE * 4096 * 16
 #define NAME_RESOLUTION_PREFIX "*"
 #define MAX_GLOBAL_MEMORY_SIZE 128
 #define MAX_MACHINE_STACK_SIZE 8 * KB
@@ -566,7 +574,8 @@ extern GPerlValue init_values[MAX_INIT_VALUES_SIZE];
 extern GPerlMemoryManager *mm;
 extern char shared_buf[128];
 extern std::string outbuf;
-extern char *cwb;
+extern GPerlCWB *cwb;
+//extern char *cwb;
 extern GPerlArgsArray *args;
 extern GPerlUndef *new_GPerlUndef(void);
 extern GPerlArray *new_GPerlInitArray(GPerlValue *list, size_t asize);
@@ -578,6 +587,9 @@ extern void Array_push(GPerlValue *);
 extern void Array_write(GPerlValue );
 extern size_t Array_trace(GPerlObject* );
 extern size_t String_trace(GPerlObject* );
+extern GPerlCWB* init_cwb(size_t bufsize);
+extern void free_cwb(GPerlCWB* cwb);
+extern void expand_cwb();
 extern void write_cwb(char *buf);
 extern void clear_cwb(void);
 extern void *safe_malloc(size_t size);
