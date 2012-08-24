@@ -508,6 +508,34 @@ GPerlAST *GPerlParser::parse(void)
 				condIndentFlag = false;
 			}
 			parseValue(t, &blocks, scope);
+			if (isVarDeclFlag) {
+				DBG_PL("MultiVarDecl");
+				DBG_PL("vidx = [%d]", vidx);
+				DBG_PL("indent = [%d]", indent);
+				if (indent > 0) {
+					scope->root->type = MultiLocalVarDecl;
+					for (int i = 0; i < scope->root->argsize; i++) {
+						GPerlCell *var = scope->root->vargs[i];
+						var->type = LocalVarDecl;
+						var->indent = indent;
+						var->setVariableIdx(vidx);
+						vcount++;
+						vidx++;
+					}
+					isVarDeclFlag = false;
+				} else {
+					DBG_PL("gidx = [%d]", gidx);
+					scope->root->type = MultiGlobalVarDecl;
+					for (int i = 0; i < scope->root->argsize; i++) {
+						GPerlCell *gvar = scope->root->vargs[i];
+						gvar->type = GlobalVarDecl;
+						gvar->indent = indent;
+						gvar->setVariableIdx(gidx);
+						gidx++;
+					}
+					isVarDeclFlag = false;
+				}
+			}
 			break;
 		}
 		case RightParenthesis: case RightBracket: {

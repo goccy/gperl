@@ -24,6 +24,19 @@
 #define GPERL_UNDEF()
 #define GPERL_LET(dst, src) stack[dst] = reg[src];
 #define GPERL_gLET(dst, src) global_vmemory[dst] = reg[src]
+#define GPERL_MLET(dst, src, idx) do {						\
+		GPerlArray *a = (GPerlArray *)getObject(reg[src]);	\
+		if (a->size > idx) {								\
+			stack[dst] = a->list[idx];						\
+		}													\
+	} while (0)
+#define GPERL_gMLET(dst, src, idx) do {						\
+		GPerlArray *a = (GPerlArray *)getObject(reg[src]);	\
+		if (a->size > idx) {								\
+			global_vmemory[dst] = a->list[idx];				\
+		}													\
+	} while (0)
+
 #define GPERL_MOV(dst, v) reg[dst] = v
 #define GPERL_vMOV(dst, src) reg[dst] = stack[src]
 #define GPERL_gMOV(dst, src) reg[dst] = global_vmemory[src];

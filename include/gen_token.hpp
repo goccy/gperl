@@ -51,6 +51,8 @@ typedef enum {
 	LabelRef,
 	LocalVarDecl,
 	GlobalVarDecl,
+	MultiLocalVarDecl,
+	MultiGlobalVarDecl,
 	Var,
 	ArrayVar,
 	Int,

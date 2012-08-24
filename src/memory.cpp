@@ -127,8 +127,6 @@ void GPerlMemoryManager::expandMemPool(void)
 		o->h.next = o + 1;
 		o = o + 1;
 	}
-	//freeList = guard_prev_ptr;
-	guard_prev_ptr = o;
 	o->h.next = NULL;
 	new_tail->h.next = freeList;
 	freeList = new_head;

@@ -275,6 +275,16 @@
 	 "parse_func" : ""
  },
  {
+	 "type" : "MultiLocalVarDecl",
+	 "data" : "",
+	 "parse_func" : ""
+ },
+ {
+	 "type" : "MultiGlobalVarDecl",
+	 "data" : "",
+	 "parse_func" : ""
+ },
+ {
 	 "type" : "Var",
 	 "data" : "",
 	 "parse_func" : ""

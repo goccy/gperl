@@ -575,6 +575,9 @@ GPerlVirtualMachineCode *GPerlCompiler::createVMCode(GPerlCell *c)
 	case GlobalVarDecl: case LocalVarDecl: case VarDecl:
 		setSETv(code, c);
 		break;
+	case MultiGlobalVarDecl: case MultiLocalVarDecl:
+		setMultiSETv(code, c);
+		break;
 	case LocalVar: case Var: case ArrayVar:
 		setVMOV(code, c);
 		break;
@@ -720,7 +723,7 @@ void GPerlCompiler::setArrayARGMOV(GPerlVirtualMachineCode *code, GPerlCell *)
 {
 	DBG_PL("ArrayARGMOV");
 	code->op = ArrayARGMOV;
-	code->dst = 0;
+	code->dst = dst;
 	reg_type[dst] = Array;
 	dst++;
 }
@@ -892,12 +895,28 @@ void GPerlCompiler::setOpAssign(GPerlVirtualMachineCode *_code, GPerlCell *c)
 void GPerlCompiler::setLET(GPerlVirtualMachineCode *code, GPerlCell *c)
 {
 	int idx = 0;
-	c->indent = c->left->indent;
-	setInstByVMap(code, c, LET, gLET, &idx);
-	code->dst = idx;
-	code->src = dst-1;
-	variable_types[idx] = reg_type[0];
-	declared_vname = NULL;
+	if (c->left->type == MultiLocalVarDecl || c->left->type == MultiGlobalVarDecl) {
+		GPerlCell *multi_decl = c->left;
+		for (int i = 0; i < multi_decl->argsize; i++) {
+			GPerlCell *v = multi_decl->vargs[i];
+			GPerlVirtualMachineCode *code = new GPerlVirtualMachineCode();
+			setInstByVMap(code, v, MLET, gMLET, &idx);// reg[idx] = reg[pc->src]->list[i]
+			code->dst = idx;
+			code->src = dst-1;
+			code->idx = i;
+			addVMCode(code);
+			dumpVMCode(code);
+			//variable_types[idx] = reg_type[0];
+		}
+		code->op = NOP;
+	} else {
+		c->indent = c->left->indent;
+		setInstByVMap(code, c, LET, gLET, &idx);
+		code->dst = idx;
+		code->src = dst-1;
+		variable_types[idx] = reg_type[0];
+		declared_vname = NULL;
+	}
 }
 
 void GPerlCompiler::setSETv(GPerlVirtualMachineCode *code, GPerlCell *c)
@@ -951,6 +970,16 @@ void GPerlCompiler::setSETv(GPerlVirtualMachineCode *code, GPerlCell *c)
 		declared_vname = NULL;
 		addVMCode(let);
 		dumpVMCode(let);
+	}
+}
+
+void GPerlCompiler::setMultiSETv(GPerlVirtualMachineCode *code, GPerlCell *c)
+{
+	DBG_PL("MULTI SETv");
+	code->op = NOP;
+	for (int i = 0; i < c->argsize; i++) {
+		GPerlCell *v = c->vargs[i];
+		setSETv(new GPerlVirtualMachineCode(), v);
 	}
 }
 

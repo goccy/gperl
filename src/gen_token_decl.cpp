@@ -54,6 +54,8 @@ GPerlTokenInfo decl_tokens[] = {
 	{LabelRef, "LabelRef", ""},
 	{LocalVarDecl, "LocalVarDecl", ""},
 	{GlobalVarDecl, "GlobalVarDecl", ""},
+	{MultiLocalVarDecl, "MultiLocalVarDecl", ""},
+	{MultiGlobalVarDecl, "MultiGlobalVarDecl", ""},
 	{Var, "Var", ""},
 	{ArrayVar, "ArrayVar", ""},
 	{Int, "Int", ""},

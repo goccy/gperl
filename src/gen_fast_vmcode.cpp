@@ -3022,6 +3022,26 @@
 		pc++;
 		BREAK();
 	});
+	CASE(A_MLET, {
+		GPERL_MLET(0, pc->src, pc->idx);
+		pc++;
+		BREAK();
+	});
+	CASE(B_MLET, {
+		GPERL_MLET(1, pc->src, pc->idx);
+		pc++;
+		BREAK();
+	});
+	CASE(C_MLET, {
+		GPERL_MLET(2, pc->src, pc->idx);
+		pc++;
+		BREAK();
+	});
+	CASE(D_MLET, {
+		GPERL_MLET(3, pc->src, pc->idx);
+		pc++;
+		BREAK();
+	});
 	CASE(A_CALL, {
 		GPERL_CALL(0, pc->src, A_CALL);
 		pc++;
