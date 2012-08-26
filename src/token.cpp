@@ -1,4 +1,5 @@
 #include <gperl.hpp>
+#include <cassert>
 #include "gen_token_decl.cpp"
 using namespace std;
 
@@ -222,6 +223,56 @@ void GPerlTokenizer::scanSymbol(GPerlTokens *tks, char symbol)
 }
 
 #define isSKIP() commentFlag
+#define NEXT() (*(src + i++))
+
+static GPerlToken *parseNumber(GPerlTokenizer *tkn, char *src, size_t &i)
+{
+	char *begin = src + i;
+	int c = NEXT();
+	GPerlToken *token = NULL;
+	assert((c == '.' || ('0' <= c && c <= '9')) && "It do not seem as Number");
+	bool isFloat = false;
+	/*
+	 * DIGIT  = 0-9
+	 * DIGITS = DIGIT | DIGIT DIGITS
+	 * INT    = DIGIT | DIGIT1-9 DIGITS
+	 * FLOAT  = INT
+	 *        | INT FRAC
+	 *        | INT EXP
+	 *        | INT FRAC EXP
+	 * FRAC   = "." digits
+	 * EXP    = E digits
+	 * E      = 'e' | 'e+' | 'e-' | 'E' | 'E+' | 'E-'
+	 */
+	if (c == '0') {
+		c = NEXT();
+	}
+	else if ('1' <= c && c <= '9') {
+		for (; '0' <= c && c <= '9' && c != EOL; c = NEXT()) {}
+	}
+	if (c != '.' && c != 'e' && c != 'E') {
+		goto L_emit;
+	}
+	if (c == '.') {
+		isFloat = true;
+		for (c = NEXT(); '0' <= c && c <= '9' && c != EOL; c = NEXT()) {}
+	}
+	if (c == 'e' || c == 'E') {
+		isFloat = true;
+		c = NEXT();
+		if (c == '+' || c == '-') {
+			c = NEXT();
+		}
+		for (; '0' <= c && c <= '9' && c != EOL; c = NEXT()) {}
+	}
+	L_emit:;
+	i -= 1;
+	token = new GPerlToken(string(begin, src+i));
+	token->info = isFloat ?
+		tkn->getTokenInfo("Double", NULL) : tkn->getTokenInfo("Int", NULL);
+	return token;
+}
+#undef NEXT
 
 GPerlTokens *GPerlTokenizer::tokenize(char *script)
 {
@@ -306,6 +357,18 @@ GPerlTokens *GPerlTokenizer::tokenize(char *script)
 			break;
 		case '0': case '1': case '2': case '3': case '4': case '5':
 		case '6': case '7': case '8': case '9':
+			if (isSKIP()) break;
+			if (isStringStarted) {
+				token[token_idx] = script[i];
+				token_idx++;
+				break;
+			}
+			if (token_idx == 0) {
+				GPerlToken *tk = parseNumber(this, script, i);
+				tokens->push_back(tk);
+				escapeFlag = false;
+				continue;
+			}
 		default:
 			if (isSKIP()) break;
 			token[token_idx] = script[i];
@@ -424,7 +487,15 @@ void GPerlTokenizer::annotateTokens(vector<GPerlToken *> *tokens)
 			t->info = getTokenInfo("GlobalArrayVar", NULL);
 			vardecl_list.push_back(t->data);
 			cur_type = GlobalArrayVar;
+		} else if (t->info.type == Double) {
+			cur_type = Double;
+		} else if (t->info.type == Int) {
+			cur_type = Int;
 		} else if (t->data == "0" || atoi(cstr(t->data)) != 0) {
+			if (t->info.type == String) {
+				cur_type = 0; it++;
+				continue;
+			}
 			if (t->data.find(".") != string::npos) {
 				t->info = getTokenInfo("Double", NULL);
 				cur_type = Double;
