@@ -168,6 +168,8 @@ typedef enum {
 	ARRAY_ATC,
 	ARRAY_gAT,
 	ARRAY_gATC,
+	ARRAY_SET,
+	ARRAY_gSET,
 	ARRAY_DREF,
 	A_MOV,
 	B_MOV,

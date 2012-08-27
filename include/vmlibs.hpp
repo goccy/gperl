@@ -636,6 +636,53 @@ static inline int GPERL_REF(GPerlValue arg)
 		}																\
 	} while (0);
 
+#define GPERL_ARRAY_SET(dst, src, idx) do {								\
+		GPerlArray *a =(GPerlArray *)getObject(stack[dst]);				\
+		if (a->size > I(idx)) {											\
+			a->list[I(idx)] = reg[src];									\
+		} else {														\
+			size_t new_size = I(idx);									\
+			void *tmp;													\
+			if (!(tmp = realloc(a->list, sizeof(GPerlValue) * (new_size)))) { \
+				fprintf(stderr, "ERROR!!: cannot allocated memory\n");	\
+			} else {													\
+				a->list = (GPerlValue *)tmp;							\
+				for (int i = a->size; i < new_size - 1; i++) {			\
+					root.callstack_top = callstack;						\
+					root.stack_top_idx = pc->cur_stack_top;				\
+					callstack->cur_pc = pc;								\
+					GPerlUndef *undef = new_GPerlUndef();				\
+					OBJECT_init(a->list[i], undef);						\
+				}														\
+				a->list[new_size - 1] = reg[dst];						\
+				a->size = new_size;										\
+			}															\
+		}																\
+	} while (0)
+
+#define GPERL_ARRAY_gSET(dst, src, idx) do {							\
+		GPerlArray *a = (GPerlArray *)getObject(global_vmemory[dst]);	\
+		if (a->size > I(idx)) {											\
+			a->list[I(idx)] = reg[src];									\
+		} else {														\
+			size_t new_size = I(idx);									\
+			void *tmp;													\
+			if (!(tmp = realloc(a->list, sizeof(GPerlValue) * (new_size)))) { \
+				fprintf(stderr, "ERROR!!: cannot allocated memory\n");	\
+			} else {													\
+				a->list = (GPerlValue *)tmp;							\
+				for (int i = a->size; i < new_size - 1; i++) {			\
+					root.callstack_top = callstack;						\
+					root.stack_top_idx = pc->cur_stack_top;				\
+					callstack->cur_pc = pc;								\
+					GPerlUndef *undef = new_GPerlUndef();				\
+					OBJECT_init(a->list[i], undef);						\
+				}														\
+				a->list[new_size - 1] = reg[dst];						\
+				a->size = new_size;										\
+			}															\
+		}																\
+	} while (0)
 
 #define GPERL_ARRAY_DREF(dst, src) do {									\
 		root.callstack_top = callstack;									\

@@ -168,6 +168,8 @@ GPerlCodeInfo decl_codes[] = {
 	{ARRAY_ATC, "ARRAY_ATC"},
 	{ARRAY_gAT, "ARRAY_gAT"},
 	{ARRAY_gATC, "ARRAY_gATC"},
+	{ARRAY_SET, "ARRAY_SET"},
+	{ARRAY_gSET, "ARRAY_gSET"},
 	{ARRAY_DREF, "ARRAY_DREF"},
 	{A_MOV, "A_MOV"},
 	{B_MOV, "B_MOV"},

@@ -286,6 +286,9 @@ GPerlValue GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 	GPerlVirtualMachineCode *pc = codes, *code_ = NULL, *top = NULL;
 	GPerlValue *stack = createMachineStack();
 	GPerlEnv *callstack = createCallStack();
+	callstack->pc = pc;
+	callstack->cur_pc = pc;
+	(callstack+1)->cur_pc = pc;
 	GPerlValue *argstack = callstack->argstack;
 	GPerlValue *reg = callstack->reg;
 	callstack->ebp = stack;

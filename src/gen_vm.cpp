@@ -916,6 +916,16 @@ GPerlValue GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 		pc++;
 		BREAK();
 	});
+	CASE(ARRAY_SET, {
+		GPERL_ARRAY_SET(pc->dst, pc->src, pc->idx);
+		pc++;
+		BREAK();
+	});
+	CASE(ARRAY_gSET, {
+		GPERL_ARRAY_gSET(pc->dst, pc->src, pc->idx);
+		pc++;
+		BREAK();
+	});
 	CASE(ARRAY_DREF, {
 		GPERL_ARRAY_DREF(pc->dst, pc->src);
 		pc++;

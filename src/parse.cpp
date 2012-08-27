@@ -565,13 +565,14 @@ GPerlAST *GPerlParser::parse(void)
 		case LeftBracket: {
 			MOVE_NEXT_TOKEN();
 			GPerlScope *scope = parse();
-			if (scope && scope->size == 1 && scope->root->type == Int) {
+			GPerlCell *block = blocks.lastNode();
+			if ((block->type == Var || block->type == GlobalVar) &&
+				scope && scope->size == 1 && scope->root->argsize == 0) {
 				DBG_PL("ARRAY_AT:");
 				GPerlCell *idx = scope->root;
 				idx->indent = indent;
 				GPerlCell *b = new GPerlCell(ArrayAt, "[]");
 				b->indent = indent;
-				GPerlCell *block = blocks.lastNode();
 				if (block->right) {
 					GPerlCell *right = block->right;
 					right->parent = b;
@@ -591,6 +592,7 @@ GPerlAST *GPerlParser::parse(void)
 				scope->add(b);
 				parseValue(t, &blocks, scope);
 			} else {
+				//ArrayRef
 				parseValue(t, &blocks, scope);
 			}
 			break;

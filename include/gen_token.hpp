@@ -67,6 +67,7 @@ typedef enum {
 	GlobalArrayVar,
 	ArrayRef,
 	ArrayAt,
+	ArraySet,
 	Function,
 	Call,
 	Argument,

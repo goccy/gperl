@@ -425,6 +425,7 @@ public:
 	void setArrayARGMOV(GPerlVirtualMachineCode *code, GPerlCell *c);
 	void setARGMOV(GPerlVirtualMachineCode *code, GPerlCell *c);
 	void setArrayAt(GPerlVirtualMachineCode *code, GPerlCell *c);
+	void setArraySet(GPerlVirtualMachineCode *code, GPerlCell *c);
 	void setArrayDereference(GPerlVirtualMachineCode *code, GPerlCell *c);
 	GPerlVirtualMachineCode *createTHCODE(void);
 	GPerlVirtualMachineCode *createRET(void);

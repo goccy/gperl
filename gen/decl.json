@@ -145,6 +145,16 @@
 	 "parse_func" : ""
  },
  {
+	 "type" : "BuiltinFunc",
+	 "data" : "sqrt",
+	 "parse_func" : ""
+ },
+ {
+	 "type" : "BuiltinFunc",
+	 "data" : "map",
+	 "parse_func" : ""
+ },
+ {
 	 "type" : "IfStmt",
 	 "data" : "if",
 	 "parse_func" : ""
@@ -351,6 +361,11 @@
  },
  {
 	 "type" : "ArrayAt",
+	 "data" : "",
+	 "parse_func" : ""
+ },
+ {
+	 "type" : "ArraySet",
 	 "data" : "",
 	 "parse_func" : ""
  },

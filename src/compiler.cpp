@@ -776,8 +776,21 @@ void GPerlCompiler::setArrayDereference(GPerlVirtualMachineCode *code, GPerlCell
 	dst++;
 }
 
+void GPerlCompiler::setArraySet(GPerlVirtualMachineCode *code, GPerlCell *c_)
+{
+	DBG_PL("ArraySet");
+}
+
 void GPerlCompiler::setArrayAt(GPerlVirtualMachineCode *code, GPerlCell *c_)
 {
+	GPerlCell *parent = c_->parent;
+	if (parent && parent->left == c_ &&
+		(parent->type == Assign || parent->type == Inc || parent->type == Dec ||
+		 parent->type == ArrayAt)) {
+		code->op = NOP;
+		c_->type = ArraySet;
+		return;
+	}
 	GPerlCell *c = c_->left;
 	c->vname.replace(0, 1, "@");
 	c->fname.replace(0, 1, "@");
@@ -894,6 +907,7 @@ void GPerlCompiler::setOpAssign(GPerlVirtualMachineCode *_code, GPerlCell *c)
 
 void GPerlCompiler::setLET(GPerlVirtualMachineCode *code, GPerlCell *c)
 {
+	DBG_PL("setLET");
 	int idx = 0;
 	if (c->left->type == MultiLocalVarDecl || c->left->type == MultiGlobalVarDecl) {
 		GPerlCell *multi_decl = c->left;
@@ -909,6 +923,21 @@ void GPerlCompiler::setLET(GPerlVirtualMachineCode *code, GPerlCell *c)
 			//variable_types[idx] = reg_type[0];
 		}
 		code->op = NOP;
+	} else if (c->left->type == ArraySet) {
+		GPerlCell *a = c->left;
+		GPerlCell *var = a->left;
+		var->vname.replace(0, 1, "@");
+		var->fname.replace(0, 1, "@");
+		var->rawstr.replace(0, 1, "@");
+		setInstByVMap(code, var, ARRAY_SET, ARRAY_gSET, &idx);
+		code->dst = idx;
+		code->src = dst-1;
+		code->idx = dst-2;
+		variable_types[idx] = reg_type[0];
+		declared_vname = NULL;
+		var->vname.replace(0, 1, "$");
+		var->fname.replace(0, 1, "$");
+		var->rawstr.replace(0, 1, "$");
 	} else {
 		c->indent = c->left->indent;
 		setInstByVMap(code, c, LET, gLET, &idx);
