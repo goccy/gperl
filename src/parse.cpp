@@ -566,7 +566,8 @@ GPerlAST *GPerlParser::parse(void)
 			MOVE_NEXT_TOKEN();
 			GPerlScope *scope = parse();
 			GPerlCell *block = blocks.lastNode();
-			if ((block->type == Var || block->type == GlobalVar) &&
+			if ((block->type == Var || block->type == GlobalVar ||
+				 block->type == GlobalVarDecl) &&
 				scope && scope->size == 1 && scope->root->argsize == 0) {
 				DBG_PL("ARRAY_AT:");
 				GPerlCell *idx = scope->root;

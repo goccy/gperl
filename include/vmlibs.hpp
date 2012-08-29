@@ -647,7 +647,7 @@ static inline int GPERL_REF(GPerlValue arg)
 				fprintf(stderr, "ERROR!!: cannot allocated memory\n");	\
 			} else {													\
 				a->list = (GPerlValue *)tmp;							\
-				for (int i = a->size; i < new_size - 1; i++) {			\
+				for (size_t i = a->size; i < new_size - 1; i++) {		\
 					root.callstack_top = callstack;						\
 					root.stack_top_idx = pc->cur_stack_top;				\
 					callstack->cur_pc = pc;								\
@@ -671,7 +671,7 @@ static inline int GPERL_REF(GPerlValue arg)
 				fprintf(stderr, "ERROR!!: cannot allocated memory\n");	\
 			} else {													\
 				a->list = (GPerlValue *)tmp;							\
-				for (int i = a->size; i < new_size - 1; i++) {			\
+				for (size_t i = a->size; i < new_size - 1; i++) {		\
 					root.callstack_top = callstack;						\
 					root.stack_top_idx = pc->cur_stack_top;				\
 					callstack->cur_pc = pc;								\

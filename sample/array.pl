@@ -7,3 +7,5 @@ print($a, "\n");
 print($a[1], "\n");
 print($a[$a], "\n");
 print($a[2], "\n");
+$a[$a] = 1 + 2 + 3 + 4;
+print($a[$a], "\n");

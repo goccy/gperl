@@ -51,10 +51,13 @@ void GPerlCompiler::compile_(GPerlCell *path)
 		GPerlCell *branch = parent->right;
 		if (branch) {
 			if (branch == path) return;
-			if (isRIGHT_LEAF_NODE(branch)) {
-				genVMCode(branch);
-			} else if (isNotFALSE_STMT(parent)) {
-				compile_(branch);
+			if (parent->type != AddEqual && parent->type != SubEqual &&
+				parent->type != MulEqual && parent->type != DivEqual) {
+				if (isRIGHT_LEAF_NODE(branch)) {
+					genVMCode(branch);
+				} else if (isNotFALSE_STMT(parent)) {
+					compile_(branch);
+				}
 			}
 		}
 		genVMCode(parent);
@@ -473,36 +476,40 @@ GPerlVirtualMachineCode *GPerlCompiler::getPureCodes(vector<GPerlVirtualMachineC
 #define DOUBLE(O) d ## O
 #define DOUBLEC(O) d ## O ## C
 
-#define SET_OPCODE(T) {							\
-		dst--;									\
-		code->src = dst;						\
-		switch (reg_type[dst - 1]) {			\
-		case Int:								\
-			code->op = INT(T);					\
-			break;								\
-		case Double:							\
-			code->op = DOUBLE(T);				\
-			break;								\
-		case Object:							\
-			switch (reg_type[dst]) {			\
-			case Int:							\
-				code->op = INTC(T);				\
-				code->src = codes->back()->src;	\
-				code->v = codes->back()->v;		\
-				popVMCode();					\
-				code->code_num = code_num;		\
-				break;							\
-			default:							\
-				code->op = T;					\
-				break;							\
-			}									\
-			break;								\
-		default:								\
-			code->op = T;						\
-			break;								\
-		}										\
-		code->dst = dst - 1;					\
-		code->jmp = 1;							\
+#define SET_OPCODE(T) {								\
+		dst--;										\
+		code->src = dst;							\
+		switch (reg_type[dst - 1]) {				\
+		case Int:									\
+			code->op = INT(T);						\
+			break;									\
+		case Double:								\
+			code->op = DOUBLE(T);					\
+			break;									\
+		case Object:								\
+			switch (reg_type[dst]) {				\
+			case Int:								\
+				if (codes->back()->op == MOV) {		\
+					code->op = INTC(T);				\
+					code->src = codes->back()->src;	\
+					code->v = codes->back()->v;		\
+					popVMCode();					\
+				} else {							\
+					code->op = T;					\
+				}									\
+				code->code_num = code_num;			\
+				break;								\
+			default:								\
+				code->op = T;						\
+				break;								\
+			}										\
+			break;									\
+		default:									\
+			code->op = T;							\
+			break;									\
+		}											\
+		code->dst = dst - 1;						\
+		code->jmp = 1;								\
 	}
 
 GPerlVirtualMachineCode *GPerlCompiler::createVMCode(GPerlCell *c)
@@ -596,7 +603,7 @@ GPerlVirtualMachineCode *GPerlCompiler::createVMCode(GPerlCell *c)
 	case Assign:
 		setLET(code, c);
 		break;
-	case AddEqual:
+	case AddEqual: case SubEqual: case MulEqual: case DivEqual:
 		setOpAssign(code, c);
 		break;
 	case ArrayAt:
@@ -776,7 +783,7 @@ void GPerlCompiler::setArrayDereference(GPerlVirtualMachineCode *code, GPerlCell
 	dst++;
 }
 
-void GPerlCompiler::setArraySet(GPerlVirtualMachineCode *code, GPerlCell *c_)
+void GPerlCompiler::setArraySet(GPerlVirtualMachineCode *, GPerlCell *)
 {
 	DBG_PL("ArraySet");
 }
@@ -856,15 +863,16 @@ void GPerlCompiler::setDEC(GPerlVirtualMachineCode *code, GPerlCell *c_)
 
 void GPerlCompiler::setVMOV(GPerlVirtualMachineCode *code, GPerlCell *c)
 {
+	int idx = 0;
 	GPerlCell *parent = c->parent;
 	if (parent && parent->left == c &&
-		(parent->type == Assign || parent->type == Inc || parent->type == Dec ||
-		 parent->type == ArrayAt)) {
+        (parent->type == Assign || parent->type == Inc || parent->type == Dec ||
+		 parent->type == ArrayAt ||
+		 parent->type == AddEqual || parent->type == SubEqual ||
+		 parent->type == MulEqual || parent->type == DivEqual)) {
 		code->op = NOP;
-		//code_num--;
 		return;
 	}
-	int idx = 0;
 	setInstByVMap(code, c, vMOV, gMOV, &idx);
 	code->src = idx;
 	code->dst = dst;
@@ -879,10 +887,16 @@ void GPerlCompiler::setVMOV(GPerlVirtualMachineCode *code, GPerlCell *c)
 void GPerlCompiler::setOpAssign(GPerlVirtualMachineCode *_code, GPerlCell *c)
 {
 	DBG_PL("OpAssign");
+	GPerlT type = c->type;
+	c->type = Undefined;//Dummy Operation for escape first branch of VMOV
 	GPerlVirtualMachineCode *vmov = new GPerlVirtualMachineCode();
 	setVMOV(vmov, c->left);
 	addVMCode(vmov);
 	dumpVMCode(vmov);
+	DBG_PL("COMPIEL RIGHT CELL");
+	compile_(c->right);
+	DBG_PL("COMPILE OP");
+	c->type = type;
 	GPerlVirtualMachineCode *code = new GPerlVirtualMachineCode();
 	switch (c->type) {
 	case AddEqual:
