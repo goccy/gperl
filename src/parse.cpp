@@ -224,6 +224,7 @@ GPerlAST *GPerlParser::parse(void)
 	bool funcFlag = false;
 	bool whileStmtFlag = false;
 	bool forStmtFlag = false;
+	bool foreachStmtFlag = false;
 	bool condIndentFlag = false;
 	GPerlT prev_type = Undefined;
 
@@ -360,6 +361,12 @@ GPerlAST *GPerlParser::parse(void)
 			forStmtFlag = true;
 			break;
 		}
+		case ForeachStmt: {
+			root = new GPerlCell(ForeachStmt, t->data);
+			ast->add(root);
+			foreachStmtFlag = true;
+			break;
+		}
 		case Function: {
 			vidx = 0;
 			blocks.pushNode(new GPerlCell(Function, t->data));
@@ -456,6 +463,26 @@ GPerlAST *GPerlParser::parse(void)
 				GPerlScope *scope = parse();
 				root->true_stmt = scope;
 				forStmtFlag = false;
+			} else if (foreachStmtFlag) {
+				GPerlCell *cond = blocks.lastNode();
+				cond->indent++;
+				cond->setVariableIdx(vidx);
+				vcount++;
+				vidx++;
+				if (cond->left) {
+					cond->left->setVariableIdx(vidx);
+					cond->left->indent++;
+					vcount++;
+					vidx++;
+				}
+				blocks.popNode();
+				root->right = cond;
+				cond->parent = root;
+				MOVE_NEXT_TOKEN();
+				DBG_PL("-----------foreachstmt------------");
+				GPerlScope *scope = parse();
+				root->true_stmt = scope;
+				foreachStmtFlag = false;
 			} else {
 				//Block
 				MOVE_NEXT_TOKEN();
@@ -566,8 +593,8 @@ GPerlAST *GPerlParser::parse(void)
 			MOVE_NEXT_TOKEN();
 			GPerlScope *scope = parse();
 			GPerlCell *block = blocks.lastNode();
-			if ((block->type == Var || block->type == GlobalVar ||
-				 block->type == GlobalVarDecl) &&
+			if (/*(block->type == Var || block->type == GlobalVar ||
+				  block->type == GlobalVarDecl) &&*/
 				scope && scope->size == 1 && scope->root->argsize == 0) {
 				DBG_PL("ARRAY_AT:");
 				GPerlCell *idx = scope->root;

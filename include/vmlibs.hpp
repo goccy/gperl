@@ -693,3 +693,30 @@ static inline int GPERL_REF(GPerlValue arg)
 		a->h.type = Array;												\
 		OBJECT_init(reg[dst], a);										\
 	} while (0);
+
+#define GPERL_EACH_INIT(dst, src) do {									\
+		GPerlArray *a = (GPerlArray *)getObject(stack[src]);			\
+		OBJECT_init(stack[dst], new_GPerlInitArray(a->list, a->size));	\
+	} while (0);
+
+#define GPERL_EACH_gINIT(dst, src) do {									\
+		GPerlArray *a = (GPerlArray *)getObject(global_vmemory[src]);	\
+		OBJECT_init(stack[dst], new_GPerlInitArray(a->list, a->size));	\
+	} while (0);
+
+#define GPERL_EACH_LET(dst, src) do {									\
+		GPerlArray *a = (GPerlArray *)getObject(stack[src]);			\
+		if (a->size > 0) {												\
+			stack[dst] = a->list[0];									\
+			pc++;														\
+		} else {														\
+			pc += pc->jmp;												\
+		}																\
+	} while (0);
+
+#define GPERL_EACH_STEP(dst, src) do {							\
+		GPerlArray *a = (GPerlArray *)getObject(stack[src]);	\
+		a->list++;												\
+		a->size--;												\
+		pc += pc->jmp;											\
+	} while (0);

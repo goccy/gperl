@@ -6,4 +6,4 @@ sub fib {
 	}
 }
 
-print(fib(10), "\n");
+print(fib(36), "\n");

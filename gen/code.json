@@ -424,5 +424,33 @@
 	 "const" : 0,
 	 "fast_type" : 0,
      "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}]
+ },
+ {
+	 "code" : "EACH_INIT",
+	 "type" : 0,
+	 "const" : 0,
+	 "fast_type" : 0,
+     "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}]
+ },
+ {
+	 "code" : "EACH_gINIT",
+	 "type" : 0,
+	 "const" : 0,
+	 "fast_type" : 0,
+     "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}]
+ },
+ {
+	 "code" : "EACH_LET",
+	 "type" : 0,
+	 "const" : 0,
+	 "fast_type" : 0,
+     "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}]
+ },
+ {
+	 "code" : "EACH_STEP",
+	 "type" : 0,
+	 "const" : 0,
+	 "fast_type" : 0,
+     "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}]
  }
 ]

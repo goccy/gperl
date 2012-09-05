@@ -75,6 +75,8 @@ void GPerlCompiler::genVMCode(GPerlCell *path) {
 		genWhileStmtCode(path);
 	} else if (path->type == ForStmt) {
 		genForStmtCode(path);
+	} else if (path->type == ForeachStmt) {
+		genForeachStmtCode(path);
 	} else if (path->type == Function) {
 		genFunctionCode(path);
 		return;
@@ -262,6 +264,89 @@ void GPerlCompiler::genForStmtCode(GPerlCell *path)
 	addVMCode(jmp);
 	dumpVMCode(jmp);
 	jmp->jmp = loop_start - cur_code_num;
+}
+
+void GPerlCompiler::genForeachStmtCode(GPerlCell *path)
+{
+	dst = 0;//reset dst number
+	DBG_PL("-------------genForeachStmtCode------------------");
+	int vidx = 0;
+	GPerlCell *array = NULL;
+	if (path->right && path->right->left) {
+		int idx;
+		//foreach my $var (@array)
+		//GPERL_EACH_INIT
+		GPerlCell *var = path->right;
+		string prefix = "";
+		for (int i = 0; i < var->indent; i++) {
+			prefix += string(NAME_RESOLUTION_PREFIX);
+		}
+		local_vmap[prefix + var->vname] = var->vidx;//TODO
+		GPerlVirtualMachineCode *code = new GPerlVirtualMachineCode();
+		setInstByVMap(code, var, LET, gLET, &idx);
+		vidx = idx;
+		code->dst = idx;
+		code->src = dst-1;
+		variable_types[idx] = reg_type[0];
+		declared_vname = NULL;
+		addVMCode(code);
+		dumpVMCode(code);
+
+		array = path->right->left;
+		code = new GPerlVirtualMachineCode();
+		setInstByVMap(code, array, LET, gLET, &idx);
+		if (code->op == gLET) {
+			code->op = EACH_gINIT;
+		} else {
+			code->op = EACH_INIT;
+		}
+		code->dst  = array->vidx;//TODO
+		code->src = idx;
+		variable_types[idx] = reg_type[0];
+		declared_vname = NULL;
+		addVMCode(code);
+		dumpVMCode(code);
+	} else if (path->right) {
+		//foreach (@array)
+		//GPERL_EACH_INIT
+		array = path->right;
+		GPerlVirtualMachineCode *code = createVMCode(array);
+		code->op = EACH_INIT;
+		addVMCode(code);
+		dumpVMCode(code);
+	} else {
+		fprintf(stderr, "SYNTAX ERROR : foreach stmt\n");
+	}
+	//GPERL_EACH_LET
+	GPerlVirtualMachineCode *each_let = new GPerlVirtualMachineCode();
+	each_let->op = EACH_LET;
+	each_let->dst = vidx;
+	each_let->src = array->vidx;
+	addVMCode(each_let);
+	dumpVMCode(each_let);
+	int loop_start = code_num;
+	dst = 0;
+	GPerlCell *true_stmt = path->true_stmt->root;
+	GPerlVirtualMachineCode *jmp = codes->at(code_num - 1);
+	int cond_code_num = code_num;
+	DBG_PL("-------------TRUE STMT--------------");
+	for (; true_stmt; true_stmt = true_stmt->next) {
+		GPerlCell *path = true_stmt;
+		compile_(path);
+		dst = 0;//reset dst number
+	}
+	//GPERL_EACH_STEP
+	GPerlVirtualMachineCode *each_step = new GPerlVirtualMachineCode();
+	each_step->op = EACH_STEP;
+	each_step->src = array->vidx;
+	addVMCode(each_step);
+	dumpVMCode(each_step);
+	jmp->jmp = code_num - cond_code_num + 2;// + 1/*OPNOP + OPJMP + 1*/;
+	int cur_code_num = code_num;
+	jmp = createJMP(1);
+	addVMCode(jmp);
+	dumpVMCode(jmp);
+	each_step->jmp = loop_start - cur_code_num;
 }
 
 void GPerlCompiler::addVMCode(GPerlVirtualMachineCode *code)
@@ -576,7 +661,7 @@ GPerlVirtualMachineCode *GPerlCompiler::createVMCode(GPerlCell *c)
 	case ArrayDereference:
 		setArrayDereference(code, c);
 		break;
-	case IfStmt: case WhileStmt: case ForStmt: case ElsifStmt:
+	case IfStmt: case WhileStmt: case ForStmt: case ElsifStmt: case ForeachStmt:
 		code->op = NOP;
 		break;
 	case GlobalVarDecl: case LocalVarDecl: case VarDecl:

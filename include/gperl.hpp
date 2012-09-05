@@ -443,6 +443,7 @@ public:
 	void genIfStmtCode(GPerlCell *path);
 	void genWhileStmtCode(GPerlCell *path);
 	void genForStmtCode(GPerlCell *path);
+	void genForeachStmtCode(GPerlCell *path);
 	void genVMCode(GPerlCell *path);
 	void addVMCode(GPerlVirtualMachineCode *code);
 	void popVMCode(void);

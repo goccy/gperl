@@ -931,6 +931,24 @@ GPerlValue GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 		pc++;
 		BREAK();
 	});
+	CASE(EACH_INIT, {
+		GPERL_EACH_INIT(pc->dst, pc->src);
+		pc++;
+		BREAK();
+	});
+	CASE(EACH_gINIT, {
+		GPERL_EACH_gINIT(pc->dst, pc->src);
+		pc++;
+		BREAK();
+	});
+	CASE(EACH_LET, {
+		GPERL_EACH_LET(pc->dst, pc->src);
+		BREAK();
+	});
+	CASE(EACH_STEP, {
+		GPERL_EACH_STEP(pc->dst, pc->src);
+		BREAK();
+	});
 #include "gen_fast_vmcode.cpp"
 
 	DISPATCH_END();
