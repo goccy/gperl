@@ -110,10 +110,10 @@ void GPerlAST::draw(GraphvizGraph *graph, GPerlCell *c, GraphvizNode *node)
 	GraphvizNode *right;
 	char buf[32] = {0};
 	if (c->type == IfStmt || c->type == WhileStmt || c->type == ElsifStmt ||
-		c->type == ForStmt) {
+		c->type == ForStmt || c->type == ForeachStmt) {
 		GraphvizNode *if_node = root_node;
 		drawStmt(graph, if_node, c->true_stmt, "true", "#e0ffff");
-		if (c->false_stmt) {
+		if (c->false_stmt && c->type != ForeachStmt) {
 			if (c->false_stmt->root->type == ElsifStmt) {
 				drawStmt(graph, if_node, c->false_stmt, "elsif", "#98fb98");
 			} else {

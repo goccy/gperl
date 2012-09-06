@@ -670,7 +670,7 @@ GPerlVirtualMachineCode *GPerlCompiler::createVMCode(GPerlCell *c)
 	case MultiGlobalVarDecl: case MultiLocalVarDecl:
 		setMultiSETv(code, c);
 		break;
-	case LocalVar: case Var: case ArrayVar:
+	case LocalVar: case Var: case ArrayVar: case SpecificValue:
 		setVMOV(code, c);
 		break;
 	case ArgumentArray:

@@ -274,7 +274,7 @@ GPerlAST *GPerlParser::parse(void)
 			gidx++;
 			break;
 		}
-		case Var: case ArrayVar: case ArgumentArray:
+		case Var: case ArrayVar: case ArgumentArray: case SpecificValue:
 		case Int: case Double: case String: case Call: case BuiltinFunc:
 			parseValue(t, &blocks, NULL);
 			break;
@@ -455,6 +455,11 @@ GPerlAST *GPerlParser::parse(void)
 				whileStmtFlag = false;
 			} else if (forStmtFlag) {
 				GPerlCell *cond = blocks.lastNode();
+				if (!cond->next) {
+					forStmtFlag = false;
+					root->type = ForeachStmt;
+					goto FOREACH;
+				}
 				blocks.popNode();
 				root->cond = cond;
 				cond->parent = root;
@@ -464,6 +469,7 @@ GPerlAST *GPerlParser::parse(void)
 				root->true_stmt = scope;
 				forStmtFlag = false;
 			} else if (foreachStmtFlag) {
+			FOREACH:;
 				GPerlCell *cond = blocks.lastNode();
 				cond->indent++;
 				cond->setVariableIdx(vidx);
@@ -474,6 +480,15 @@ GPerlAST *GPerlParser::parse(void)
 					cond->left->indent++;
 					vcount++;
 					vidx++;
+				} else {
+					GPerlCell *v = new GPerlCell(LocalVarDecl, "$_");
+					v->indent++;
+					v->setVariableIdx(vidx);
+					vcount++;
+					vidx++;
+					GPerlCell *tmp = cond;
+					cond = v;
+					cond->left = tmp;
 				}
 				blocks.popNode();
 				root->right = cond;

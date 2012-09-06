@@ -458,6 +458,7 @@ void GPerlTokenizer::annotateTokens(vector<GPerlToken *> *tokens)
 			data == "my"    || data == "sub"   ||
 			data == "shift" || data == "while" ||
 			data == "for"   || data == "foreach" ||
+			data == "$_"    ||
 			data == "@_"    || data == "@ARGV" ||
 			data == "return") {
 			DBG_PL("TOKEN = [%s]", cstr(data));
