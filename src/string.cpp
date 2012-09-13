@@ -20,23 +20,26 @@ GPerlString *new_GPerlInitString(char *s, size_t len)
 	str->h.type = String;
 	str->s = s;
 	str->len = len;
+	str->hash = hash(s, len) % HASH_TABLE_SIZE;
 	str->write = NULL;
-	str->mark = String_mark;
-	str->free = String_free;
+	str->h.mark = String_mark;
+	str->h.free = String_free;
 	return str;
 }
 
 GPerlObject *new_GPerlString(GPerlValue v, GPerlValue *)
 {
-	char *s = getRawString(v);
-	size_t len = getLength(v);
+	GPerlString *o = getStringObj(v);
+	char *s = o->s;
+	size_t len = o->len;
 	GPerlString *str = (GPerlString *)mm->gmalloc();
 	str->h.type = String;
 	str->s = (char *)safe_malloc(len);
 	memcpy(str->s, s, len);
 	str->len = len;
+	str->hash = o->hash;
 	str->write = NULL;
-	str->mark = String_mark;
-	str->free = String_free;
+	str->h.mark = String_mark;
+	str->h.free = String_free;
 	return (GPerlObject *)str;
 }

@@ -161,6 +161,7 @@ typedef enum {
 	sSHIFT,
 	oSHIFT,
 	PUSH,
+	aPUSH,
 	NEW,
 	NEW_STRING,
 	ARRAY_PUSH,
@@ -171,6 +172,13 @@ typedef enum {
 	ARRAY_SET,
 	ARRAY_gSET,
 	ARRAY_DREF,
+	HASH_AT,
+	HASH_ATC,
+	HASH_gAT,
+	HASH_gATC,
+	HASH_SET,
+	HASH_gSET,
+	HASH_DREF,
 	EACH_INIT,
 	EACH_gINIT,
 	EACH_LET,
@@ -831,6 +839,10 @@ typedef enum {
 	B_PUSH,
 	C_PUSH,
 	D_PUSH,
+	A_aPUSH,
+	B_aPUSH,
+	C_aPUSH,
+	D_aPUSH,
 } GPerlOpCode;
 
 typedef struct _GPerlCodeInfo {

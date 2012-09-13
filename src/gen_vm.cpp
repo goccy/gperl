@@ -881,6 +881,11 @@ GPerlValue GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 		pc++;
 		BREAK();
 	});
+	CASE(aPUSH, {
+		GPERL_aPUSH(pc->dst, pc->src);
+		pc++;
+		BREAK();
+	});
 	CASE(NEW, {
 		GPERL_NEW();
 		pc++;
@@ -928,6 +933,41 @@ GPerlValue GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 	});
 	CASE(ARRAY_DREF, {
 		GPERL_ARRAY_DREF(pc->dst, pc->src);
+		pc++;
+		BREAK();
+	});
+	CASE(HASH_AT, {
+		GPERL_HASH_AT(pc->dst, pc->src, pc->idx);
+		pc++;
+		BREAK();
+	});
+	CASE(HASH_ATC, {
+		GPERL_HASH_ATC(pc->dst, pc->src, pc->hash);
+		pc++;
+		BREAK();
+	});
+	CASE(HASH_gAT, {
+		GPERL_HASH_gAT(pc->dst, pc->src, pc->idx);
+		pc++;
+		BREAK();
+	});
+	CASE(HASH_gATC, {
+		GPERL_HASH_gATC(pc->dst, pc->src, pc->hash);
+		pc++;
+		BREAK();
+	});
+	CASE(HASH_SET, {
+		GPERL_HASH_SET(pc->dst, pc->src, pc->idx);
+		pc++;
+		BREAK();
+	});
+	CASE(HASH_gSET, {
+		GPERL_HASH_gSET(pc->dst, pc->src, pc->idx);
+		pc++;
+		BREAK();
+	});
+	CASE(HASH_DREF, {
+		GPERL_HASH_DREF(pc->dst, pc->src);
 		pc++;
 		BREAK();
 	});

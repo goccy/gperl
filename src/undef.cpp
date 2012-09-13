@@ -14,8 +14,8 @@ GPerlUndef *new_GPerlUndef(void)
 	GPerlUndef *o = (GPerlUndef *)mm->gmalloc();
 	o->h.type = Undefined;
 	o->write = Undef_write;
-	o->mark = Undef_mark;
-	o->free = Undef_free;
+	o->h.mark = Undef_mark;
+	o->h.free = Undef_free;
 	return o;
 }
 

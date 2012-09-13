@@ -22,23 +22,6 @@
 #define MAX_LINE_SIZE 128
 #define MAX_TOKEN_SIZE 4096
 #define MAX_SCRIPT_SIZE 4096 * 10
-#define NaN       (uint64_t)(0xFFF0000000000000)
-#define Mask      (uint64_t)(0x00000000FFFFFFFF)
-#define TYPE      (uint64_t)(0x000F000000000000)
-
-#define IntTag    (uint64_t)(0x0001000000000000)
-#define StringTag (uint64_t)(0x0002000000000000)
-#define ObjectTag (uint64_t)(0x0003000000000000)
-
-#define INT_init(o, idata) o.ivalue = idata; o.bytes = ((idata & Mask) | NaN | IntTag)
-#define DOUBLE_init(o, ddata) o.dvalue = ddata;
-#define STRING_init(o, ptr) o.svalue = ptr; o.bytes |= NaN | StringTag
-#define OBJECT_init(o, ptr) o.ovalue = ptr; o.bytes |= NaN | ObjectTag
-#define getStringObj(o) (GPerlString *)(o.bytes ^ (NaN | StringTag))
-#define getRawString(o) ((GPerlString *)(o.bytes ^ (NaN | StringTag)))->s
-#define getLength(o) ((GPerlString *)(o.bytes ^ (NaN | StringTag)))->len
-#define getObject(o) (o.bytes ^ (NaN | ObjectTag))
-#define TYPE_CHECK(T) ((T.bytes & NaN) == NaN) * ((T.bytes & TYPE) >> 48 )
 
 #define cstr(s) s.c_str()
 
@@ -298,8 +281,10 @@ typedef struct _GPerlMemPool {
 } GPerlMemPool;
 
 typedef struct _GPerlObjectHeader {
-	intptr_t type;
-	intptr_t mark_flag;
+	int type;
+	int mark_flag;
+	void (*mark)(_GPerlObject *o);
+	void (*free)(_GPerlObject *o);
 	_GPerlObject *next;
 } GPerlObjectHeader;
 
@@ -307,46 +292,50 @@ typedef struct _GPerlObject {
 	GPerlObjectHeader h;
 	void *slot1;
 	void *slot2;
+	void *slot3;
 	void (*write)(GPerlValue v);
-	void (*mark)(_GPerlObject *o);
-	void (*free)(_GPerlObject *o);
 } GPerlObject;
-
-typedef struct _GPerlArray {
-	GPerlObjectHeader h;
-	intptr_t size;
-	GPerlValue *list;
-	void (*write)(GPerlValue v);
-	void (*mark)(_GPerlObject *o);
-	void (*free)(GPerlObject *o);
-} GPerlArray;
 
 typedef struct _GPerlString {
 	GPerlObjectHeader h;
 	char *s;
 	size_t len;
+	unsigned long hash;
 	void (*write)(GPerlValue v);
-	void (*mark)(_GPerlObject *o);
-	void (*free)(GPerlObject *o);
 } GPerlString;
+
+typedef struct _GPerlArray {
+	GPerlObjectHeader h;
+	int size;
+	int cur_idx;
+	void *slot2;
+	GPerlValue *list;
+	void (*write)(GPerlValue v);
+} GPerlArray;
+
+typedef struct _GPerlHash {
+	GPerlObjectHeader h;
+	size_t size;
+	GPerlString **keys;
+	GPerlValue *table;
+	void (*write)(GPerlValue v);
+} GPerlHash;
 
 /* Protected ArrayObject */
 typedef struct _GPerlArgsArray {
 	GPerlObjectHeader h;
-	intptr_t size;
+	size_t size;
+	size_t cur_idx;
 	GPerlValue *list;
 	void (*write)(GPerlValue v);
-	void (*mark)(_GPerlObject *o);
-	void (*free)(GPerlObject *o);
 } GPerlArgsArray;
 
 typedef struct _GPerlUndef {
 	GPerlObjectHeader h;
 	void *slot1;
 	void *slot2;
+	void *slot3;
 	void (*write)(GPerlValue v);
-	void (*mark)(_GPerlObject *o);
-	void (*free)(GPerlObject *o);
 } GPerlUndef;
 
 typedef struct _GPerlVirtualMachineCode {
@@ -359,6 +348,7 @@ typedef struct _GPerlVirtualMachineCode {
 		void *code;/* selective inlining code */
 		int jmp;   /* jmp register number */
 		int idx;   /* array[idx] */
+		unsigned long hash; /* hash_table[hash] */
 		GPerlObject *(*_new)(GPerlValue v, GPerlValue *args);
 		void (*push)(GPerlValue *);
 		void (*write)(GPerlValue );
@@ -425,6 +415,8 @@ public:
 	void setArrayARGMOV(GPerlVirtualMachineCode *code, GPerlCell *c);
 	void setARGMOV(GPerlVirtualMachineCode *code, GPerlCell *c);
 	void setArrayAt(GPerlVirtualMachineCode *code, GPerlCell *c);
+	void setHashAt(GPerlVirtualMachineCode *code, GPerlCell *c);
+	void setArrow(GPerlVirtualMachineCode *code, GPerlCell *c);
 	void setArraySet(GPerlVirtualMachineCode *code, GPerlCell *c);
 	void setArrayDereference(GPerlVirtualMachineCode *code, GPerlCell *c);
 	GPerlVirtualMachineCode *createTHCODE(void);
@@ -435,11 +427,13 @@ public:
 	GPerlVirtualMachineCode *createsWRITE(void);
 	GPerlVirtualMachineCode *createoWRITE(void);
 	GPerlVirtualMachineCode *createPUSH(int i, int dst_);
+	GPerlVirtualMachineCode *createArrayPUSH(int i, int dst_);
 	GPerlVirtualMachineCode *createJMP(int jmp_num);
 	void addWriteCode(void);
-	void addPushCode(int i, int dst_);
+	void addPushCode(int i, int dst_, GPerlT type);
 	void genFunctionCallCode(GPerlCell *p);
 	void genFunctionCode(GPerlCell *path);
+	void genMapFunctionCode(GPerlCell *path);
 	void genIfStmtCode(GPerlCell *path);
 	void genWhileStmtCode(GPerlCell *path);
 	void genForStmtCode(GPerlCell *path);
@@ -467,6 +461,7 @@ typedef struct _GPerlEnv {
 	GPerlVirtualMachineCode *pc;
 	GPerlValue *reg;
 	GPerlValue *argstack;
+	GPerlValue *argstack_set_ptr;
 	GPerlValue *ebp;
 	void *ret_addr;
 	GPerlVirtualMachineCode *cur_pc;
@@ -563,6 +558,7 @@ typedef struct _GPerlTraceRoot {
 #define MAX_INIT_VALUES_SIZE 64
 #define INIT_MEMPOOL_NUM 4
 #define MAX_CALLSTACK_SIZE 4096
+#define HASH_TABLE_SIZE 512
 
 extern GPerlValue global_vmemory[MAX_GLOBAL_MEMORY_SIZE];
 extern GPerlValue init_values[MAX_INIT_VALUES_SIZE];
@@ -571,9 +567,12 @@ extern char shared_buf[128];
 extern std::string outbuf;
 extern char *cwb;
 extern GPerlArgsArray *args;
+extern GPerlUndef *undef;
 extern GPerlUndef *new_GPerlUndef(void);
 extern GPerlArray *new_GPerlInitArray(GPerlValue *list, size_t asize);
 extern GPerlObject *new_GPerlArray(GPerlValue v, GPerlValue *args);
+extern GPerlHash *new_GPerlInitHash(GPerlValue *list, size_t asize);
+extern GPerlObject *new_GPerlHash(GPerlValue v, GPerlValue *args);
 extern GPerlString *new_GPerlInitString(char *s, size_t len);
 extern GPerlObject *new_GPerlString(GPerlValue v, GPerlValue *args);
 extern void Undef_write(GPerlValue );
@@ -592,3 +591,21 @@ extern sigjmp_buf expand_mem;
 extern double total_time;
 extern double malloc_time;
 extern double gettimeofday_sec(void);
+extern unsigned long hash(char *key, size_t len);
+#define NaN       (uint64_t)(0xFFF0000000000000)
+#define Mask      (uint64_t)(0x00000000FFFFFFFF)
+#define TYPE      (uint64_t)(0x000F000000000000)
+
+#define IntTag    (uint64_t)(0x0001000000000000)
+#define StringTag (uint64_t)(0x0002000000000000)
+#define ObjectTag (uint64_t)(0x0003000000000000)
+
+#define INT_init(o, idata) o.ivalue = idata; o.bytes = ((idata & Mask) | NaN | IntTag)
+#define DOUBLE_init(o, ddata) o.dvalue = ddata;
+#define STRING_init(o, ptr) o.svalue = ptr; o.bytes |= NaN | StringTag
+#define OBJECT_init(o, ptr) o.ovalue = ptr; o.bytes |= NaN | ObjectTag
+#define getStringObj(o) (GPerlString *)(o.bytes ^ (NaN | StringTag))
+#define getRawString(o) ((GPerlString *)(o.bytes ^ (NaN | StringTag)))->s
+#define getLength(o) ((GPerlString *)(o.bytes ^ (NaN | StringTag)))->len
+#define getObject(o) (o.bytes ^ (NaN | ObjectTag))
+#define TYPE_CHECK(T) ((T.bytes & NaN) == NaN) * ((T.bytes & TYPE) >> 48 )

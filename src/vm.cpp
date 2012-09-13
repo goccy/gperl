@@ -88,6 +88,7 @@ GPerlEnv *GPerlVirtualMachine::createCallStack(void)
 		GPerlValue *reg = (GPerlValue *)safe_malloc(sizeof(GPerlValue) * MAX_REG_SIZE);
 		GPerlValue *argstack = (GPerlValue *)safe_malloc(sizeof(GPerlValue) * MAX_ARGSTACK_SIZE);
 		env_[i].argstack = argstack;
+		env_[i].argstack_set_ptr = argstack;
 		env_[i].reg = reg;
 	}
 	int size = MAX_CALLSTACK_SIZE * sizeof(GPerlEnv);

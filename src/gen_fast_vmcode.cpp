@@ -3362,3 +3362,23 @@
 		pc++;
 		BREAK();
 	});
+	CASE(A_aPUSH, {
+		GPERL_aPUSH(0, pc->src);
+		pc++;
+		BREAK();
+	});
+	CASE(B_aPUSH, {
+		GPERL_aPUSH(1, pc->src);
+		pc++;
+		BREAK();
+	});
+	CASE(C_aPUSH, {
+		GPERL_aPUSH(2, pc->src);
+		pc++;
+		BREAK();
+	});
+	CASE(D_aPUSH, {
+		GPERL_aPUSH(3, pc->src);
+		pc++;
+		BREAK();
+	});

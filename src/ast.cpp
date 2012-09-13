@@ -141,7 +141,13 @@ void GPerlAST::draw(GraphvizGraph *graph, GPerlCell *c, GraphvizNode *node)
 				snprintf(buf, 32, "%s : [%p]", to_name, arg);
 				left = createNode(graph, (const char *)buf);
 				drawEdge(graph, func_node, left, "vargs");
-				draw(graph, arg, left);
+				if (arg->next) {
+					GPerlScope *scope = new GPerlScope();
+					scope->add(arg);
+					drawStmt(graph, left, scope, "block", "#e0ffff");
+				} else {
+					draw(graph, arg, left);
+				}
 			}
 		}
 	} else if (c->type == List || c->type == ArrayRef) {

@@ -2,6 +2,7 @@
 using namespace std;
 
 GPerlMemoryManager *mm;
+GPerlUndef *undef;
 
 GPerl::GPerl(int argc, char **argv)
 {
@@ -17,6 +18,7 @@ void GPerl::init(void)
 {
 	cwb = (char *)safe_malloc(MAX_CWB_SIZE);
 	mm = new GPerlMemoryManager();
+	undef = new_GPerlUndef();
 }
 
 int GPerl::checkBrace(char *line)
@@ -125,7 +127,7 @@ GPerlValue GPerl::eval(char *script, int argc, char **argv)
 	DBG_PL("==============<PARSE>==============");
 	GPerlAST *ast = p->parse();
 #ifdef USING_GRAPH_DEBUG
-	ast->show();//graph debug with graphviz
+	//ast->show();//graph debug with graphviz
 #endif
 	GPerlCompiler compiler;
 	DBG_PL("=============<COMPILE>=============");

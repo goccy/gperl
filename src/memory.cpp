@@ -157,7 +157,7 @@ void GPerlMemoryManager::mark(GPerlValue v) {
 	}
 	case 3: {
 		GPerlObject *o = (GPerlObject *)getObject(v);
-		if (!o->h.mark_flag) o->mark(o);
+		if (!o->h.mark_flag) o->h.mark(o);
 		break;
 	}
 	default:
@@ -241,9 +241,9 @@ void GPerlMemoryManager::sweep(void) {
 		GPerlObject* o = p->head;
 		GPerlObject* tail = p->tail;
 		while (o < tail) {
-			if (!IS_Marked(o) && o->free) {
+			if (!IS_Marked(o) && o->h.free) {
 				//DBG_PL("FREE!!");
-				o->free(o);
+				o->h.free(o);
 				MemoryManager_pushObject(o, freeList);
 #ifdef DEBUG_MODE
 				dead_count++;

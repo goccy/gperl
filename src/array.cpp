@@ -3,19 +3,6 @@ using namespace std;
 
 #define IS_UNBOX(v) TYPE_CHECK(v) < 2
 
-void Array_push(GPerlValue *argstack)
-{
-	GPerlArray *a = (GPerlArray *)getObject(argstack[0]);
-	void *tmp;
-	if (!(tmp = realloc(a->list, sizeof(GPerlValue) * (a->size + 1)))) {
-		fprintf(stderr, "ERROR!!: cannot allocated memory\n");
-	} else {
-		a->list = (GPerlValue *)tmp;
-		a->list[a->size] = argstack[1];
-		a->size++;
-	}
-}
-
 void Array_write(GPerlValue o)
 {
 	GPerlArray *a = (GPerlArray *)getObject(o);
@@ -65,7 +52,7 @@ void Array_mark(GPerlObject* o)
 			break;
 		case 3: {
 			GPerlObject *o = (GPerlObject *)getObject(v);
-			if (!o->h.mark_flag) o->mark(o);
+			if (!o->h.mark_flag) o->h.mark(o);
 			break;
 		}
 		default:
@@ -83,14 +70,34 @@ void Array_free(GPerlObject *o)
 	safe_free(list, sizeof(GPerlValue) * a->size);
 }
 
+void Array_push(GPerlValue *argstack)
+{
+	GPerlArray *a = (GPerlArray *)getObject(argstack[0]);
+	if (a->h.type == Undefined) {
+		a->h.type = Array;
+		a->write = Array_write;
+		a->h.mark = Array_mark;
+		a->h.free = Array_free;
+	}
+	void *tmp;
+	if (!(tmp = realloc(a->list, sizeof(GPerlValue) * (a->size + 1)))) {
+		fprintf(stderr, "ERROR!!: cannot allocated memory\n");
+	} else {
+		a->list = (GPerlValue *)tmp;
+		a->list[a->size] = argstack[1];
+		a->size++;
+	}
+}
+
 GPerlArray *new_GPerlInitArray(GPerlValue *list, size_t asize)
 {
 	GPerlArray *a = (GPerlArray *)mm->gmalloc();
+	a->h.type = Array;
 	a->list = list;
 	a->size = asize;
 	a->write = Array_write;
-	a->mark = Array_mark;
-	a->free = Array_free;
+	a->h.mark = Array_mark;
+	a->h.free = Array_free;
 	return a;
 }
 
@@ -103,8 +110,8 @@ GPerlObject *new_GPerlArray(GPerlValue v, GPerlValue *args)
 	memcpy(ret->list, args, size);
 	ret->size = a->size;
 	ret->write = Array_write;
-	ret->mark = Array_mark;
-	ret->free = Array_free;
+	ret->h.mark = Array_mark;
+	ret->h.free = Array_free;
 	ret->h.type = a->h.type;
 	return (GPerlObject *)ret;
 }

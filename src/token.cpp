@@ -166,6 +166,7 @@ int GPerlTokenizer::scanSymbol(GPerlTokens *tks, char symbol, char next_ch)
 	} else if ((symbol == '<' && next_ch == '<') ||
 			   (symbol == '>' && next_ch == '>') ||
 			   (symbol == '+' && next_ch == '+') ||
+			   (symbol == '=' && next_ch == '>') ||
 			   (symbol == '-' && next_ch == '-')) {
 		tmp[0] = symbol;
 		tmp[1] = next_ch;
@@ -443,7 +444,7 @@ void GPerlTokenizer::annotateTokens(vector<GPerlToken *> *tokens)
 			data == "-="    || data == "*="    ||
 			data == "/="    || data == ".="    ||
 			data == "++"    || data == "--"    ||
-			data == ";"     ||
+			data == ";"     || data == "=>"    ||
 			data == ","     || data == ","     ||
 			data == "&"     || data == "("     ||
 			data == ")"     || data == "{"     ||
@@ -458,7 +459,7 @@ void GPerlTokenizer::annotateTokens(vector<GPerlToken *> *tokens)
 			data == "my"    || data == "sub"   ||
 			data == "shift" || data == "while" ||
 			data == "for"   || data == "foreach" ||
-			data == "$_"    ||
+			data == "$_"    || data == "map"   ||
 			data == "@_"    || data == "@ARGV" ||
 			data == "return") {
 			DBG_PL("TOKEN = [%s]", cstr(data));
@@ -472,10 +473,17 @@ void GPerlTokenizer::annotateTokens(vector<GPerlToken *> *tokens)
 			t->info = getTokenInfo("LocalArrayVar", NULL);
 			vardecl_list.push_back(t->data);
 			cur_type = LocalArrayVar;
+		} else if (cur_type == VarDecl && t->data.find("%") != string::npos) {
+			t->info = getTokenInfo("LocalHashVar", NULL);
+			vardecl_list.push_back(t->data);
+			cur_type = LocalHashVar;
 		} else if (search(vardecl_list, t->data)) {
 			if (t->data.find("@") != string::npos) {
 				t->info = getTokenInfo("ArrayVar", NULL);
 				cur_type = ArrayVar;
+			} else if (t->data.find("%") != string::npos) {
+				t->info = getTokenInfo("HashVar", NULL);
+				cur_type = HashVar;
 			} else {
 				t->info = getTokenInfo("Var", NULL);
 				cur_type = Var;
@@ -488,6 +496,10 @@ void GPerlTokenizer::annotateTokens(vector<GPerlToken *> *tokens)
 			t->info = getTokenInfo("GlobalArrayVar", NULL);
 			vardecl_list.push_back(t->data);
 			cur_type = GlobalArrayVar;
+		} else if (t->data.find("%") != string::npos) {
+			t->info = getTokenInfo("GlobalHashVar", NULL);
+			vardecl_list.push_back(t->data);
+			cur_type = GlobalHashVar;
 		} else if (t->info.type == Double) {
 			cur_type = Double;
 		} else if (t->info.type == Int) {
@@ -513,7 +525,12 @@ void GPerlTokenizer::annotateTokens(vector<GPerlToken *> *tokens)
 			cur_type = Call;
 		} else {
 			//string
-			cur_type = 0;
+			if (t->info.type != String) {
+				t->info = getTokenInfo("Key", NULL);
+				cur_type = Key;
+			} else {
+				cur_type = 0;
+			}
 		}
 		it++;
 	}
