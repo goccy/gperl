@@ -217,6 +217,20 @@
      "args" : [{"argstack" : "(callstack+1)->argstack[0]"}]
  },
  {
+	 "code" : "KEYS",
+	 "type" : 0,
+	 "const" : 0,
+	 "fast_type" : 0,
+     "args" : [{"argstack" : "(callstack+1)->argstack[0]"}]
+ },
+ {
+	 "code" : "VALUES",
+	 "type" : 0,
+	 "const" : 0,
+	 "fast_type" : 0,
+     "args" : [{"argstack" : "(callstack+1)->argstack[0]"}]
+ },
+ {
 	 "code" : "JMP",
 	 "type" : 0,
 	 "const" : 0,
@@ -444,7 +458,7 @@
 	 "type" : 0,
 	 "const" : 0,
 	 "fast_type" : 0,
-     "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}, {"idx" : "pc->key"}]
+     "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}, {"idx" : "pc->hash"}]
  },
  {
 	 "code" : "HASH_gAT",
@@ -458,7 +472,7 @@
 	 "type" : 0,
 	 "const" : 0,
 	 "fast_type" : 0,
-     "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}, {"idx" : "pc->key"}]
+     "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}, {"idx" : "pc->hash"}]
  },
  {
 	 "code" : "HASH_SET",

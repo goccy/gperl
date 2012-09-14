@@ -138,6 +138,8 @@ typedef enum {
 	oWRITE,
 	FLUSH,
 	REF,
+	KEYS,
+	VALUES,
 	JMP,
 	LET,
 	gLET,

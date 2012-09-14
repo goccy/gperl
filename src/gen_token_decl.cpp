@@ -31,6 +31,8 @@ GPerlTokenInfo decl_tokens[] = {
 	{BuiltinFunc, "BuiltinFunc", "sqrt"},
 	{BuiltinFunc, "BuiltinFunc", "map"},
 	{BuiltinFunc, "BuiltinFunc", "grep"},
+	{BuiltinFunc, "BuiltinFunc", "keys"},
+	{BuiltinFunc, "BuiltinFunc", "values"},
 	{IfStmt, "IfStmt", "if"},
 	{ElseStmt, "ElseStmt", "else"},
 	{ElsifStmt, "ElsifStmt", "elsif"},

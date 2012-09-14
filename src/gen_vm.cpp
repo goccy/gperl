@@ -767,6 +767,18 @@ GPerlValue GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 		pc++;
 		BREAK();
 	});
+	CASE(KEYS, {
+		GPerlArray *a = GPERL_KEYS((callstack+1)->argstack[0]);
+		OBJECT_init(reg[pc->dst], a);
+		pc++;
+		BREAK();
+	});
+	CASE(VALUES, {
+		GPerlArray *a = GPERL_VALUES((callstack+1)->argstack[0]);
+		OBJECT_init(reg[pc->dst], a);
+		pc++;
+		BREAK();
+	});
 	CASE(JMP, {
 		GPERL_JMP();
 		BREAK();

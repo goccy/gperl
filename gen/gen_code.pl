@@ -413,6 +413,12 @@ sub gen_vm_run_code {
             } elsif ($_ eq "REF") {
                 $ret .= "\t\tINT_init(reg[0], GPERL_${_}(" . $decl_args . "));\n";
                 $ret .= "\t\tpc++;\n";
+            } elsif ($_ eq "KEYS" || $_ eq "VALUES") {
+                $ret .= "\t\tGPerlArray *a = GPERL_${_}((callstack+1)->argstack[0]);\n";
+                $ret .= "\t\tOBJECT_init(reg[pc->dst], a);\n";
+                $ret .= "\t\tpc++;\n";
+            } elsif ($_ =~ /EACH_STEP/ || $_ =~ /EACH_LET/) {
+                $ret .= "\t\tGPERL_${_}(" . $decl_args . ");\n";
             } else {
                 $ret .= "\t\tGPERL_${_}(" . $decl_args . ");\n";
                 $ret .= "\t\tpc++;\n";

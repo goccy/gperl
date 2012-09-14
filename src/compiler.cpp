@@ -1270,6 +1270,12 @@ void GPerlCompiler::setBFUNC(GPerlVirtualMachineCode *code, GPerlCell *c)
 		code->op = REF;
 	} else if (c->rawstr == "map") {
 		DBG_PL("Map");
+	} else if (c->rawstr == "keys") {
+		DBG_PL("Keys");
+		code->op = KEYS;
+	} else if (c->rawstr == "values") {
+		DBG_PL("Values");
+		code->op = VALUES;
 	}
 	args_count = 0;
 }

@@ -138,6 +138,8 @@ GPerlCodeInfo decl_codes[] = {
 	{oWRITE, "oWRITE"},
 	{FLUSH, "FLUSH"},
 	{REF, "REF"},
+	{KEYS, "KEYS"},
+	{VALUES, "VALUES"},
 	{JMP, "JMP"},
 	{LET, "LET"},
 	{gLET, "gLET"},

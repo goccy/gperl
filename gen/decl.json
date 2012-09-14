@@ -160,6 +160,16 @@
 	 "parse_func" : ""
  },
  {
+	 "type" : "BuiltinFunc",
+	 "data" : "keys",
+	 "parse_func" : ""
+ },
+ {
+	 "type" : "BuiltinFunc",
+	 "data" : "values",
+	 "parse_func" : ""
+ },
+ {
 	 "type" : "IfStmt",
 	 "data" : "if",
 	 "parse_func" : ""

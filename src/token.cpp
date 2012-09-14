@@ -454,6 +454,7 @@ void GPerlTokenizer::annotateTokens(vector<GPerlToken *> *tokens)
 			data == "<<"    || data == ">>"    ||
 			data == "print" || data == "push"  ||
 			data == "ref"   || data == "undef" ||
+			data == "keys"  || data == "values" ||
 			data == "if"    || data == "else"  ||
 			data == "elsif" || data == "unless"||
 			data == "my"    || data == "sub"   ||

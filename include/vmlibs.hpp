@@ -325,6 +325,50 @@ static inline int GPERL_REF(GPerlValue arg)
 	return ret;
 }
 
+static inline GPerlArray *GPERL_KEYS(GPerlValue arg)
+{
+	GPerlHash *h = (GPerlHash *)getObject(arg);
+	if (h->h.type == Hash) {
+		GPerlString **keys = h->keys;
+		size_t key_n = h->size / 2;
+		size_t size = sizeof(GPerlValue) * (key_n + 1);
+		GPerlValue *list = (GPerlValue *)safe_malloc(size);
+		size_t i = 0;
+		for (i = 0; i < key_n; i++) {
+			STRING_init(list[i], keys[i]);
+		}
+		OBJECT_init(list[i], undef);
+		GPerlArray *ret = new_GPerlInitArray(list, key_n);
+		return ret;
+	} else {
+		fprintf(stdout, "type error: 'keys' needs hash variable\n");
+		return (GPerlArray *)undef;
+	}
+}
+
+static inline GPerlArray *GPERL_VALUES(GPerlValue arg)
+{
+	GPerlHash *h = (GPerlHash *)getObject(arg);
+	if (h->h.type == Hash) {
+		GPerlString **keys = h->keys;
+		size_t key_n = h->size / 2;
+		size_t size = sizeof(GPerlValue) * (key_n + 1);
+		GPerlValue *list = (GPerlValue *)safe_malloc(size);
+		size_t i = 0;
+		for (i = 0; i < key_n; i++) {
+			GPerlString *key = keys[i];
+			GPerlValue value = h->table[key->hash];
+			list[i] = value;
+		}
+		OBJECT_init(list[i], undef);
+		GPerlArray *ret = new_GPerlInitArray(list, key_n);
+		return ret;
+	} else {
+		fprintf(stdout, "type error: 'values' needs hash variable\n");
+		return (GPerlArray *)undef;
+	}
+}
+
 #define GPERL_JMP() pc += pc->jmp
 #define GPERL_FUNCSET(func, dst) setToFuncMemory(func, dst)
 #define GPERL_SETv(name, dst)
