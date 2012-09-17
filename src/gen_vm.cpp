@@ -813,6 +813,11 @@ GPerlValue GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 		pc++;
 		BREAK();
 	});
+	CASE(CLOSURE, {
+		GPERL_CLOSURE(pc->dst, pc->src, CLOSURE);
+		pc++;
+		BREAK();
+	});
 	CASE(CALL, {
 		GPERL_CALL(pc->dst, pc->src, CALL);
 		pc++;
@@ -980,6 +985,11 @@ GPerlValue GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 	});
 	CASE(HASH_DREF, {
 		GPERL_HASH_DREF(pc->dst, pc->src);
+		pc++;
+		BREAK();
+	});
+	CASE(CODE_REF, {
+		GPERL_CODE_REF(pc->dst, pc->src);
 		pc++;
 		BREAK();
 	});

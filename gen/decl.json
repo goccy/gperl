@@ -260,6 +260,11 @@
 	 "parse_func" : ""
  },
  {
+	 "type" : "CodeRef",
+	 "data" : "\\&",
+	 "parse_func" : ""
+ },
+ {
 	 "type" : "WhileStmt",
 	 "data" : "while",
 	 "parse_func" : ""
@@ -326,6 +331,11 @@
  },
  {
 	 "type" : "Var",
+	 "data" : "",
+	 "parse_func" : ""
+ },
+ {
+	 "type" : "CodeVar",
 	 "data" : "",
 	 "parse_func" : ""
  },

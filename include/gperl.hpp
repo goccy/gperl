@@ -248,6 +248,7 @@ public:
 
 struct _GPerlObject;
 struct _GPerlMemPool;
+struct _GPerlVirtualMachineCode;
 
 class GPerlMemoryManager {
 public:
@@ -320,6 +321,14 @@ typedef struct _GPerlHash {
 	GPerlValue *table;
 	void (*write)(GPerlValue v);
 } GPerlHash;
+
+typedef struct _GPerlFunc {
+	GPerlObjectHeader h;
+	const char *fname;
+	_GPerlVirtualMachineCode *code;
+	void *slot3;
+	void (*write)(GPerlValue v);
+} GPerlFunc;
 
 /* Protected ArrayObject */
 typedef struct _GPerlArgsArray {
@@ -575,6 +584,7 @@ extern GPerlHash *new_GPerlInitHash(GPerlValue *list, size_t asize);
 extern GPerlObject *new_GPerlHash(GPerlValue v, GPerlValue *args);
 extern GPerlString *new_GPerlInitString(char *s, size_t len);
 extern GPerlObject *new_GPerlString(GPerlValue v, GPerlValue *args);
+extern GPerlObject *new_GPerlFunc(const char *fname, GPerlVirtualMachineCode *code);
 extern void Undef_write(GPerlValue );
 extern void Array_push(GPerlValue *);
 extern void Array_write(GPerlValue );

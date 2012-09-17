@@ -280,6 +280,13 @@
      "args" : [{"func" : "pc->func"}, {"dst" : "pc->dst"}]
  },
  {
+	 "code" : "CLOSURE",
+	 "type" : 0,
+	 "const" : 0,
+	 "fast_type" : 2,
+     "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}, {"NAME" : "callname"}]
+ },
+ {
 	 "code" : "CALL",
 	 "type" : 0,
 	 "const" : 0,
@@ -490,6 +497,13 @@
  },
  {
 	 "code" : "HASH_DREF",
+	 "type" : 0,
+	 "const" : 0,
+	 "fast_type" : 0,
+     "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}]
+ },
+ {
+	 "code" : "CODE_REF",
 	 "type" : 0,
 	 "const" : 0,
 	 "fast_type" : 0,

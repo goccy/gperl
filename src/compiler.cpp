@@ -67,7 +67,7 @@ void GPerlCompiler::compile_(GPerlCell *path)
 
 void GPerlCompiler::genVMCode(GPerlCell *path) {
 	GPerlVirtualMachineCode *code;
-	if (path->type == Call || path->type == BuiltinFunc) {
+	if (path->type == Call || path->type == BuiltinFunc || path->type == CodeVar) {
 		genFunctionCallCode(path);
 	} else if (path->type == IfStmt || path->type == ElsifStmt) {
 		genIfStmtCode(path);
@@ -100,7 +100,7 @@ void GPerlCompiler::genFunctionCallCode(GPerlCell *p)
 		}
 	}
 	for (size_t i = 0; i < argsize; i++) {
-		if (p->type == Call || p->type == BuiltinFunc) {
+		if (p->type == Call || p->type == BuiltinFunc || p->type == CodeVar) {
 			addPushCode(i, dststack[i], p->vargs[i]->type);
 		}
 	}
@@ -613,7 +613,7 @@ GPerlVirtualMachineCode *GPerlCompiler::createVMCode(GPerlCell *c)
 	switch (c->type) {
 	case Int: case Double:
 	case String: case List: case Key:
-	case ArrayRef:
+	case ArrayRef: case CodeRef:
 		setMOV(code, c);
 		break;
 	case Add:
@@ -679,7 +679,7 @@ GPerlVirtualMachineCode *GPerlCompiler::createVMCode(GPerlCell *c)
 	case MultiGlobalVarDecl: case MultiLocalVarDecl:
 		setMultiSETv(code, c);
 		break;
-	case LocalVar: case Var: case ArrayVar:
+	case LocalVar: case Var: case ArrayVar: case CodeVar:
 	case HashVar: case SpecificValue:
 		setVMOV(code, c);
 		break;
@@ -820,6 +820,15 @@ void GPerlCompiler::setMOV(GPerlVirtualMachineCode *code, GPerlCell *c)
 		init_values[init_value_idx] = code->v;
 		init_value_idx++;
 		code->src = 0;
+		type = Object;
+		break;
+	}
+	case CodeRef: {
+		DBG_PL("CodeReference");
+		code->op = CODE_REF;
+		const char *fname = cstr(c->left->fname);
+		code->src = getFuncIndex(fname);
+		code->name = fname;
 		type = Object;
 		break;
 	}
@@ -1024,6 +1033,25 @@ void GPerlCompiler::setVMOV(GPerlVirtualMachineCode *code, GPerlCell *c)
 	code->dst = dst;
 	if (c->type == ArrayVar) {
 		reg_type[dst] = Array;
+	} else if (c->type == CodeVar) {
+		GPerlVirtualMachineCode *vmov = new GPerlVirtualMachineCode();
+		vmov->op = code->op;
+		vmov->src = idx;
+		vmov->dst = dst;
+		setEscapeStackNum(vmov, c);
+		addVMCode(vmov);
+		dumpVMCode(vmov);
+		GPerlVirtualMachineCode *closure = new GPerlVirtualMachineCode();
+		closure->op = CLOSURE;
+		closure->dst = dst;
+		closure->src = dst;
+		closure->name = cstr(c->vname);
+		closure->argc = args_count;
+		closure->cur_reg_top = dst;
+		setEscapeStackNum(closure, c);
+		addVMCode(closure);
+		dumpVMCode(closure);
+		code->op = NOP;
 	} else {
 		reg_type[dst] = Object;
 	}
@@ -1196,6 +1224,10 @@ void GPerlCompiler::setEscapeStackNum(GPerlVirtualMachineCode *code, GPerlCell *
 
 void GPerlCompiler::setCALL(GPerlVirtualMachineCode *code, GPerlCell *c)
 {
+	if (c->parent && c->parent->type == CodeRef) {
+		code->op = NOP;
+		return;
+	}
 	if (args_count < 5) {
 		if (args_count == 0) {
 			code->op = CALL;

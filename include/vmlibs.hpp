@@ -373,6 +373,28 @@ static inline GPerlArray *GPERL_VALUES(GPerlValue arg)
 #define GPERL_FUNCSET(func, dst) setToFuncMemory(func, dst)
 #define GPERL_SETv(name, dst)
 
+#define GPERL_CLOSURE(dst, src, NAME) do {					\
+		GPerlFunc *f = (GPerlFunc *)getObject(reg[src]);	\
+		top   = f->code;									\
+		callstack++;										\
+		callstack->ebp = stack;								\
+		stack += pc->cur_stack_top;							\
+		reg = callstack->reg;								\
+		argstack = callstack->argstack;						\
+		callstack->ret_addr = &&L_##NAME##AFTER;			\
+		callstack->pc = pc;									\
+		pc = top;											\
+		GOTO_NEXTOP();										\
+	L_##NAME##AFTER:										\
+		pc = callstack->pc;									\
+		(callstack-1)->reg[dst] = reg[0];					\
+		stack = callstack->ebp;								\
+		callstack--;										\
+		reg = callstack->reg;								\
+		argstack = callstack->argstack;						\
+	} while (0);
+
+
 #define GPERL_CALL(dst, src, NAME) {				\
 		code_ = func_memory[src];					\
 		top   = code_;								\
@@ -689,7 +711,7 @@ static inline GPerlArray *GPERL_VALUES(GPerlValue arg)
 
 #define GPERL_ARRAY_SET(dst, src, idx) do {								\
 		GPerlArray *a =(GPerlArray *)getObject(stack[dst]);				\
-		if (a->size > I(idx)) {									\
+		if (a->size > I(idx)) {											\
 			a->list[I(idx)] = reg[src];									\
 		} else {														\
 			size_t new_size = I(idx);									\
@@ -769,6 +791,10 @@ static inline GPerlArray *GPERL_VALUES(GPerlValue arg)
 #define GPERL_HASH_gSET(dst, src, idx)
 #define GPERL_HASH_DREF(dst, src)
 
+#define GPERL_CODE_REF(dst, src) do {									\
+		OBJECT_init(reg[dst], new_GPerlFunc(pc->name, func_memory[src])); \
+	} while (0);
+
 #define GPERL_EACH_INIT(dst, src) do {									\
 		GPerlArray *a = (GPerlArray *)getObject(stack[src]);			\
 		OBJECT_init(stack[dst], new_GPerlInitArray(a->list, a->size));	\
@@ -776,6 +802,11 @@ static inline GPerlArray *GPERL_VALUES(GPerlValue arg)
 
 #define GPERL_EACH_gINIT(dst, src) do {									\
 		GPerlArray *a = (GPerlArray *)getObject(global_vmemory[src]);	\
+		OBJECT_init(stack[dst], new_GPerlInitArray(a->list, a->size));	\
+	} while (0);
+
+#define GPERL_EACH_rINIT(dst, src) do {									\
+		GPerlArray *a = (GPerlArray *)getObject(reg[src]);				\
 		OBJECT_init(stack[dst], new_GPerlInitArray(a->list, a->size));	\
 	} while (0);
 
