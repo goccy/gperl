@@ -373,40 +373,16 @@ static inline GPerlArray *GPERL_VALUES(GPerlValue arg)
 #define GPERL_FUNCSET(func, dst) setToFuncMemory(func, dst)
 #define GPERL_SETv(name, dst)
 
-#define GPERL_CLOSURE(dst, src, NAME) do {					\
-		GPerlFunc *f = (GPerlFunc *)getObject(reg[src]);	\
-		top   = f->code;									\
-		callstack++;										\
-		callstack->ebp = stack;								\
-		stack += pc->cur_stack_top;							\
-		reg = callstack->reg;								\
-		argstack = callstack->argstack;						\
-		callstack->ret_addr = &&L_##NAME##AFTER;			\
-		callstack->pc = pc;									\
-		pc = top;											\
-		GOTO_NEXTOP();										\
-	L_##NAME##AFTER:										\
-		pc = callstack->pc;									\
-		(callstack-1)->reg[dst] = reg[0];					\
-		stack = callstack->ebp;								\
-		callstack--;										\
-		reg = callstack->reg;								\
-		argstack = callstack->argstack;						\
-	} while (0);
-
-
-#define GPERL_CALL(dst, src, NAME) {				\
-		code_ = func_memory[src];					\
-		top   = code_;								\
+#define PROLOGUE(NAME) do {							\
 		callstack++;								\
 		callstack->ebp = stack;						\
 		stack += pc->cur_stack_top;					\
-		reg = callstack->reg;						\
 		argstack = callstack->argstack;				\
 		callstack->ret_addr = &&L_##NAME##AFTER;	\
 		callstack->pc = pc;							\
-		pc = top;									\
-		GOTO_NEXTOP();								\
+	} while (0);
+
+#define EPILOGUE(dst, NAME) do {					\
 	L_##NAME##AFTER:								\
 		pc = callstack->pc;							\
 		(callstack-1)->reg[dst] = reg[0];			\
@@ -414,205 +390,110 @@ static inline GPerlArray *GPERL_VALUES(GPerlValue arg)
 		callstack--;								\
 		reg = callstack->reg;						\
 		argstack = callstack->argstack;				\
+	} while (0);
+
+#define INVOKE_FUNC() do {						\
+		reg = callstack->reg;					\
+		pc = top;								\
+		GOTO_NEXTOP();							\
+	} while (0);
+
+#define GPERL_CLOSURE(dst, src, NAME) do {					\
+		GPerlFunc *f = (GPerlFunc *)getObject(reg[src]);	\
+		top   = f->code;									\
+		PROLOGUE(NAME);										\
+		INVOKE_FUNC();										\
+		EPILOGUE(dst, NAME);								\
+	} while (0);
+
+#define GPERL_CALL(dst, src, NAME) {				\
+		code_ = func_memory[src];					\
+		top   = code_;								\
+		PROLOGUE(NAME);								\
+		INVOKE_FUNC();								\
+		EPILOGUE(dst, NAME);						\
 	}
 
 #define GPERL_FASTCALL0(arg0, dst, src, NAME) {		\
 		code_ = func_memory[src];					\
 		top   = code_;								\
-		callstack++;								\
-		callstack->ebp = stack;						\
-		stack += pc->cur_stack_top;					\
-		argstack = callstack->argstack;				\
+		PROLOGUE(NAME);								\
 		argstack[0] = reg[arg0];					\
-		reg = callstack->reg;						\
-		callstack->ret_addr = &&L_##NAME##AFTER;	\
-		callstack->pc = pc;							\
-		pc = top;									\
-		GOTO_NEXTOP();								\
-	L_##NAME##AFTER:								\
-		pc = callstack->pc;							\
-		(callstack-1)->reg[dst] = reg[0];			\
-		stack = callstack->ebp;						\
-		callstack--;								\
-		reg = callstack->reg;						\
-		argstack = callstack->argstack;				\
+		INVOKE_FUNC();								\
+		EPILOGUE(dst, NAME);						\
 	}
 
 #define GPERL_FASTCALL1(arg0, arg1, dst, src, NAME) {	\
-		code_ = func_memory[src];					\
-		top   = code_;								\
-		callstack++;								\
-		callstack->ebp = stack;						\
-		stack += pc->cur_stack_top;					\
-		argstack = callstack->argstack;				\
-		argstack[0] = reg[arg0];					\
-		argstack[1] = reg[arg1];					\
-		reg = callstack->reg;						\
-		callstack->ret_addr = &&L_##NAME##AFTER;	\
-		callstack->pc = pc;							\
-		pc = top;									\
-		GOTO_NEXTOP();								\
-	L_##NAME##AFTER:								\
-		pc = callstack->pc;							\
-		(callstack-1)->reg[dst] = reg[0];			\
-		stack = callstack->ebp;						\
-		callstack--;								\
-		reg = callstack->reg;						\
-		argstack = callstack->argstack;				\
+		code_ = func_memory[src];						\
+		top   = code_;									\
+		PROLOGUE(NAME);									\
+		argstack[0] = reg[arg0];						\
+		argstack[1] = reg[arg1];						\
+		INVOKE_FUNC();									\
+		EPILOGUE(dst, NAME);							\
 	}
 
 #define GPERL_FASTCALL2(arg0, arg1, arg2, dst, src, NAME) {	\
-		code_ = func_memory[src];					\
-		top   = code_;								\
-		callstack++;								\
-		callstack->ebp = stack;						\
-		stack += pc->cur_stack_top;					\
-		argstack = callstack->argstack;				\
-		argstack[0] = reg[arg0];					\
-		argstack[1] = reg[arg1];					\
-		argstack[2] = reg[arg2];					\
-		reg = callstack->reg;						\
-		callstack->ret_addr = &&L_##NAME##AFTER;	\
-		callstack->pc = pc;							\
-		pc = top;									\
-		GOTO_NEXTOP();								\
-	L_##NAME##AFTER:								\
-		pc = callstack->pc;							\
-		(callstack-1)->reg[dst] = reg[0];			\
-		stack = callstack->ebp;						\
-		callstack--;								\
-		reg = callstack->reg;						\
-		argstack = callstack->argstack;				\
+		code_ = func_memory[src];							\
+		top   = code_;										\
+		PROLOGUE(NAME);										\
+		argstack[0] = reg[arg0];							\
+		argstack[1] = reg[arg1];							\
+		argstack[2] = reg[arg2];							\
+		INVOKE_FUNC();										\
+		EPILOGUE(dst, NAME);								\
 	}
 
 #define GPERL_FASTCALL3(arg0, arg1, arg2, arg3, dst, src, NAME) {	\
-		code_ = func_memory[src];					\
-		top   = code_;								\
-		callstack++;								\
-		callstack->ebp = stack;						\
-		stack += pc->cur_stack_top;					\
-		argstack = callstack->argstack;				\
-		argstack[0] = reg[arg0];					\
-		argstack[1] = reg[arg1];					\
-		argstack[2] = reg[arg2];					\
-		argstack[3] = reg[arg3];					\
-		reg = callstack->reg;						\
-		callstack->ret_addr = &&L_##NAME##AFTER;	\
-		callstack->pc = pc;							\
-		pc = top;									\
-		GOTO_NEXTOP();								\
-	L_##NAME##AFTER:								\
-		pc = callstack->pc;							\
-		(callstack-1)->reg[dst] = reg[0];			\
-		stack = callstack->ebp;						\
-		callstack--;								\
-		reg = callstack->reg;						\
-		argstack = callstack->argstack;				\
+		code_ = func_memory[src];									\
+		top   = code_;												\
+		PROLOGUE(NAME);												\
+		argstack[0] = reg[arg0];									\
+		argstack[1] = reg[arg1];									\
+		argstack[2] = reg[arg2];									\
+		argstack[3] = reg[arg3];									\
+		INVOKE_FUNC();												\
+		EPILOGUE(dst, NAME);										\
 	}
 
 #define GPERL_SELFCALL(dst, NAME) {					\
-		callstack++;								\
-		callstack->ebp = stack;						\
-		stack += pc->cur_stack_top;					\
-		reg = callstack->reg;						\
-		callstack->argstack_set_ptr = argstack;		\
-		callstack->ret_addr = &&L_##NAME##AFTER;	\
-		callstack->pc = pc;							\
-		pc = top;									\
-		GOTO_NEXTOP();								\
-	L_##NAME##AFTER:								\
-		pc = callstack->pc;							\
-		(callstack-1)->reg[dst] = reg[0];			\
-		stack = callstack->ebp;						\
-		callstack--;								\
-		reg = callstack->reg;						\
-		argstack = callstack->argstack;				\
+		PROLOGUE(NAME);								\
+		INVOKE_FUNC();								\
+		EPILOGUE(dst, NAME);						\
 	}
 
 #define GPERL_SELF_FASTCALL0(arg0, dst, NAME) {		\
-		callstack++;								\
-		callstack->ebp = stack;						\
-		stack += pc->cur_stack_top;					\
-		argstack = callstack->argstack;				\
+		PROLOGUE(NAME);								\
 		argstack[0] = reg[arg0];					\
-		reg = callstack->reg;						\
-		callstack->ret_addr = &&L_##NAME##AFTER;	\
-		callstack->pc = pc;							\
-		pc = top;									\
-		GOTO_NEXTOP();								\
-	L_##NAME##AFTER:								\
-		pc = callstack->pc;							\
-		(callstack-1)->reg[dst] = reg[0];			\
-		stack = callstack->ebp;						\
-		callstack--;								\
-		reg = callstack->reg;						\
-		argstack = callstack->argstack;				\
+		INVOKE_FUNC();								\
+		EPILOGUE(dst, NAME);						\
 	}
 
 #define GPERL_SELF_FASTCALL1(arg0, arg1, dst, NAME) {	\
-		callstack++;									\
-		callstack->ebp = stack;							\
-		stack += pc->cur_stack_top;						\
-		argstack = callstack->argstack;					\
+		PROLOGUE(NAME);									\
 		argstack[0] = reg[arg0];						\
 		argstack[1] = reg[arg1];						\
-		reg = callstack->reg;							\
-		callstack->ret_addr = &&L_##NAME##AFTER;		\
-		callstack->pc = pc;								\
-		pc = top;										\
-		GOTO_NEXTOP();									\
-	L_##NAME##AFTER:									\
-		pc = callstack->pc;								\
-		(callstack-1)->reg[dst] = reg[0];				\
-		stack = callstack->ebp;							\
-		callstack--;									\
-		reg = callstack->reg;							\
-		argstack = callstack->argstack;					\
+		INVOKE_FUNC();									\
+		EPILOGUE(dst, NAME);							\
 	}
 
 #define GPERL_SELF_FASTCALL2(arg0, arg1, arg2, dst, NAME) {	\
-		callstack++;									\
-		callstack->ebp = stack;							\
-		stack += pc->cur_stack_top;						\
-		argstack = callstack->argstack;					\
-		argstack[0] = reg[arg0];						\
-		argstack[1] = reg[arg1];						\
-		argstack[2] = reg[arg2];						\
-		reg = callstack->reg;							\
-		callstack->ret_addr = &&L_##NAME##AFTER;		\
-		callstack->pc = pc;								\
-		pc = top;										\
-		GOTO_NEXTOP();									\
-	L_##NAME##AFTER:									\
-		pc = callstack->pc;								\
-		(callstack-1)->reg[dst] = reg[0];				\
-		stack = callstack->ebp;							\
-		callstack--;									\
-		reg = callstack->reg;							\
-		argstack = callstack->argstack;					\
+		PROLOGUE(NAME);										\
+		argstack[0] = reg[arg0];							\
+		argstack[1] = reg[arg1];							\
+		argstack[2] = reg[arg2];							\
+		INVOKE_FUNC();										\
+		EPILOGUE(dst, NAME);								\
 	}
 
 #define GPERL_SELF_FASTCALL3(arg0, arg1, arg2, arg3, dst, NAME) {	\
-		callstack++;									\
-		callstack->ebp = stack;							\
-		stack += pc->cur_stack_top;						\
-		argstack = callstack->argstack;					\
-		argstack[0] = reg[arg0];						\
-		argstack[1] = reg[arg1];						\
-		argstack[2] = reg[arg2];						\
-		argstack[3] = reg[arg3];						\
-		reg = callstack->reg;							\
-		callstack->ret_addr = &&L_##NAME##AFTER;		\
-		callstack->pc = pc;								\
-		pc = top;										\
-		GOTO_NEXTOP();									\
-	L_##NAME##AFTER:									\
-		pc = callstack->pc;								\
-		(callstack-1)->reg[dst] = reg[0];				\
-		stack = callstack->ebp;							\
-		callstack--;									\
-		reg = callstack->reg;							\
-		argstack = callstack->argstack;					\
+		PROLOGUE(NAME);												\
+		argstack[0] = reg[arg0];									\
+		argstack[1] = reg[arg1];									\
+		argstack[2] = reg[arg2];									\
+		argstack[3] = reg[arg3];									\
+		INVOKE_FUNC();												\
+		EPILOGUE(dst, NAME);										\
 	}
 
 #define GPERL_JIT_CALL(src, env) {                              \
@@ -789,7 +670,15 @@ static inline GPerlArray *GPERL_VALUES(GPerlValue arg)
 
 #define GPERL_HASH_SET(dst, src, idx)
 #define GPERL_HASH_gSET(dst, src, idx)
-#define GPERL_HASH_DREF(dst, src)
+#define GPERL_HASH_DREF(dst, src) do {									\
+		root.callstack_top = callstack;									\
+		root.stack_top_idx = pc->cur_stack_top;							\
+		callstack->cur_pc = pc;											\
+		GPerlHash *ref_h = (GPerlHash *)getObject(reg[src]);			\
+		GPerlHash *h = GPerlHash_copy(ref_h);							\
+		h->h.type = Hash;												\
+		OBJECT_init(reg[dst], h);										\
+	} while (0);
 
 #define GPERL_CODE_REF(dst, src) do {									\
 		OBJECT_init(reg[dst], new_GPerlFunc(pc->name, func_memory[src])); \

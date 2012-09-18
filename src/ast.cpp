@@ -150,7 +150,7 @@ void GPerlAST::draw(GraphvizGraph *graph, GPerlCell *c, GraphvizNode *node)
 				}
 			}
 		}
-	} else if (c->type == List || c->type == ArrayRef) {
+	} else if (c->type == List || c->type == ArrayRef || c->type == HashRef) {
 		for (int i = 0; i < c->argsize; i++) {
 			GPerlCell *val = c->vargs[i];
 			const char *to_name = val->rawstr.c_str();

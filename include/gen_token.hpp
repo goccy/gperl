@@ -41,6 +41,8 @@ typedef enum {
 	HashDereference,
 	Key,
 	Arrow,
+	Pointer,
+	Package,
 	Shift,
 	CallDecl,
 	CodeRef,

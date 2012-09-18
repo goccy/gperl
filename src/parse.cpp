@@ -207,6 +207,11 @@ void GPerlParser::parseValue(GPerlToken *t, GPerlNodes *blocks, GPerlScope *scop
 			scope->root->type = ArrayRef;
 			scope->root->indent = indent;
 			blocks->pushNode(scope->root);
+		} else if (scope && scope->root->argsize > 1 && type == LeftBrace) {
+			DBG_PL("HashRef");
+			scope->root->type = HashRef;
+			scope->root->indent = indent;
+			blocks->pushNode(scope->root);
 		} else if (scope && scope->size > 1) {
 			DBG_PL("cond @forstmt");
 			GPerlCell *b = scope->root;
@@ -319,7 +324,7 @@ GPerlAST *GPerlParser::parse(void)
 			}
 			break;
 		case Add: case Sub: case Mul: case Div: case Greater: case Less: case StringAdd: case Arrow:
-		case GreaterEqual: case LessEqual: case EqualEqual: case NotEqual: case Inc: case Dec:
+		case GreaterEqual: case LessEqual: case EqualEqual: case NotEqual: case Inc: case Dec: case Pointer:
 		case LeftShift: case RightShift: {
 			DBG_PL("[%s]:LAST BLOCK->PARENT", cstr(t->data));
 			GPerlCell *block = blocks.lastNode();
@@ -558,6 +563,9 @@ GPerlAST *GPerlParser::parse(void)
 					GPerlScope *scope = new GPerlScope();
 					scope->add(b);
 					parseValue(t, &blocks, scope);
+				} else if (node->argsize > 0) {
+					//HashReference
+					parseValue(t, &blocks, scope);
 				} else {
 					for (; node; node = node->next) {
 						ast->add(node);
@@ -582,7 +590,14 @@ GPerlAST *GPerlParser::parse(void)
 		}
 		case RightBrace: {
 			DBG_PL("RIGHT BRACE:");
-			if (ast->size == 0 && blocks.block_num == 1) {
+			if (root->argsize > 0) {
+				//HashReference
+				GPerlCell *stmt = blocks.at(0);
+				GPerlCell *v = root;
+				v->vargs[v->argsize] = stmt;
+				v->argsize++;
+				ast->add(root);
+			} else if (ast->size == 0 && blocks.block_num == 1) {
 				//for {Array/Hash}Dereference
 				ast->add(blocks.lastNode());
 			} else {
@@ -593,7 +608,8 @@ GPerlAST *GPerlParser::parse(void)
 			return ast;
 		}
 		case LeftParenthesis: {
-			if (prev_type != BuiltinFunc && prev_type != Call && prev_type != CodeVar) {
+			if (prev_type != BuiltinFunc && prev_type != Call &&
+				prev_type != CodeVar) {
 				condIndentFlag = true;
 				vcount = 0;
 				indent++;

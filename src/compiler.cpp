@@ -613,7 +613,7 @@ GPerlVirtualMachineCode *GPerlCompiler::createVMCode(GPerlCell *c)
 	switch (c->type) {
 	case Int: case Double:
 	case String: case List: case Key:
-	case ArrayRef: case CodeRef:
+	case ArrayRef: case HashRef: case CodeRef:
 		setMOV(code, c);
 		break;
 	case Add:
@@ -670,6 +670,9 @@ GPerlVirtualMachineCode *GPerlCompiler::createVMCode(GPerlCell *c)
 	case ArrayDereference:
 		setArrayDereference(code, c);
 		break;
+	case HashDereference:
+		setHashDereference(code, c);
+		break;
 	case IfStmt: case WhileStmt: case ForStmt: case ElsifStmt: case ForeachStmt:
 		code->op = NOP;
 		break;
@@ -719,6 +722,7 @@ GPerlVirtualMachineCode *GPerlCompiler::createVMCode(GPerlCell *c)
 		code->src = dst-1;
 		break;
 	default:
+		code->op = NOP;
 		break;
 	}
 	setEscapeStackNum(code, c);
@@ -770,7 +774,7 @@ void GPerlCompiler::setMOV(GPerlVirtualMachineCode *code, GPerlCell *c)
 		init_values[init_value_idx] = code->v;
 		init_value_idx++;
 		break;
-	case List: case ArrayRef: {
+	case List: case ArrayRef: case HashRef: {
 		size_t argsize = c->argsize;
 		int dststack[argsize * 2];
 		GPerlT typestack[argsize * 2];
@@ -805,16 +809,20 @@ void GPerlCompiler::setMOV(GPerlVirtualMachineCode *code, GPerlCell *c)
 		code->op = NEW;
 		size_t size = sizeof(GPerlValue) * (c->argsize + 1);
 		GPerlValue *list = (GPerlValue *)safe_malloc(size);
-		if (cstr(c->parent->left->vname)[0] == '%') {
+		if (cstr(c->parent->left->vname)[0] == '%' || c->type == HashRef) {
 			OBJECT_init(code->v, new_GPerlInitHash(list, c->argsize));
 			code->_new = new_GPerlHash;
+			if (type == HashRef) {
+				GPerlHash *h = (GPerlHash *)getObject(code->v);
+				h->h.type = HashRef;
+			}
 		} else {
 			OBJECT_init(code->v, new_GPerlInitArray(list, c->argsize));
+			code->_new = new_GPerlArray;
 			if (type == ArrayRef) {
 				GPerlArray *a = (GPerlArray *)getObject(code->v);
 				a->h.type = ArrayRef;
 			}
-			code->_new = new_GPerlArray;
 		}
 		args_count = 0;
 		init_values[init_value_idx] = code->v;
@@ -897,6 +905,15 @@ void GPerlCompiler::setArrayDereference(GPerlVirtualMachineCode *code, GPerlCell
 	dst++;
 }
 
+void GPerlCompiler::setHashDereference(GPerlVirtualMachineCode *code, GPerlCell *c_)
+{
+	(void)c_;
+	code->op = HASH_DREF;
+	code->src = dst-1;
+	code->dst = dst;
+	dst++;
+}
+
 void GPerlCompiler::setArraySet(GPerlVirtualMachineCode *, GPerlCell *)
 {
 	DBG_PL("ArraySet");
@@ -955,25 +972,41 @@ void GPerlCompiler::setHashAt(GPerlVirtualMachineCode *code, GPerlCell *c_)
 		c_->type = HashSet;
 		return;
 	}
-	GPerlCell *c = c_->left;
-	c->vname.replace(0, 1, "%");
-	c->fname.replace(0, 1, "%");
-	c->rawstr.replace(0, 1, "%");
 	int idx = 0;
-	if (reg_type[dst - 1] == String) {
-		idx = codes->back()->v.ivalue;
-		dst--;
-		popVMCode();//remove MOV
-		char *key = c_->right->data.sdata;
-		code->hash = hash(key, strlen(key) + 1) % HASH_TABLE_SIZE;
-		setInstByVMap(code, c, HASH_ATC, HASH_gATC, &idx);
+	if (c_->left->type == Pointer) {
+		//HashRefAt
+		GPerlCell *c = c_->left->left;
+		if (reg_type[dst - 1] == String) {
+			idx = codes->back()->v.ivalue;
+			dst--;
+			popVMCode();//remove MOV
+			char *key = c_->right->data.sdata;
+			code->hash = hash(key, strlen(key) + 1) % HASH_TABLE_SIZE;
+			setInstByVMap(code, c, HASH_ATC, HASH_gATC, &idx);
+		} else {
+			setInstByVMap(code, c, HASH_AT, HASH_gAT, &idx);
+			code->idx = dst-1;
+		}
 	} else {
-		setInstByVMap(code, c, HASH_AT, HASH_gAT, &idx);
-		code->idx = dst-1;
+		GPerlCell *c = c_->left;
+		c->vname.replace(0, 1, "%");
+		c->fname.replace(0, 1, "%");
+		c->rawstr.replace(0, 1, "%");
+		if (reg_type[dst - 1] == String) {
+			idx = codes->back()->v.ivalue;
+			dst--;
+			popVMCode();//remove MOV
+			char *key = c_->right->data.sdata;
+			code->hash = hash(key, strlen(key) + 1) % HASH_TABLE_SIZE;
+			setInstByVMap(code, c, HASH_ATC, HASH_gATC, &idx);
+		} else {
+			setInstByVMap(code, c, HASH_AT, HASH_gAT, &idx);
+			code->idx = dst-1;
+		}
+		c->vname.replace(0, 1, "$");
+		c->fname.replace(0, 1, "$");
+		c->rawstr.replace(0, 1, "$");
 	}
-	c->vname.replace(0, 1, "$");
-	c->fname.replace(0, 1, "$");
-	c->rawstr.replace(0, 1, "$");
 	code->src = idx;
 	code->dst = dst;
 	reg_type[dst] = Object;
@@ -1126,6 +1159,8 @@ void GPerlCompiler::setLET(GPerlVirtualMachineCode *code, GPerlCell *c)
 		var->vname.replace(0, 1, "$");
 		var->fname.replace(0, 1, "$");
 		var->rawstr.replace(0, 1, "$");
+	} else if (c->left->type == HashSet) {
+
 	} else {
 		c->indent = c->left->indent;
 		setInstByVMap(code, c, LET, gLET, &idx);

@@ -137,6 +137,12 @@ int GPerlTokenizer::scanSymbol(GPerlTokens *tks, char symbol, char next_ch)
 			token_idx = 0;
 			escapeFlag = false;
 			return ret;
+		} else if (token[0] == '%' && symbol == '{') {
+			tks->push_back(new GPerlToken("%{"));
+			memset(token, 0, max_token_size);
+			token_idx = 0;
+			escapeFlag = false;
+			return ret;
 		} else {
 			tks->push_back(new GPerlToken(string(token)));
 			memset(token, 0, max_token_size);
@@ -167,7 +173,8 @@ int GPerlTokenizer::scanSymbol(GPerlTokens *tks, char symbol, char next_ch)
 			   (symbol == '>' && next_ch == '>') ||
 			   (symbol == '+' && next_ch == '+') ||
 			   (symbol == '=' && next_ch == '>') ||
-			   (symbol == '-' && next_ch == '-')) {
+			   (symbol == '-' && next_ch == '-') ||
+			   (symbol == '-' && next_ch == '>')) {
 		tmp[0] = symbol;
 		tmp[1] = next_ch;
 		tks->push_back(new GPerlToken(string(tmp)));
@@ -197,6 +204,12 @@ void GPerlTokenizer::scanSymbol(GPerlTokens *tks, char symbol)
 	if (token[0] != EOL) {
 		if (token[0] == '@' && symbol == '{') {
 			tks->push_back(new GPerlToken("@{"));
+			memset(token, 0, max_token_size);
+			token_idx = 0;
+			escapeFlag = false;
+			return;
+		} else if (token[0] == '%' && symbol == '{') {
+			tks->push_back(new GPerlToken("%{"));
 			memset(token, 0, max_token_size);
 			token_idx = 0;
 			escapeFlag = false;
@@ -449,18 +462,19 @@ void GPerlTokenizer::annotateTokens(vector<GPerlToken *> *tokens)
 			data == "-="    || data == "*="    ||
 			data == "/="    || data == ".="    ||
 			data == "++"    || data == "--"    ||
-			data == ";"     || data == "=>"    ||
-			data == ","     || data == ","     ||
+			data == ";"     || data == ","     ||
+			data == "->"    || data == "=>"    ||
 			data == "&"     || data == "\\&"   ||
-			data == "("     ||
-			data == ")"     || data == "{"     ||
-			data == "}"     || data == "["     ||
-			data == "]"     || data == "@{"    ||
-			data == "%{"    || data == "!"     ||
+			data == "("     || data == ")"     ||
+			data == "{"     || data == "}"     ||
+			data == "["     || data == "]"     ||
+			data == "@{"    || data == "%{"    ||
+			data == "!"     ||
 			data == "<<"    || data == ">>"    ||
 			data == "print" || data == "push"  ||
 			data == "ref"   || data == "undef" ||
 			data == "keys"  || data == "values" ||
+			data == "bless" || data == "package" ||
 			data == "if"    || data == "else"  ||
 			data == "elsif" || data == "unless"||
 			data == "my"    || data == "sub"   ||

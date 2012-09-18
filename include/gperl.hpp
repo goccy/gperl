@@ -428,6 +428,7 @@ public:
 	void setArrow(GPerlVirtualMachineCode *code, GPerlCell *c);
 	void setArraySet(GPerlVirtualMachineCode *code, GPerlCell *c);
 	void setArrayDereference(GPerlVirtualMachineCode *code, GPerlCell *c);
+	void setHashDereference(GPerlVirtualMachineCode *code, GPerlCell *c);
 	GPerlVirtualMachineCode *createTHCODE(void);
 	GPerlVirtualMachineCode *createRET(void);
 	GPerlVirtualMachineCode *createUNDEF(void);
@@ -582,6 +583,7 @@ extern GPerlArray *new_GPerlInitArray(GPerlValue *list, size_t asize);
 extern GPerlObject *new_GPerlArray(GPerlValue v, GPerlValue *args);
 extern GPerlHash *new_GPerlInitHash(GPerlValue *list, size_t asize);
 extern GPerlObject *new_GPerlHash(GPerlValue v, GPerlValue *args);
+extern GPerlHash *GPerlHash_copy(GPerlHash *h);
 extern GPerlString *new_GPerlInitString(char *s, size_t len);
 extern GPerlObject *new_GPerlString(GPerlValue v, GPerlValue *args);
 extern GPerlObject *new_GPerlFunc(const char *fname, GPerlVirtualMachineCode *code);

@@ -170,6 +170,11 @@
 	 "parse_func" : ""
  },
  {
+	 "type" : "BuiltinFunc",
+	 "data" : "bless",
+	 "parse_func" : ""
+ },
+ {
 	 "type" : "IfStmt",
 	 "data" : "if",
 	 "parse_func" : ""
@@ -247,6 +252,16 @@
  {
 	 "type" : "Arrow",
 	 "data" : "=>",
+	 "parse_func" : ""
+ },
+ {
+	 "type" : "Pointer",
+	 "data" : "->",
+	 "parse_func" : ""
+ },
+ {
+	 "type" : "Package",
+	 "data" : "package",
 	 "parse_func" : ""
  },
  {

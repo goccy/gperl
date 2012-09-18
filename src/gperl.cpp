@@ -127,7 +127,7 @@ GPerlValue GPerl::eval(char *script, int argc, char **argv)
 	DBG_PL("==============<PARSE>==============");
 	GPerlAST *ast = p->parse();
 #ifdef USING_GRAPH_DEBUG
-	ast->show();//graph debug with graphviz
+	//ast->show();//graph debug with graphviz
 #endif
 	GPerlCompiler compiler;
 	DBG_PL("=============<COMPILE>=============");

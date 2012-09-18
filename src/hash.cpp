@@ -129,3 +129,18 @@ GPerlObject *new_GPerlHash(GPerlValue v, GPerlValue *args)
 	ret->h.type = h->h.type;
 	return (GPerlObject *)ret;
 }
+
+GPerlHash *GPerlHash_copy(GPerlHash *h)
+{
+	GPerlHash *ret = (GPerlHash *)mm->gmalloc();
+	size_t size = sizeof(GPerlValue) * HASH_TABLE_SIZE;
+	ret->table = (GPerlValue *)safe_malloc(size);
+	memcpy(ret->table, h->table, size);
+	ret->size = h->size;
+	ret->keys = h->keys;
+	ret->h.type = h->h.type;
+	ret->write = Hash_write;
+	ret->h.mark = Hash_mark;
+	ret->h.free = Hash_free;
+	return ret;
+}
