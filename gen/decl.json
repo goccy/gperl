@@ -145,6 +145,36 @@
 	 "parse_func" : ""
  },
  {
+	 "type" : "BuiltinFunc",
+	 "data" : "sqrt",
+	 "parse_func" : ""
+ },
+ {
+	 "type" : "BuiltinFunc",
+	 "data" : "map",
+	 "parse_func" : ""
+ },
+ {
+	 "type" : "BuiltinFunc",
+	 "data" : "grep",
+	 "parse_func" : ""
+ },
+ {
+	 "type" : "BuiltinFunc",
+	 "data" : "keys",
+	 "parse_func" : ""
+ },
+ {
+	 "type" : "BuiltinFunc",
+	 "data" : "values",
+	 "parse_func" : ""
+ },
+ {
+	 "type" : "BuiltinFunc",
+	 "data" : "bless",
+	 "parse_func" : ""
+ },
+ {
 	 "type" : "IfStmt",
 	 "data" : "if",
 	 "parse_func" : ""
@@ -210,6 +240,31 @@
 	 "parse_func" : ""
  },
  {
+	 "type" : "HashDereference",
+	 "data" : "%{",
+	 "parse_func" : ""
+ },
+ {
+	 "type" : "Key",
+	 "data" : "",
+	 "parse_func" : ""
+ },
+ {
+	 "type" : "Arrow",
+	 "data" : "=>",
+	 "parse_func" : ""
+ },
+ {
+	 "type" : "Pointer",
+	 "data" : "->",
+	 "parse_func" : ""
+ },
+ {
+	 "type" : "Package",
+	 "data" : "package",
+	 "parse_func" : ""
+ },
+ {
 	 "type" : "Shift",
 	 "data" : "shift",
 	 "parse_func" : ""
@@ -217,6 +272,11 @@
  {
 	 "type" : "CallDecl",
 	 "data" : "&",
+	 "parse_func" : ""
+ },
+ {
+	 "type" : "CodeRef",
+	 "data" : "\\&",
 	 "parse_func" : ""
  },
  {
@@ -290,7 +350,17 @@
 	 "parse_func" : ""
  },
  {
+	 "type" : "CodeVar",
+	 "data" : "",
+	 "parse_func" : ""
+ },
+ {
 	 "type" : "ArrayVar",
+	 "data" : "",
+	 "parse_func" : ""
+ },
+ {
+	 "type" : "HashVar",
 	 "data" : "",
 	 "parse_func" : ""
  },
@@ -320,6 +390,11 @@
 	 "parse_func" : ""
  },
  {
+	 "type" : "Hash",
+	 "data" : "",
+	 "parse_func" : ""
+ },
+ {
 	 "type" : "Operator",
 	 "data" : "",
 	 "parse_func" : ""
@@ -335,6 +410,11 @@
 	 "parse_func" : ""
  },
  {
+	 "type" : "LocalHashVar",
+	 "data" : "",
+	 "parse_func" : ""
+ },
+ {
 	 "type" : "GlobalVar",
 	 "data" : "",
 	 "parse_func" : ""
@@ -345,12 +425,37 @@
 	 "parse_func" : ""
  },
  {
+	 "type" : "GlobalHashVar",
+	 "data" : "",
+	 "parse_func" : ""
+ },
+ {
 	 "type" : "ArrayRef",
 	 "data" : "",
 	 "parse_func" : ""
  },
  {
+	 "type" : "HashRef",
+	 "data" : "",
+	 "parse_func" : ""
+ },
+ {
 	 "type" : "ArrayAt",
+	 "data" : "",
+	 "parse_func" : ""
+ },
+ {
+	 "type" : "HashAt",
+	 "data" : "",
+	 "parse_func" : ""
+ },
+ {
+	 "type" : "ArraySet",
+	 "data" : "",
+	 "parse_func" : ""
+ },
+ {
+	 "type" : "HashSet",
 	 "data" : "",
 	 "parse_func" : ""
  },

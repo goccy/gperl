@@ -166,21 +166,19 @@ GPerlObject* GPerlMemoryManager::gmalloc(void) {
 
 void GPerlMemoryManager::mark(GPerlValue v) {
 	switch (TYPE_CHECK(v)) {
-		case 2: {
-					//DBG_PL("MARKING");
-					GPerlString *s = getStringObj(v);
-					//s->h.mark_flag = 1;
-					MARK_SET(s);
-					break;
-				}
-		case 3: {
-					GPerlObject *o = (GPerlObject *)getObject(v);
-					//if (!o->h.mark_flag) o->mark(o);
-					if (!IS_Marked(o)) o->mark(o);
-					break;
-				}
-		default:
-				break;
+	case 2: {
+		//DBG_PL("MARKING");
+		GPerlString *s = getStringObj(v);
+		s->h.mark_flag = 1;
+		break;
+	}
+	case 3: {
+		GPerlObject *o = (GPerlObject *)getObject(v);
+		if (!o->h.mark_flag) o->h.mark(o);
+		break;
+	}
+	default:
+		break;
 	}
 }
 
@@ -257,9 +255,9 @@ void GPerlMemoryManager::sweep(void) {
 		GPerlObject* o = p->head;
 		GPerlObject* tail = p->tail;
 		while (o < tail) {
-			if (!IS_Marked(o) && o->free) {
+			if (!IS_Marked(o) && o->h.free) {
 				//DBG_PL("FREE!!");
-				o->free(o);
+				o->h.free(o);
 				MemoryManager_pushObject(o, freeList);
 #ifdef DEBUG_MODE
 				dead_count++;

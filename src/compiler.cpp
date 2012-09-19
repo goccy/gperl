@@ -51,10 +51,13 @@ void GPerlCompiler::compile_(GPerlCell *path)
 		GPerlCell *branch = parent->right;
 		if (branch) {
 			if (branch == path) return;
-			if (isRIGHT_LEAF_NODE(branch)) {
-				genVMCode(branch);
-			} else if (isNotFALSE_STMT(parent)) {
-				compile_(branch);
+			if (parent->type != AddEqual && parent->type != SubEqual &&
+				parent->type != MulEqual && parent->type != DivEqual) {
+				if (isRIGHT_LEAF_NODE(branch)) {
+					genVMCode(branch);
+				} else if (isNotFALSE_STMT(parent)) {
+					compile_(branch);
+				}
 			}
 		}
 		genVMCode(parent);
@@ -64,7 +67,7 @@ void GPerlCompiler::compile_(GPerlCell *path)
 
 void GPerlCompiler::genVMCode(GPerlCell *path) {
 	GPerlVirtualMachineCode *code;
-	if (path->type == Call || path->type == BuiltinFunc) {
+	if (path->type == Call || path->type == BuiltinFunc || path->type == CodeVar) {
 		genFunctionCallCode(path);
 	} else if (path->type == IfStmt || path->type == ElsifStmt) {
 		genIfStmtCode(path);
@@ -72,6 +75,8 @@ void GPerlCompiler::genVMCode(GPerlCell *path) {
 		genWhileStmtCode(path);
 	} else if (path->type == ForStmt) {
 		genForStmtCode(path);
+	} else if (path->type == ForeachStmt) {
+		genForeachStmtCode(path);
 	} else if (path->type == Function) {
 		genFunctionCode(path);
 		return;
@@ -95,8 +100,8 @@ void GPerlCompiler::genFunctionCallCode(GPerlCell *p)
 		}
 	}
 	for (size_t i = 0; i < argsize; i++) {
-		if (p->type == Call || p->type == BuiltinFunc) {
-			addPushCode(i, dststack[i]);
+		if (p->type == Call || p->type == BuiltinFunc || p->type == CodeVar) {
+			addPushCode(i, dststack[i], p->vargs[i]->type);
 		}
 	}
 }
@@ -261,6 +266,89 @@ void GPerlCompiler::genForStmtCode(GPerlCell *path)
 	jmp->jmp = loop_start - cur_code_num;
 }
 
+void GPerlCompiler::genForeachStmtCode(GPerlCell *path)
+{
+	dst = 0;//reset dst number
+	DBG_PL("-------------genForeachStmtCode------------------");
+	int vidx = 0;
+	GPerlCell *array = NULL;
+	if (path->right && path->right->left) {
+		int idx;
+		//foreach my $var (@array)
+		//GPERL_EACH_INIT
+		GPerlCell *var = path->right;
+		string prefix = "";
+		for (int i = 0; i < var->indent; i++) {
+			prefix += string(NAME_RESOLUTION_PREFIX);
+		}
+		local_vmap[prefix + var->vname] = var->vidx;//TODO
+		GPerlVirtualMachineCode *code = new GPerlVirtualMachineCode();
+		setInstByVMap(code, var, LET, gLET, &idx);
+		vidx = idx;
+		code->dst = idx;
+		code->src = dst-1;
+		variable_types[idx] = reg_type[0];
+		declared_vname = NULL;
+		addVMCode(code);
+		dumpVMCode(code);
+
+		array = path->right->left;
+		code = new GPerlVirtualMachineCode();
+		setInstByVMap(code, array, LET, gLET, &idx);
+		if (code->op == gLET) {
+			code->op = EACH_gINIT;
+		} else {
+			code->op = EACH_INIT;
+		}
+		code->dst  = array->vidx;//TODO
+		code->src = idx;
+		variable_types[idx] = reg_type[0];
+		declared_vname = NULL;
+		addVMCode(code);
+		dumpVMCode(code);
+	} else if (path->right) {
+		//foreach (@array)
+		//GPERL_EACH_INIT
+		array = path->right;
+		GPerlVirtualMachineCode *code = createVMCode(array);
+		code->op = EACH_INIT;
+		addVMCode(code);
+		dumpVMCode(code);
+	} else {
+		fprintf(stderr, "SYNTAX ERROR : foreach stmt\n");
+	}
+	//GPERL_EACH_LET
+	GPerlVirtualMachineCode *each_let = new GPerlVirtualMachineCode();
+	each_let->op = EACH_LET;
+	each_let->dst = vidx;
+	each_let->src = array->vidx;
+	addVMCode(each_let);
+	dumpVMCode(each_let);
+	int loop_start = code_num;
+	dst = 0;
+	GPerlCell *true_stmt = path->true_stmt->root;
+	GPerlVirtualMachineCode *jmp = codes->at(code_num - 1);
+	int cond_code_num = code_num;
+	DBG_PL("-------------TRUE STMT--------------");
+	for (; true_stmt; true_stmt = true_stmt->next) {
+		GPerlCell *path = true_stmt;
+		compile_(path);
+		dst = 0;//reset dst number
+	}
+	//GPERL_EACH_STEP
+	GPerlVirtualMachineCode *each_step = new GPerlVirtualMachineCode();
+	each_step->op = EACH_STEP;
+	each_step->src = array->vidx;
+	addVMCode(each_step);
+	dumpVMCode(each_step);
+	jmp->jmp = code_num - cond_code_num + 2;// + 1/*OPNOP + OPJMP + 1*/;
+	int cur_code_num = code_num;
+	jmp = createJMP(1);
+	addVMCode(jmp);
+	dumpVMCode(jmp);
+	each_step->jmp = loop_start - cur_code_num;
+}
+
 void GPerlCompiler::addVMCode(GPerlVirtualMachineCode *code)
 {
 	codes->push_back(code);
@@ -295,9 +383,15 @@ void GPerlCompiler::addWriteCode(void)
 	}
 }
 
-void GPerlCompiler::addPushCode(int i, int dst_)
+void GPerlCompiler::addPushCode(int i, int dst_, GPerlT type)
 {
-	GPerlVirtualMachineCode *code = createPUSH(i, dst_);
+	GPerlVirtualMachineCode *code = NULL;
+	if (type == ArrayVar) {
+		code = createPUSH(i, dst_);
+		//code = createArrayPUSH(i, dst_);
+	} else {
+		code = createPUSH(i, dst_);
+	}
 	addVMCode(code);
 	dumpVMCode(code);
 }
@@ -414,6 +508,9 @@ void GPerlCompiler::finalCompile(vector<GPerlVirtualMachineCode *> *code)
 		case PUSH:
 			OPCREATE_TYPE2(PUSH);
 			break;
+		case aPUSH:
+			OPCREATE_TYPE2(aPUSH);
+			break;
 		case LET:
 			OPCREATE_TYPE2(LET);
 			break;
@@ -473,36 +570,40 @@ GPerlVirtualMachineCode *GPerlCompiler::getPureCodes(vector<GPerlVirtualMachineC
 #define DOUBLE(O) d ## O
 #define DOUBLEC(O) d ## O ## C
 
-#define SET_OPCODE(T) {							\
-		dst--;									\
-		code->src = dst;						\
-		switch (reg_type[dst - 1]) {			\
-		case Int:								\
-			code->op = INT(T);					\
-			break;								\
-		case Double:							\
-			code->op = DOUBLE(T);				\
-			break;								\
-		case Object:							\
-			switch (reg_type[dst]) {			\
-			case Int:							\
-				code->op = INTC(T);				\
-				code->src = codes->back()->src;	\
-				code->v = codes->back()->v;		\
-				popVMCode();					\
-				code->code_num = code_num;		\
-				break;							\
-			default:							\
-				code->op = T;					\
-				break;							\
-			}									\
-			break;								\
-		default:								\
-			code->op = T;						\
-			break;								\
-		}										\
-		code->dst = dst - 1;					\
-		code->jmp = 1;							\
+#define SET_OPCODE(T) {								\
+		dst--;										\
+		code->src = dst;							\
+		switch (reg_type[dst - 1]) {				\
+		case Int:									\
+			code->op = INT(T);						\
+			break;									\
+		case Double:								\
+			code->op = DOUBLE(T);					\
+			break;									\
+		case Object:								\
+			switch (reg_type[dst]) {				\
+			case Int:								\
+				if (codes->back()->op == MOV) {		\
+					code->op = INTC(T);				\
+					code->src = codes->back()->src;	\
+					code->v = codes->back()->v;		\
+					popVMCode();					\
+				} else {							\
+					code->op = T;					\
+				}									\
+				code->code_num = code_num;			\
+				break;								\
+			default:								\
+				code->op = T;						\
+				break;								\
+			}										\
+			break;									\
+		default:									\
+			code->op = T;							\
+			break;									\
+		}											\
+		code->dst = dst - 1;						\
+		code->jmp = 1;								\
 	}
 
 GPerlVirtualMachineCode *GPerlCompiler::createVMCode(GPerlCell *c)
@@ -511,8 +612,8 @@ GPerlVirtualMachineCode *GPerlCompiler::createVMCode(GPerlCell *c)
 	code->code_num = code_num;
 	switch (c->type) {
 	case Int: case Double:
-	case String: case List:
-	case ArrayRef:
+	case String: case List: case Key:
+	case ArrayRef: case HashRef: case CodeRef:
 		setMOV(code, c);
 		break;
 	case Add:
@@ -569,7 +670,10 @@ GPerlVirtualMachineCode *GPerlCompiler::createVMCode(GPerlCell *c)
 	case ArrayDereference:
 		setArrayDereference(code, c);
 		break;
-	case IfStmt: case WhileStmt: case ForStmt: case ElsifStmt:
+	case HashDereference:
+		setHashDereference(code, c);
+		break;
+	case IfStmt: case WhileStmt: case ForStmt: case ElsifStmt: case ForeachStmt:
 		code->op = NOP;
 		break;
 	case GlobalVarDecl: case LocalVarDecl: case VarDecl:
@@ -578,7 +682,8 @@ GPerlVirtualMachineCode *GPerlCompiler::createVMCode(GPerlCell *c)
 	case MultiGlobalVarDecl: case MultiLocalVarDecl:
 		setMultiSETv(code, c);
 		break;
-	case LocalVar: case Var: case ArrayVar:
+	case LocalVar: case Var: case ArrayVar: case CodeVar:
+	case HashVar: case SpecificValue:
 		setVMOV(code, c);
 		break;
 	case ArgumentArray:
@@ -596,11 +701,17 @@ GPerlVirtualMachineCode *GPerlCompiler::createVMCode(GPerlCell *c)
 	case Assign:
 		setLET(code, c);
 		break;
-	case AddEqual:
+	case AddEqual: case SubEqual: case MulEqual: case DivEqual:
 		setOpAssign(code, c);
 		break;
 	case ArrayAt:
 		setArrayAt(code, c);
+		break;
+	case Arrow:
+		setArrow(code, c);
+		break;
+	case HashAt:
+		setHashAt(code, c);
 		break;
 	case Function:
 		setFUNC(code, c);
@@ -611,6 +722,7 @@ GPerlVirtualMachineCode *GPerlCompiler::createVMCode(GPerlCell *c)
 		code->src = dst-1;
 		break;
 	default:
+		code->op = NOP;
 		break;
 	}
 	setEscapeStackNum(code, c);
@@ -654,7 +766,7 @@ void GPerlCompiler::setMOV(GPerlVirtualMachineCode *code, GPerlCell *c)
 		DOUBLE_init(code->v, c->data.ddata);
 		code->op = MOV;
 		break;
-	case String:
+	case String: case Key:
 		code->src = -1;
 		code->op = NEW_STRING;
 		code->_new = new_GPerlString;
@@ -662,52 +774,69 @@ void GPerlCompiler::setMOV(GPerlVirtualMachineCode *code, GPerlCell *c)
 		init_values[init_value_idx] = code->v;
 		init_value_idx++;
 		break;
-	case List: case ArrayRef: {
+	case List: case ArrayRef: case HashRef: {
 		size_t argsize = c->argsize;
-		int dststack[argsize];
-		for (size_t i = 0; i < argsize; i++) {
-			compile_(c->vargs[i]);
-			dststack[i] = dst;
-		}
-		for (size_t i = 0; i < argsize; i++) {
-			addPushCode(i, dststack[i]);
-		}
-		code->op = NEW;
-		code->_new = new_GPerlArray;
-		size_t size = sizeof(GPerlValue) * (c->argsize + 1);
-		GPerlValue *list = (GPerlValue *)safe_malloc(size);
-		/*
-		for (int i = 0; i < c->argsize; i++) {
-			GPerlCell *v = c->vargs[i];
-			switch (v->type) {
-			case Int:
-				INT_init(list[i], v->data.idata);
-				break;
-			case Double:
-				DOUBLE_init(list[i], v->data.ddata);
-				break;
-			case String:
-				STRING_init(list[i], new_GPerlInitString(v->data.sdata, strlen(v->data.sdata) + 1));
-				break;
-			case Object:
-				OBJECT_init(list[i], v->data.pdata);
-				break;
-			default:
-				break;
+		int dststack[argsize * 2];
+		GPerlT typestack[argsize * 2];
+		size_t fixed_argsize = argsize;
+		size_t j = 0;
+		for (size_t i = 0; i < argsize; i++, j++) {
+			if (c->vargs[i]->type == Arrow) {
+				GPerlCell *_key = c->vargs[i]->left;
+				GPerlCell *_value = c->vargs[i]->right;
+				GPerlVirtualMachineCode *key = createVMCode(_key);
+				addVMCode(key);
+				dumpVMCode(key);
+				dststack[j] = dst;
+				typestack[j] = _key->type;
+				j++;
+				GPerlVirtualMachineCode *value = createVMCode(_value);
+				addVMCode(value);
+				dumpVMCode(value);
+				dststack[j] = dst;
+				typestack[j] = _value->type;
+				fixed_argsize++;
+			} else {
+				compile_(c->vargs[i]);
+				dststack[i] = dst;
+				typestack[j] = c->vargs[i]->type;
 			}
 		}
-		*/
-		OBJECT_init(code->v, new_GPerlInitArray(list, c->argsize));
-		if (type == ArrayRef) {
-			GPerlArray *a = (GPerlArray *)getObject(code->v);
-			a->h.type = ArrayRef;
-		} else {
-			GPerlArray *a = (GPerlArray *)getObject(code->v);
-			a->h.type = Array;
+		c->argsize = fixed_argsize;
+		for (size_t i = 0; i < fixed_argsize; i++) {
+			addPushCode(i, dststack[i], typestack[i]);
 		}
+		code->op = NEW;
+		size_t size = sizeof(GPerlValue) * (c->argsize + 1);
+		GPerlValue *list = (GPerlValue *)safe_malloc(size);
+		if (cstr(c->parent->left->vname)[0] == '%' || c->type == HashRef) {
+			OBJECT_init(code->v, new_GPerlInitHash(list, c->argsize));
+			code->_new = new_GPerlHash;
+			if (type == HashRef) {
+				GPerlHash *h = (GPerlHash *)getObject(code->v);
+				h->h.type = HashRef;
+			}
+		} else {
+			OBJECT_init(code->v, new_GPerlInitArray(list, c->argsize));
+			code->_new = new_GPerlArray;
+			if (type == ArrayRef) {
+				GPerlArray *a = (GPerlArray *)getObject(code->v);
+				a->h.type = ArrayRef;
+			}
+		}
+		args_count = 0;
 		init_values[init_value_idx] = code->v;
 		init_value_idx++;
 		code->src = 0;
+		type = Object;
+		break;
+	}
+	case CodeRef: {
+		DBG_PL("CodeReference");
+		code->op = CODE_REF;
+		const char *fname = cstr(c->left->fname);
+		code->src = getFuncIndex(fname);
+		code->name = fname;
 		type = Object;
 		break;
 	}
@@ -776,8 +905,30 @@ void GPerlCompiler::setArrayDereference(GPerlVirtualMachineCode *code, GPerlCell
 	dst++;
 }
 
+void GPerlCompiler::setHashDereference(GPerlVirtualMachineCode *code, GPerlCell *c_)
+{
+	(void)c_;
+	code->op = HASH_DREF;
+	code->src = dst-1;
+	code->dst = dst;
+	dst++;
+}
+
+void GPerlCompiler::setArraySet(GPerlVirtualMachineCode *, GPerlCell *)
+{
+	DBG_PL("ArraySet");
+}
+
 void GPerlCompiler::setArrayAt(GPerlVirtualMachineCode *code, GPerlCell *c_)
 {
+	GPerlCell *parent = c_->parent;
+	if (parent && parent->left == c_ &&
+		(parent->type == Assign || parent->type == Inc || parent->type == Dec ||
+		 parent->type == ArrayAt)) {
+		code->op = NOP;
+		c_->type = ArraySet;
+		return;
+	}
 	GPerlCell *c = c_->left;
 	c->vname.replace(0, 1, "@");
 	c->fname.replace(0, 1, "@");
@@ -809,6 +960,63 @@ void GPerlCompiler::setArrayAt(GPerlVirtualMachineCode *code, GPerlCell *c_)
 	code->dst = dst;
 	reg_type[dst] = Object;
 	dst++;
+}
+
+void GPerlCompiler::setHashAt(GPerlVirtualMachineCode *code, GPerlCell *c_)
+{
+	GPerlCell *parent = c_->parent;
+	if (parent && parent->left == c_ &&
+		(parent->type == Assign || parent->type == Inc || parent->type == Dec ||
+		 parent->type == HashAt)) {
+		code->op = NOP;
+		c_->type = HashSet;
+		return;
+	}
+	int idx = 0;
+	if (c_->left->type == Pointer) {
+		//HashRefAt
+		GPerlCell *c = c_->left->left;
+		if (reg_type[dst - 1] == String) {
+			idx = codes->back()->v.ivalue;
+			dst--;
+			popVMCode();//remove MOV
+			char *key = c_->right->data.sdata;
+			code->hash = hash(key, strlen(key) + 1) % HASH_TABLE_SIZE;
+			setInstByVMap(code, c, HASH_ATC, HASH_gATC, &idx);
+		} else {
+			setInstByVMap(code, c, HASH_AT, HASH_gAT, &idx);
+			code->idx = dst-1;
+		}
+	} else {
+		GPerlCell *c = c_->left;
+		c->vname.replace(0, 1, "%");
+		c->fname.replace(0, 1, "%");
+		c->rawstr.replace(0, 1, "%");
+		if (reg_type[dst - 1] == String) {
+			idx = codes->back()->v.ivalue;
+			dst--;
+			popVMCode();//remove MOV
+			char *key = c_->right->data.sdata;
+			code->hash = hash(key, strlen(key) + 1) % HASH_TABLE_SIZE;
+			setInstByVMap(code, c, HASH_ATC, HASH_gATC, &idx);
+		} else {
+			setInstByVMap(code, c, HASH_AT, HASH_gAT, &idx);
+			code->idx = dst-1;
+		}
+		c->vname.replace(0, 1, "$");
+		c->fname.replace(0, 1, "$");
+		c->rawstr.replace(0, 1, "$");
+	}
+	code->src = idx;
+	code->dst = dst;
+	reg_type[dst] = Object;
+	dst++;
+}
+
+void GPerlCompiler::setArrow(GPerlVirtualMachineCode *code, GPerlCell *)
+{
+	DBG_PL("Arrow");
+	code->op = NOP;
 }
 
 void GPerlCompiler::setIS(GPerlVirtualMachineCode *code, GPerlCell *)
@@ -843,20 +1051,40 @@ void GPerlCompiler::setDEC(GPerlVirtualMachineCode *code, GPerlCell *c_)
 
 void GPerlCompiler::setVMOV(GPerlVirtualMachineCode *code, GPerlCell *c)
 {
+	int idx = 0;
 	GPerlCell *parent = c->parent;
 	if (parent && parent->left == c &&
-		(parent->type == Assign || parent->type == Inc || parent->type == Dec ||
-		 parent->type == ArrayAt)) {
+        (parent->type == Assign || parent->type == Inc || parent->type == Dec ||
+		 parent->type == ArrayAt ||
+		 parent->type == AddEqual || parent->type == SubEqual ||
+		 parent->type == MulEqual || parent->type == DivEqual)) {
 		code->op = NOP;
-		//code_num--;
 		return;
 	}
-	int idx = 0;
 	setInstByVMap(code, c, vMOV, gMOV, &idx);
 	code->src = idx;
 	code->dst = dst;
 	if (c->type == ArrayVar) {
 		reg_type[dst] = Array;
+	} else if (c->type == CodeVar) {
+		GPerlVirtualMachineCode *vmov = new GPerlVirtualMachineCode();
+		vmov->op = code->op;
+		vmov->src = idx;
+		vmov->dst = dst;
+		setEscapeStackNum(vmov, c);
+		addVMCode(vmov);
+		dumpVMCode(vmov);
+		GPerlVirtualMachineCode *closure = new GPerlVirtualMachineCode();
+		closure->op = CLOSURE;
+		closure->dst = dst;
+		closure->src = dst;
+		closure->name = cstr(c->vname);
+		closure->argc = args_count;
+		closure->cur_reg_top = dst;
+		setEscapeStackNum(closure, c);
+		addVMCode(closure);
+		dumpVMCode(closure);
+		code->op = NOP;
 	} else {
 		reg_type[dst] = Object;
 	}
@@ -866,10 +1094,16 @@ void GPerlCompiler::setVMOV(GPerlVirtualMachineCode *code, GPerlCell *c)
 void GPerlCompiler::setOpAssign(GPerlVirtualMachineCode *_code, GPerlCell *c)
 {
 	DBG_PL("OpAssign");
+	GPerlT type = c->type;
+	c->type = Undefined;//Dummy Operation for escape first branch of VMOV
 	GPerlVirtualMachineCode *vmov = new GPerlVirtualMachineCode();
 	setVMOV(vmov, c->left);
 	addVMCode(vmov);
 	dumpVMCode(vmov);
+	DBG_PL("COMPIEL RIGHT CELL");
+	compile_(c->right);
+	DBG_PL("COMPILE OP");
+	c->type = type;
 	GPerlVirtualMachineCode *code = new GPerlVirtualMachineCode();
 	switch (c->type) {
 	case AddEqual:
@@ -894,6 +1128,7 @@ void GPerlCompiler::setOpAssign(GPerlVirtualMachineCode *_code, GPerlCell *c)
 
 void GPerlCompiler::setLET(GPerlVirtualMachineCode *code, GPerlCell *c)
 {
+	DBG_PL("setLET");
 	int idx = 0;
 	if (c->left->type == MultiLocalVarDecl || c->left->type == MultiGlobalVarDecl) {
 		GPerlCell *multi_decl = c->left;
@@ -909,6 +1144,23 @@ void GPerlCompiler::setLET(GPerlVirtualMachineCode *code, GPerlCell *c)
 			//variable_types[idx] = reg_type[0];
 		}
 		code->op = NOP;
+	} else if (c->left->type == ArraySet) {
+		GPerlCell *a = c->left;
+		GPerlCell *var = a->left;
+		var->vname.replace(0, 1, "@");
+		var->fname.replace(0, 1, "@");
+		var->rawstr.replace(0, 1, "@");
+		setInstByVMap(code, var, ARRAY_SET, ARRAY_gSET, &idx);
+		code->dst = idx;
+		code->src = dst-1;
+		code->idx = dst-2;
+		variable_types[idx] = reg_type[0];
+		declared_vname = NULL;
+		var->vname.replace(0, 1, "$");
+		var->fname.replace(0, 1, "$");
+		var->rawstr.replace(0, 1, "$");
+	} else if (c->left->type == HashSet) {
+
 	} else {
 		c->indent = c->left->indent;
 		setInstByVMap(code, c, LET, gLET, &idx);
@@ -953,7 +1205,6 @@ void GPerlCompiler::setSETv(GPerlVirtualMachineCode *code, GPerlCell *c)
 		mov->code_num = code_num;
 		mov->dst = dst;
 		dst++;
-		GPerlUndef *undef = new_GPerlUndef();
 		OBJECT_init(mov->v, undef);
 		init_values[init_value_idx] = mov->v;
 		init_value_idx++;
@@ -1008,6 +1259,10 @@ void GPerlCompiler::setEscapeStackNum(GPerlVirtualMachineCode *code, GPerlCell *
 
 void GPerlCompiler::setCALL(GPerlVirtualMachineCode *code, GPerlCell *c)
 {
+	if (c->parent && c->parent->type == CodeRef) {
+		code->op = NOP;
+		return;
+	}
 	if (args_count < 5) {
 		if (args_count == 0) {
 			code->op = CALL;
@@ -1080,6 +1335,14 @@ void GPerlCompiler::setBFUNC(GPerlVirtualMachineCode *code, GPerlCell *c)
 	} else if (c->rawstr == "ref") {
 		DBG_PL("Ref");
 		code->op = REF;
+	} else if (c->rawstr == "map") {
+		DBG_PL("Map");
+	} else if (c->rawstr == "keys") {
+		DBG_PL("Keys");
+		code->op = KEYS;
+	} else if (c->rawstr == "values") {
+		DBG_PL("Values");
+		code->op = VALUES;
 	}
 	args_count = 0;
 }
@@ -1173,6 +1436,62 @@ GPerlVirtualMachineCode *GPerlCompiler::createPUSH(int i, int dst_)
 	code->cur_reg_top = dst_;
 	args_count++;
 	return code;
+}
+
+GPerlVirtualMachineCode *GPerlCompiler::createArrayPUSH(int i, int dst_)
+{
+	GPerlVirtualMachineCode *code = new GPerlVirtualMachineCode();
+	code->code_num = code_num;
+	code->op = aPUSH;
+	code->src = i;
+	code->dst = dst_-1;
+	code->cur_stack_top = cur_stack_top;//ebp_num;
+	code->cur_reg_top = dst_;
+	args_count++;
+	return code;
+}
+
+void GPerlCompiler::genMapFunctionCode(GPerlCell *path)
+{
+	GPerlVirtualMachineCode *argmov = new GPerlVirtualMachineCode();
+	//argmov->setArrayARGMOV(argmov, NULL);
+	argmov->dst = 0; argmov->src = 0;
+	GPerlVirtualMachineCode *let_recv = new GPerlVirtualMachineCode();
+	let_recv->op = LET; let_recv->dst = 0; let_recv->src = 0;
+	GPerlVirtualMachineCode *mov = new GPerlVirtualMachineCode();
+	mov->op = MOV; mov->dst = 0; mov->src = 0;
+	GPerlVirtualMachineCode *let_ret = new GPerlVirtualMachineCode();
+	let_ret->op = LET; let_ret->dst = 1; let_recv->src = 0;
+	GPerlVirtualMachineCode *let_$_ = new GPerlVirtualMachineCode();
+	let_$_->op = LET; let_ret->dst = 3; let_recv->src = 0;
+	GPerlVirtualMachineCode *each_init = new GPerlVirtualMachineCode();
+	each_init->op = EACH_INIT; each_init->dst = 2; each_init->src = 0;
+	GPerlVirtualMachineCode *each_let = new GPerlVirtualMachineCode();
+	each_let->op = EACH_LET; each_init->dst = 3; each_init->src = 2;
+	size_t block_code_num = 0;
+	(void)path;
+	/*
+	  GPerlVirtualMachineCode *vmov = new GPerlVirtualMachineCode();
+	  vmov->op = vMOV; vmov->dst = 0; vmov->src = 1;
+	  B_vMOV [dst:1], [src:3], [jmp:0], [name:*$_]
+	  iMULC [dst:1], [src:0], [jmp:1], [name:(null)], [ivalue: 2]
+	 */
+
+	each_let->jmp = 5 + block_code_num;
+	GPerlVirtualMachineCode *apush = new GPerlVirtualMachineCode();
+	apush->op = aPUSH; apush->dst = 0; apush->src = 0;
+	GPerlVirtualMachineCode *push = new GPerlVirtualMachineCode();
+	push->op = PUSH; push->dst = 1; push->src = 1;
+	GPerlVirtualMachineCode *array_push = new GPerlVirtualMachineCode();
+	array_push->op = ARRAY_PUSH; push->dst = 0; push->src = 0;
+	GPerlVirtualMachineCode *each_step = new GPerlVirtualMachineCode();
+	each_step->op = EACH_STEP; each_step->dst = 0; each_step->src = 2;
+	each_step->jmp = -4 - block_code_num;
+
+	GPerlVirtualMachineCode *vmov = new GPerlVirtualMachineCode();
+	vmov->op = vMOV; vmov->dst = 0; vmov->src = 1;
+	GPerlVirtualMachineCode *ret = new GPerlVirtualMachineCode();
+	ret->op = RET; ret->dst = 0; ret->src = 0;
 }
 
 GPerlVirtualMachineCode *GPerlCompiler::createJMP(int jmp_num)

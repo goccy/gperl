@@ -1,4 +1,5 @@
 #include <gperl.hpp>
+#include <cassert>
 #include "gen_token_decl.cpp"
 using namespace std;
 
@@ -136,6 +137,12 @@ int GPerlTokenizer::scanSymbol(GPerlTokens *tks, char symbol, char next_ch)
 			token_idx = 0;
 			escapeFlag = false;
 			return ret;
+		} else if (token[0] == '%' && symbol == '{') {
+			tks->push_back(new GPerlToken("%{"));
+			memset(token, 0, max_token_size);
+			token_idx = 0;
+			escapeFlag = false;
+			return ret;
 		} else {
 			tks->push_back(new GPerlToken(string(token)));
 			memset(token, 0, max_token_size);
@@ -165,7 +172,9 @@ int GPerlTokenizer::scanSymbol(GPerlTokens *tks, char symbol, char next_ch)
 	} else if ((symbol == '<' && next_ch == '<') ||
 			   (symbol == '>' && next_ch == '>') ||
 			   (symbol == '+' && next_ch == '+') ||
-			   (symbol == '-' && next_ch == '-')) {
+			   (symbol == '=' && next_ch == '>') ||
+			   (symbol == '-' && next_ch == '-') ||
+			   (symbol == '-' && next_ch == '>')) {
 		tmp[0] = symbol;
 		tmp[1] = next_ch;
 		tks->push_back(new GPerlToken(string(tmp)));
@@ -199,6 +208,12 @@ void GPerlTokenizer::scanSymbol(GPerlTokens *tks, char symbol)
 			token_idx = 0;
 			escapeFlag = false;
 			return;
+		} else if (token[0] == '%' && symbol == '{') {
+			tks->push_back(new GPerlToken("%{"));
+			memset(token, 0, max_token_size);
+			token_idx = 0;
+			escapeFlag = false;
+			return;
 		} else {
 			tks->push_back(new GPerlToken(string(token)));
 			memset(token, 0, max_token_size);
@@ -222,6 +237,56 @@ void GPerlTokenizer::scanSymbol(GPerlTokens *tks, char symbol)
 }
 
 #define isSKIP() commentFlag
+#define NEXT() (*(src + i++))
+
+static GPerlToken *parseNumber(GPerlTokenizer *tkn, char *src, size_t &i)
+{
+	char *begin = src + i;
+	int c = NEXT();
+	GPerlToken *token = NULL;
+	assert((c == '.' || ('0' <= c && c <= '9')) && "It do not seem as Number");
+	bool isFloat = false;
+	/*
+	 * DIGIT  = 0-9
+	 * DIGITS = DIGIT | DIGIT DIGITS
+	 * INT    = DIGIT | DIGIT1-9 DIGITS
+	 * FLOAT  = INT
+	 *        | INT FRAC
+	 *        | INT EXP
+	 *        | INT FRAC EXP
+	 * FRAC   = "." digits
+	 * EXP    = E digits
+	 * E      = 'e' | 'e+' | 'e-' | 'E' | 'E+' | 'E-'
+	 */
+	if (c == '0') {
+		c = NEXT();
+	}
+	else if ('1' <= c && c <= '9') {
+		for (; '0' <= c && c <= '9' && c != EOL; c = NEXT()) {}
+	}
+	if (c != '.' && c != 'e' && c != 'E') {
+		goto L_emit;
+	}
+	if (c == '.') {
+		isFloat = true;
+		for (c = NEXT(); '0' <= c && c <= '9' && c != EOL; c = NEXT()) {}
+	}
+	if (c == 'e' || c == 'E') {
+		isFloat = true;
+		c = NEXT();
+		if (c == '+' || c == '-') {
+			c = NEXT();
+		}
+		for (; '0' <= c && c <= '9' && c != EOL; c = NEXT()) {}
+	}
+	L_emit:;
+	i -= 1;
+	token = new GPerlToken(string(begin, src+i));
+	token->info = isFloat ?
+		tkn->getTokenInfo("Double", NULL) : tkn->getTokenInfo("Int", NULL);
+	return token;
+}
+#undef NEXT
 
 GPerlTokens *GPerlTokenizer::tokenize(char *script)
 {
@@ -251,7 +316,12 @@ GPerlTokens *GPerlTokenizer::tokenize(char *script)
 			break;
 		case '\\':
 			if (isSKIP()) break;
-			escapeFlag = true;
+			if (i + 1 < script_size && script[i + 1] == '&') {
+				tokens->push_back(new GPerlToken(string("\\&")));
+				i++;
+			} else {
+				escapeFlag = true;
+			}
 			break;
 		case 'n':
 			if (isSKIP()) break;
@@ -306,6 +376,18 @@ GPerlTokens *GPerlTokenizer::tokenize(char *script)
 			break;
 		case '0': case '1': case '2': case '3': case '4': case '5':
 		case '6': case '7': case '8': case '9':
+			if (isSKIP()) break;
+			if (isStringStarted) {
+				token[token_idx] = script[i];
+				token_idx++;
+				break;
+			}
+			if (token_idx == 0) {
+				GPerlToken *tk = parseNumber(this, script, i);
+				tokens->push_back(tk);
+				escapeFlag = false;
+				continue;
+			}
 		default:
 			if (isSKIP()) break;
 			token[token_idx] = script[i];
@@ -380,21 +462,25 @@ void GPerlTokenizer::annotateTokens(vector<GPerlToken *> *tokens)
 			data == "-="    || data == "*="    ||
 			data == "/="    || data == ".="    ||
 			data == "++"    || data == "--"    ||
-			data == ";"     ||
-			data == ","     || data == ","     ||
-			data == "&"     || data == "("     ||
-			data == ")"     || data == "{"     ||
-			data == "}"     || data == "["     ||
-			data == "]"     || data == "@{"    ||
-			data == "%{"    || data == "!"     ||
+			data == ";"     || data == ","     ||
+			data == "->"    || data == "=>"    ||
+			data == "&"     || data == "\\&"   ||
+			data == "("     || data == ")"     ||
+			data == "{"     || data == "}"     ||
+			data == "["     || data == "]"     ||
+			data == "@{"    || data == "%{"    ||
+			data == "!"     ||
 			data == "<<"    || data == ">>"    ||
 			data == "print" || data == "push"  ||
 			data == "ref"   || data == "undef" ||
+			data == "keys"  || data == "values" ||
+			data == "bless" || data == "package" ||
 			data == "if"    || data == "else"  ||
 			data == "elsif" || data == "unless"||
 			data == "my"    || data == "sub"   ||
 			data == "shift" || data == "while" ||
 			data == "for"   || data == "foreach" ||
+			data == "$_"    || data == "map"   ||
 			data == "@_"    || data == "@ARGV" ||
 			data == "return") {
 			DBG_PL("TOKEN = [%s]", cstr(data));
@@ -408,10 +494,17 @@ void GPerlTokenizer::annotateTokens(vector<GPerlToken *> *tokens)
 			t->info = getTokenInfo("LocalArrayVar", NULL);
 			vardecl_list.push_back(t->data);
 			cur_type = LocalArrayVar;
+		} else if (cur_type == VarDecl && t->data.find("%") != string::npos) {
+			t->info = getTokenInfo("LocalHashVar", NULL);
+			vardecl_list.push_back(t->data);
+			cur_type = LocalHashVar;
 		} else if (search(vardecl_list, t->data)) {
 			if (t->data.find("@") != string::npos) {
 				t->info = getTokenInfo("ArrayVar", NULL);
 				cur_type = ArrayVar;
+			} else if (t->data.find("%") != string::npos) {
+				t->info = getTokenInfo("HashVar", NULL);
+				cur_type = HashVar;
 			} else {
 				t->info = getTokenInfo("Var", NULL);
 				cur_type = Var;
@@ -424,7 +517,19 @@ void GPerlTokenizer::annotateTokens(vector<GPerlToken *> *tokens)
 			t->info = getTokenInfo("GlobalArrayVar", NULL);
 			vardecl_list.push_back(t->data);
 			cur_type = GlobalArrayVar;
+		} else if (t->data.find("%") != string::npos) {
+			t->info = getTokenInfo("GlobalHashVar", NULL);
+			vardecl_list.push_back(t->data);
+			cur_type = GlobalHashVar;
+		} else if (t->info.type == Double) {
+			cur_type = Double;
+		} else if (t->info.type == Int) {
+			cur_type = Int;
 		} else if (t->data == "0" || atoi(cstr(t->data)) != 0) {
+			if (t->info.type == String) {
+				cur_type = 0; it++;
+				continue;
+			}
 			if (t->data.find(".") != string::npos) {
 				t->info = getTokenInfo("Double", NULL);
 				cur_type = Double;
@@ -441,7 +546,12 @@ void GPerlTokenizer::annotateTokens(vector<GPerlToken *> *tokens)
 			cur_type = Call;
 		} else {
 			//string
-			cur_type = 0;
+			if (t->info.type != String) {
+				t->info = getTokenInfo("Key", NULL);
+				cur_type = Key;
+			} else {
+				cur_type = 0;
+			}
 		}
 		it++;
 	}

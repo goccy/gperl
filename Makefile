@@ -18,6 +18,8 @@ objs = build/main.o \
 	build/gen_vm.o\
 	build/string.o\
 	build/array.o\
+	build/hash.o\
+	build/func.o\
 	build/undef.o\
 	build/jit.o\
 	$(READLINE_DIR)/build/greadline.o\
@@ -67,6 +69,12 @@ build/string.o : src/string.cpp
 	$(CC) $(CFLAGS) -o $@ -c $^
 
 build/array.o : src/array.cpp
+	$(CC) $(CFLAGS) -o $@ -c $^
+
+build/hash.o : src/hash.cpp
+	$(CC) $(CFLAGS) -o $@ -c $^
+
+build/func.o : src/func.cpp
 	$(CC) $(CFLAGS) -o $@ -c $^
 
 build/undef.o : src/undef.cpp

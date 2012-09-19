@@ -767,6 +767,18 @@ GPerlValue GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 		pc++;
 		BREAK();
 	});
+	CASE(KEYS, {
+		GPerlArray *a = GPERL_KEYS((callstack+1)->argstack[0]);
+		OBJECT_init(reg[pc->dst], a);
+		pc++;
+		BREAK();
+	});
+	CASE(VALUES, {
+		GPerlArray *a = GPERL_VALUES((callstack+1)->argstack[0]);
+		OBJECT_init(reg[pc->dst], a);
+		pc++;
+		BREAK();
+	});
 	CASE(JMP, {
 		GPERL_JMP();
 		BREAK();
@@ -798,6 +810,11 @@ GPerlValue GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 	});
 	CASE(FUNCSET, {
 		GPERL_FUNCSET(pc->func, pc->dst);
+		pc++;
+		BREAK();
+	});
+	CASE(CLOSURE, {
+		GPERL_CLOSURE(pc->dst, pc->src, CLOSURE);
 		pc++;
 		BREAK();
 	});
@@ -881,6 +898,11 @@ GPerlValue GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 		pc++;
 		BREAK();
 	});
+	CASE(aPUSH, {
+		GPERL_aPUSH(pc->dst, pc->src);
+		pc++;
+		BREAK();
+	});
 	CASE(NEW, {
 		GPERL_NEW();
 		pc++;
@@ -916,9 +938,77 @@ GPerlValue GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 		pc++;
 		BREAK();
 	});
+	CASE(ARRAY_SET, {
+		GPERL_ARRAY_SET(pc->dst, pc->src, pc->idx);
+		pc++;
+		BREAK();
+	});
+	CASE(ARRAY_gSET, {
+		GPERL_ARRAY_gSET(pc->dst, pc->src, pc->idx);
+		pc++;
+		BREAK();
+	});
 	CASE(ARRAY_DREF, {
 		GPERL_ARRAY_DREF(pc->dst, pc->src);
 		pc++;
+		BREAK();
+	});
+	CASE(HASH_AT, {
+		GPERL_HASH_AT(pc->dst, pc->src, pc->idx);
+		pc++;
+		BREAK();
+	});
+	CASE(HASH_ATC, {
+		GPERL_HASH_ATC(pc->dst, pc->src, pc->hash);
+		pc++;
+		BREAK();
+	});
+	CASE(HASH_gAT, {
+		GPERL_HASH_gAT(pc->dst, pc->src, pc->idx);
+		pc++;
+		BREAK();
+	});
+	CASE(HASH_gATC, {
+		GPERL_HASH_gATC(pc->dst, pc->src, pc->hash);
+		pc++;
+		BREAK();
+	});
+	CASE(HASH_SET, {
+		GPERL_HASH_SET(pc->dst, pc->src, pc->idx);
+		pc++;
+		BREAK();
+	});
+	CASE(HASH_gSET, {
+		GPERL_HASH_gSET(pc->dst, pc->src, pc->idx);
+		pc++;
+		BREAK();
+	});
+	CASE(HASH_DREF, {
+		GPERL_HASH_DREF(pc->dst, pc->src);
+		pc++;
+		BREAK();
+	});
+	CASE(CODE_REF, {
+		GPERL_CODE_REF(pc->dst, pc->src);
+		pc++;
+		BREAK();
+	});
+	CASE(EACH_INIT, {
+		GPERL_EACH_INIT(pc->dst, pc->src);
+		pc++;
+		BREAK();
+	});
+	CASE(EACH_gINIT, {
+		GPERL_EACH_gINIT(pc->dst, pc->src);
+		pc++;
+		BREAK();
+	});
+	CASE(EACH_LET, {
+		GPERL_EACH_LET(pc->dst, pc->src);
+		BREAK();
+	});
+	CASE(EACH_STEP, {
+		GPERL_EACH_STEP(pc->dst, pc->src);
 		BREAK();
 	});
 #include "gen_fast_vmcode.cpp"

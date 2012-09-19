@@ -217,6 +217,20 @@
      "args" : [{"argstack" : "(callstack+1)->argstack[0]"}]
  },
  {
+	 "code" : "KEYS",
+	 "type" : 0,
+	 "const" : 0,
+	 "fast_type" : 0,
+     "args" : [{"argstack" : "(callstack+1)->argstack[0]"}]
+ },
+ {
+	 "code" : "VALUES",
+	 "type" : 0,
+	 "const" : 0,
+	 "fast_type" : 0,
+     "args" : [{"argstack" : "(callstack+1)->argstack[0]"}]
+ },
+ {
 	 "code" : "JMP",
 	 "type" : 0,
 	 "const" : 0,
@@ -264,6 +278,13 @@
 	 "const" : 0,
 	 "fast_type" : 0,
      "args" : [{"func" : "pc->func"}, {"dst" : "pc->dst"}]
+ },
+ {
+	 "code" : "CLOSURE",
+	 "type" : 0,
+	 "const" : 0,
+	 "fast_type" : 2,
+     "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}, {"NAME" : "callname"}]
  },
  {
 	 "code" : "CALL",
@@ -356,6 +377,13 @@
      "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}]
  },
  {
+	 "code" : "aPUSH",
+	 "type" : 0,
+	 "const" : 0,
+	 "fast_type" : 2,
+     "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}]
+ },
+ {
 	 "code" : "NEW",
 	 "type" : 0,
 	 "const" : 0,
@@ -405,7 +433,105 @@
      "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}, {"idx" : "pc->idx"}]
  },
  {
+	 "code" : "ARRAY_SET",
+	 "type" : 0,
+	 "const" : 0,
+	 "fast_type" : 0,
+     "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}, {"idx" : "pc->idx"}]
+ },
+ {
+	 "code" : "ARRAY_gSET",
+	 "type" : 0,
+	 "const" : 0,
+	 "fast_type" : 0,
+     "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}, {"idx" : "pc->idx"}]
+ },
+ {
 	 "code" : "ARRAY_DREF",
+	 "type" : 0,
+	 "const" : 0,
+	 "fast_type" : 0,
+     "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}]
+ },
+ {
+	 "code" : "HASH_AT",
+	 "type" : 0,
+	 "const" : 0,
+	 "fast_type" : 0,
+     "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}, {"idx" : "pc->idx"}]
+ },
+ {
+	 "code" : "HASH_ATC",
+	 "type" : 0,
+	 "const" : 0,
+	 "fast_type" : 0,
+     "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}, {"idx" : "pc->hash"}]
+ },
+ {
+	 "code" : "HASH_gAT",
+	 "type" : 0,
+	 "const" : 0,
+	 "fast_type" : 0,
+     "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}, {"idx" : "pc->idx"}]
+ },
+ {
+	 "code" : "HASH_gATC",
+	 "type" : 0,
+	 "const" : 0,
+	 "fast_type" : 0,
+     "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}, {"idx" : "pc->hash"}]
+ },
+ {
+	 "code" : "HASH_SET",
+	 "type" : 0,
+	 "const" : 0,
+	 "fast_type" : 0,
+     "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}, {"idx" : "pc->idx"}]
+ },
+ {
+	 "code" : "HASH_gSET",
+	 "type" : 0,
+	 "const" : 0,
+	 "fast_type" : 0,
+     "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}, {"idx" : "pc->idx"}]
+ },
+ {
+	 "code" : "HASH_DREF",
+	 "type" : 0,
+	 "const" : 0,
+	 "fast_type" : 0,
+     "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}]
+ },
+ {
+	 "code" : "CODE_REF",
+	 "type" : 0,
+	 "const" : 0,
+	 "fast_type" : 0,
+     "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}]
+ },
+ {
+	 "code" : "EACH_INIT",
+	 "type" : 0,
+	 "const" : 0,
+	 "fast_type" : 0,
+     "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}]
+ },
+ {
+	 "code" : "EACH_gINIT",
+	 "type" : 0,
+	 "const" : 0,
+	 "fast_type" : 0,
+     "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}]
+ },
+ {
+	 "code" : "EACH_LET",
+	 "type" : 0,
+	 "const" : 0,
+	 "fast_type" : 0,
+     "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}]
+ },
+ {
+	 "code" : "EACH_STEP",
 	 "type" : 0,
 	 "const" : 0,
 	 "fast_type" : 0,

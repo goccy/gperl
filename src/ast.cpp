@@ -110,10 +110,10 @@ void GPerlAST::draw(GraphvizGraph *graph, GPerlCell *c, GraphvizNode *node)
 	GraphvizNode *right;
 	char buf[32] = {0};
 	if (c->type == IfStmt || c->type == WhileStmt || c->type == ElsifStmt ||
-		c->type == ForStmt) {
+		c->type == ForStmt || c->type == ForeachStmt) {
 		GraphvizNode *if_node = root_node;
 		drawStmt(graph, if_node, c->true_stmt, "true", "#e0ffff");
-		if (c->false_stmt) {
+		if (c->false_stmt && c->type != ForeachStmt) {
 			if (c->false_stmt->root->type == ElsifStmt) {
 				drawStmt(graph, if_node, c->false_stmt, "elsif", "#98fb98");
 			} else {
@@ -130,7 +130,8 @@ void GPerlAST::draw(GraphvizGraph *graph, GPerlCell *c, GraphvizNode *node)
 	} else if (c->type == Function) {
 		GraphvizNode *func_node = root_node;
 		drawStmt(graph, func_node, c->body, "body", "#e6e6fa");
-	} else if (c->type == Call || c->type == BuiltinFunc) {
+	} else if (c->type == MultiLocalVarDecl || c->type == MultiGlobalVarDecl ||
+			   c->type == Call || c->type == BuiltinFunc || c->type == CodeVar) {
 		const char *func_name = c->rawstr.c_str();
 		snprintf(buf, 32, "%s : [%p]", func_name, c);
 		GraphvizNode *func_node = createNode(graph, (const char *)buf);
@@ -141,10 +142,16 @@ void GPerlAST::draw(GraphvizGraph *graph, GPerlCell *c, GraphvizNode *node)
 				snprintf(buf, 32, "%s : [%p]", to_name, arg);
 				left = createNode(graph, (const char *)buf);
 				drawEdge(graph, func_node, left, "vargs");
-				draw(graph, arg, left);
+				if (arg->next) {
+					GPerlScope *scope = new GPerlScope();
+					scope->add(arg);
+					drawStmt(graph, left, scope, "block", "#e0ffff");
+				} else {
+					draw(graph, arg, left);
+				}
 			}
 		}
-	} else if (c->type == List || c->type == ArrayRef) {
+	} else if (c->type == List || c->type == ArrayRef || c->type == HashRef) {
 		for (int i = 0; i < c->argsize; i++) {
 			GPerlCell *val = c->vargs[i];
 			const char *to_name = val->rawstr.c_str();

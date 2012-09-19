@@ -3042,6 +3042,26 @@
 		pc++;
 		BREAK();
 	});
+	CASE(A_CLOSURE, {
+		GPERL_CLOSURE(0, pc->src, A_CLOSURE);
+		pc++;
+		BREAK();
+	});
+	CASE(B_CLOSURE, {
+		GPERL_CLOSURE(1, pc->src, B_CLOSURE);
+		pc++;
+		BREAK();
+	});
+	CASE(C_CLOSURE, {
+		GPERL_CLOSURE(2, pc->src, C_CLOSURE);
+		pc++;
+		BREAK();
+	});
+	CASE(D_CLOSURE, {
+		GPERL_CLOSURE(3, pc->src, D_CLOSURE);
+		pc++;
+		BREAK();
+	});
 	CASE(A_CALL, {
 		GPERL_CALL(0, pc->src, A_CALL);
 		pc++;
@@ -3359,6 +3379,26 @@
 	});
 	CASE(D_PUSH, {
 		GPERL_PUSH(3, pc->src);
+		pc++;
+		BREAK();
+	});
+	CASE(A_aPUSH, {
+		GPERL_aPUSH(0, pc->src);
+		pc++;
+		BREAK();
+	});
+	CASE(B_aPUSH, {
+		GPERL_aPUSH(1, pc->src);
+		pc++;
+		BREAK();
+	});
+	CASE(C_aPUSH, {
+		GPERL_aPUSH(2, pc->src);
+		pc++;
+		BREAK();
+	});
+	CASE(D_aPUSH, {
+		GPERL_aPUSH(3, pc->src);
 		pc++;
 		BREAK();
 	});

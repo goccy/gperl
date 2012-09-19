@@ -49,7 +49,7 @@ GPerlCell::GPerlCell(GPerlT type_, string name) : type(type_), vidx(0)
 		data.idata = atoi(cstr(name));
 	} else if (type_ == Double) {
 		data.ddata = atof(cstr(name));
-	} else if (type == String) {
+	} else if (type == String || type == Key) {
 		data.sdata = (char *)cstr(name);
 	} else {
 		vname = name;
@@ -124,9 +124,11 @@ void GPerlParser::parseValue(GPerlToken *t, GPerlNodes *blocks, GPerlScope *scop
 		block->type != AddEqual && block->type != SubEqual &&
 		block->type != MulEqual && block->type != DivEqual) {
 		DBG_PL("%s", block->info.name);
-		if (block->type == Call || block->type == BuiltinFunc) {
+		if (block->type == Call || block->type == BuiltinFunc || block->type == CodeVar) {
 			DBG_PL("[%s]:NEW BLOCK->BLOCKS[%d]", cstr(t->data), __LINE__);
-			if (scope && scope->root->type == Call || scope->root->type == BuiltinFunc) {
+			if (scope &&
+				scope->root->type == Call || scope->root->type == BuiltinFunc ||
+				scope->root->type == CodeVar) {
 				block->vargs[0] = scope->root;
 				block->argsize = 1;
 			} else if (scope && scope->root->argsize > 0) {
@@ -140,6 +142,22 @@ void GPerlParser::parseValue(GPerlToken *t, GPerlNodes *blocks, GPerlScope *scop
 				} else {
 					block->vargs[0] = scope->root;
 					block->argsize = 1;
+				}
+			} else if (block->rawstr == "map" && scope) {
+				GPerlCell *arg_block = scope->root;
+				if (arg_block->next->type == ArrayVar) {
+					GPerlCell *v = new GPerlCell(LocalVarDecl, "$_");
+					v->indent++;
+					v->setVariableIdx(vidx);
+					vcount++;
+					vidx++;
+					v->next = arg_block;
+					block->vargs[0] = v;
+					block->vargs[1] = arg_block->next;
+					arg_block->next = NULL;
+					block->argsize = 2;
+				} else {
+					fprintf(stderr, "Syntax Error: near by map\n");
 				}
 			} else {
 				GPerlCell *v = new GPerlCell(type, t->data);
@@ -159,7 +177,7 @@ void GPerlParser::parseValue(GPerlToken *t, GPerlNodes *blocks, GPerlScope *scop
 			b->indent = indent;
 			block->left = b;
 			b->parent = block;
-			if (type == Call || type == BuiltinFunc) blocks->pushNode(b);
+			if (type == Call || type == BuiltinFunc || type == CodeVar) blocks->pushNode(b);
 		} else if (block->right == NULL) {
 			DBG_PL("[%s]:LAST BLOCK->right", cstr(t->data));
 			GPerlCell *b = NULL;
@@ -173,7 +191,7 @@ void GPerlParser::parseValue(GPerlToken *t, GPerlNodes *blocks, GPerlScope *scop
 			b->indent = indent;
 			block->right = b;
 			b->parent = block;
-			if (type == Call || type == BuiltinFunc) blocks->pushNode(b);
+			if (type == Call || type == BuiltinFunc || type == CodeVar) blocks->pushNode(b);
 		} else {
 			fprintf(stderr, "ERROR:[parse error]!!\n");
 		}
@@ -189,6 +207,11 @@ void GPerlParser::parseValue(GPerlToken *t, GPerlNodes *blocks, GPerlScope *scop
 			scope->root->type = ArrayRef;
 			scope->root->indent = indent;
 			blocks->pushNode(scope->root);
+		} else if (scope && scope->root->argsize > 1 && type == LeftBrace) {
+			DBG_PL("HashRef");
+			scope->root->type = HashRef;
+			scope->root->indent = indent;
+			blocks->pushNode(scope->root);
 		} else if (scope && scope->size > 1) {
 			DBG_PL("cond @forstmt");
 			GPerlCell *b = scope->root;
@@ -198,7 +221,7 @@ void GPerlParser::parseValue(GPerlToken *t, GPerlNodes *blocks, GPerlScope *scop
 			GPerlCell *b = scope->root;
 			b->indent = indent;
 			blocks->pushNode(b);
-		} else if (scope && (scope->root->type == BuiltinFunc || scope->root->type == Call)) {
+		} else if (scope && (scope->root->type == BuiltinFunc || scope->root->type == Call || scope->root->type == CodeVar)) {
 			GPerlCell *b = scope->root;
 			b->indent = indent;
 			blocks->pushNode(b);
@@ -217,6 +240,7 @@ GPerlAST *GPerlParser::parse(void)
 	GPerlCell *root = new GPerlCell(Return);
 	GPerlNodes blocks;
 	bool isVarDeclFlag = false;
+	bool isCallDeclFlag = false;
 	bool ifStmtFlag = false;
 	bool unlessStmtFlag = false;
 	bool elseStmtFlag = false;
@@ -224,7 +248,9 @@ GPerlAST *GPerlParser::parse(void)
 	bool funcFlag = false;
 	bool whileStmtFlag = false;
 	bool forStmtFlag = false;
+	bool foreachStmtFlag = false;
 	bool condIndentFlag = false;
+	bool packageFlag = false;
 	GPerlT prev_type = Undefined;
 
 	while (it != end) {
@@ -235,7 +261,10 @@ GPerlAST *GPerlParser::parse(void)
 		case VarDecl:
 			isVarDeclFlag = true;
 			break;
-		case LocalVar: case LocalArrayVar:
+		case CallDecl:
+			isCallDeclFlag = true;
+			break;
+		case LocalVar: case LocalArrayVar: case LocalHashVar:
 			if (isVarDeclFlag) {
 				DBG_PL("[%s]:NEW BLOCK => BLOCKS", cstr(t->data));
 				DBG_PL("vidx = [%d]", vidx);
@@ -261,7 +290,7 @@ GPerlAST *GPerlParser::parse(void)
 				fprintf(stderr, "ERROR:syntax error!!\n");
 			}
 			break;
-		case GlobalVar: case GlobalArrayVar: {
+		case GlobalVar: case GlobalArrayVar: case GlobalHashVar: {
 			DBG_PL("[%s]:NEW BLOCK => BLOCKS", cstr(t->data));
 			DBG_PL("gidx = [%d]", gidx);
 			DBG_PL("INDENT = [%d]", indent);
@@ -273,8 +302,12 @@ GPerlAST *GPerlParser::parse(void)
 			gidx++;
 			break;
 		}
-		case Var: case ArrayVar: case ArgumentArray:
-		case Int: case Double: case String: case Call: case BuiltinFunc:
+		case Var: case ArrayVar: case HashVar: case ArgumentArray: case SpecificValue:
+		case Int: case Double: case String: case Call: case BuiltinFunc: case Key: case CodeVar:
+			if (isCallDeclFlag && t->info.type != Call && t->info.type != BuiltinFunc) {
+				t->info.type = CodeVar;
+				isCallDeclFlag = false;
+			}
 			parseValue(t, &blocks, NULL);
 			break;
 		case Shift:
@@ -291,8 +324,8 @@ GPerlAST *GPerlParser::parse(void)
 				fprintf(stderr, "Warning: unused keyword shift\n");
 			}
 			break;
-		case Add: case Sub: case Mul: case Div: case Greater: case Less: case StringAdd:
-		case GreaterEqual: case LessEqual: case EqualEqual: case NotEqual: case Inc: case Dec:
+		case Add: case Sub: case Mul: case Div: case Greater: case Less: case StringAdd: case Arrow:
+		case GreaterEqual: case LessEqual: case EqualEqual: case NotEqual: case Inc: case Dec: case Pointer:
 		case LeftShift: case RightShift: {
 			DBG_PL("[%s]:LAST BLOCK->PARENT", cstr(t->data));
 			GPerlCell *block = blocks.lastNode();
@@ -302,7 +335,7 @@ GPerlAST *GPerlParser::parse(void)
 			blocks.swapLastNode(b);
 			break;
 		}
-		case IsNot: {
+		case IsNot: case CodeRef: {
 			DBG_PL("[%s]:LAST BLOCK->PARENT", cstr(t->data));
 			GPerlCell *b = new GPerlCell(t->info.type, t->data);
 			blocks.pushNode(b);
@@ -360,6 +393,12 @@ GPerlAST *GPerlParser::parse(void)
 			forStmtFlag = true;
 			break;
 		}
+		case ForeachStmt: {
+			root = new GPerlCell(ForeachStmt, t->data);
+			ast->add(root);
+			foreachStmtFlag = true;
+			break;
+		}
 		case Function: {
 			vidx = 0;
 			blocks.pushNode(new GPerlCell(Function, t->data));
@@ -372,6 +411,10 @@ GPerlAST *GPerlParser::parse(void)
 		}
 		case ElseStmt: {
 			elseStmtFlag = true;
+			break;
+		}
+		case Package: {
+			packageFlag = true;
 			break;
 		}
 		case LeftBrace: {
@@ -390,9 +433,10 @@ GPerlAST *GPerlParser::parse(void)
 				GPerlCell *cond = blocks.lastNode();
 				if (cond->type != IsNot &&
 					(cond->type == Var || cond->type == ArrayVar ||
+					 cond->type == HashVar ||
 					 cond->type == ArgumentArray || cond->type == Int ||
 					 cond->type == Double || cond->type == String ||
-					 cond->type == Call || cond->type == BuiltinFunc)) {
+					 cond->type == Call || cond->type == BuiltinFunc || cond->type == CodeVar)) {
 					//isOperation
 					GPerlCell *is = new GPerlCell(Is, "defined");
 					GPerlCell *tmp = cond;
@@ -412,9 +456,10 @@ GPerlAST *GPerlParser::parse(void)
 				GPerlCell *cond = blocks.lastNode();
 				if (cond->type != IsNot &&
 					(cond->type == Var || cond->type == ArrayVar ||
+					 cond->type == HashVar ||
 					 cond->type == ArgumentArray || cond->type == Int ||
 					 cond->type == Double || cond->type == String ||
-					 cond->type == Call || cond->type == BuiltinFunc)) {
+					 cond->type == Call || cond->type == BuiltinFunc || cond->type == CodeVar)) {
 					//isOperation
 					GPerlCell *is = new GPerlCell(Is, "defined");
 					GPerlCell *tmp = cond;
@@ -448,6 +493,11 @@ GPerlAST *GPerlParser::parse(void)
 				whileStmtFlag = false;
 			} else if (forStmtFlag) {
 				GPerlCell *cond = blocks.lastNode();
+				if (!cond->next) {
+					forStmtFlag = false;
+					root->type = ForeachStmt;
+					goto FOREACH;
+				}
 				blocks.popNode();
 				root->cond = cond;
 				cond->parent = root;
@@ -456,22 +506,83 @@ GPerlAST *GPerlParser::parse(void)
 				GPerlScope *scope = parse();
 				root->true_stmt = scope;
 				forStmtFlag = false;
+			} else if (foreachStmtFlag) {
+			FOREACH:;
+				GPerlCell *cond = blocks.lastNode();
+				cond->indent++;
+				cond->setVariableIdx(vidx);
+				vcount++;
+				vidx++;
+				if (cond->left) {
+					cond->left->setVariableIdx(vidx);
+					cond->left->indent++;
+					vcount++;
+					vidx++;
+				} else {
+					GPerlCell *v = new GPerlCell(LocalVarDecl, "$_");
+					v->indent++;
+					v->setVariableIdx(vidx);
+					vcount++;
+					vidx++;
+					GPerlCell *tmp = cond;
+					cond = v;
+					cond->left = tmp;
+				}
+				blocks.popNode();
+				root->right = cond;
+				cond->parent = root;
+				MOVE_NEXT_TOKEN();
+				DBG_PL("-----------foreachstmt------------");
+				GPerlScope *scope = parse();
+				root->true_stmt = scope;
+				foreachStmtFlag = false;
 			} else {
 				//Block
 				MOVE_NEXT_TOKEN();
 				DBG_PL("-----------BlockScope------------");
 				GPerlScope *scope = parse();
 				GPerlCell *node = scope->root;
-				for (; node; node = node->next) {
-					ast->add(node);
+				if (scope && !node->next &&
+					(node->type == String || node->type == Key)) {
+					DBG_PL("HASH_AT:");
+					GPerlCell *block = blocks.lastNode();
+					GPerlCell *key = scope->root;
+					key->indent = indent;
+					GPerlCell *b = new GPerlCell(HashAt, "{}");
+					b->indent = indent;
+					if (block->right) {
+						GPerlCell *right = block->right;
+						right->parent = b;
+						key->parent = b;
+						b->left = right;
+						b->right = key;
+						block->right = b;
+						break;
+					}
+					block->parent = b;
+					key->parent = b;
+					b->left = block;
+					b->right = key;
+					blocks.popNode();
+					//blocks.swapLastNode(b);
+					GPerlScope *scope = new GPerlScope();
+					scope->add(b);
+					parseValue(t, &blocks, scope);
+				} else if (node->argsize > 0) {
+					//HashReference
+					parseValue(t, &blocks, scope);
+				} else {
+					for (; node; node = node->next) {
+						ast->add(node);
+					}
 				}
 			}
 			break;
 		}
-		case ArrayDereference: {
+		case ArrayDereference: case HashDereference: {
 			MOVE_NEXT_TOKEN();
 			indent++;
-			DBG_PL("-----------ArrayDereference------------");
+			DBG_PL("-----------(Array/Hash)Dereference------------");
 			GPerlScope *scope = parse();
 			GPerlCell *block = scope->root;
 			DBG_PL("[%s]:LAST BLOCK->PARENT", cstr(t->data));
@@ -484,7 +595,14 @@ GPerlAST *GPerlParser::parse(void)
 		}
 		case RightBrace: {
 			DBG_PL("RIGHT BRACE:");
-			if (ast->size == 0 && blocks.block_num == 1) {
+			if (root->argsize > 0) {
+				//HashReference
+				GPerlCell *stmt = blocks.at(0);
+				GPerlCell *v = root;
+				v->vargs[v->argsize] = stmt;
+				v->argsize++;
+				ast->add(root);
+			} else if (ast->size == 0 && blocks.block_num == 1) {
 				//for {Array/Hash}Dereference
 				ast->add(blocks.lastNode());
 			} else {
@@ -495,7 +613,8 @@ GPerlAST *GPerlParser::parse(void)
 			return ast;
 		}
 		case LeftParenthesis: {
-			if (prev_type != BuiltinFunc && prev_type != Call) {
+			if (prev_type != BuiltinFunc && prev_type != Call &&
+				prev_type != CodeVar) {
 				condIndentFlag = true;
 				vcount = 0;
 				indent++;
@@ -565,13 +684,15 @@ GPerlAST *GPerlParser::parse(void)
 		case LeftBracket: {
 			MOVE_NEXT_TOKEN();
 			GPerlScope *scope = parse();
-			if (scope && scope->size == 1 && scope->root->type == Int) {
+			GPerlCell *block = blocks.lastNode();
+			if (/*(block->type == Var || block->type == GlobalVar ||
+				  block->type == GlobalVarDecl) &&*/
+				scope && scope->size == 1 && scope->root->argsize == 0) {
 				DBG_PL("ARRAY_AT:");
 				GPerlCell *idx = scope->root;
 				idx->indent = indent;
 				GPerlCell *b = new GPerlCell(ArrayAt, "[]");
 				b->indent = indent;
-				GPerlCell *block = blocks.lastNode();
 				if (block->right) {
 					GPerlCell *right = block->right;
 					right->parent = b;
@@ -591,6 +712,7 @@ GPerlAST *GPerlParser::parse(void)
 				scope->add(b);
 				parseValue(t, &blocks, scope);
 			} else {
+				//ArrayRef
 				parseValue(t, &blocks, scope);
 			}
 			break;
@@ -622,7 +744,7 @@ GPerlAST *GPerlParser::parse(void)
 			DBG_PL("BLOCKS SIZE = [%d]", size);
 			if (size == 1) {
 				GPerlCell *stmt = blocks.at(0);
-				if (root->type == BuiltinFunc || root->type == Call) {
+				if (root->type == BuiltinFunc || root->type == Call || root->type == CodeVar) {
 					GPerlCell *v = root;
 					v->vargs[v->argsize] = stmt;
 					v->argsize++;
