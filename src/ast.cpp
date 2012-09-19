@@ -130,7 +130,8 @@ void GPerlAST::draw(GraphvizGraph *graph, GPerlCell *c, GraphvizNode *node)
 	} else if (c->type == Function) {
 		GraphvizNode *func_node = root_node;
 		drawStmt(graph, func_node, c->body, "body", "#e6e6fa");
-	} else if (c->type == Call || c->type == BuiltinFunc || c->type == CodeVar) {
+	} else if (c->type == MultiLocalVarDecl || c->type == MultiGlobalVarDecl ||
+			   c->type == Call || c->type == BuiltinFunc || c->type == CodeVar) {
 		const char *func_name = c->rawstr.c_str();
 		snprintf(buf, 32, "%s : [%p]", func_name, c);
 		GraphvizNode *func_node = createNode(graph, (const char *)buf);

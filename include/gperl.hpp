@@ -339,6 +339,24 @@ typedef struct _GPerlArgsArray {
 	void (*write)(GPerlValue v);
 } GPerlArgsArray;
 
+struct _GPerlClassExtend;
+
+typedef struct _GPerlClass {
+	GPerlObjectHeader h;
+	GPerlHash *fields;
+	GPerlFunc **mtds;
+	_GPerlClassExtend *ext;
+	void (*write)(GPerlValue v);
+} GPerlClass;
+
+typedef struct _GPerlClassExtend {
+	GPerlObjectHeader h;
+	const char *class_name;
+	GPerlValue *vars;
+	GPerlClass *super;
+	void *slot4;
+} GPerlClassExtend;
+
 typedef struct _GPerlUndef {
 	GPerlObjectHeader h;
 	void *slot1;

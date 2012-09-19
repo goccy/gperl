@@ -250,6 +250,7 @@ GPerlAST *GPerlParser::parse(void)
 	bool forStmtFlag = false;
 	bool foreachStmtFlag = false;
 	bool condIndentFlag = false;
+	bool packageFlag = false;
 	GPerlT prev_type = Undefined;
 
 	while (it != end) {
@@ -410,6 +411,10 @@ GPerlAST *GPerlParser::parse(void)
 		}
 		case ElseStmt: {
 			elseStmtFlag = true;
+			break;
+		}
+		case Package: {
+			packageFlag = true;
 			break;
 		}
 		case LeftBrace: {
