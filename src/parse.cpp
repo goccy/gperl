@@ -7,6 +7,7 @@ GPerlCell::GPerlCell(GPerlT type_) : type(type_), vidx(0)
 	data.pdata = NULL;
 	left = NULL;
 	true_stmt = NULL;
+	pkg_stmt = NULL;
 	right = NULL;
 	parent = NULL;
 	next = NULL;
@@ -21,6 +22,7 @@ GPerlCell::GPerlCell(GPerlT type_, string name) : type(type_), vidx(0)
 	data.pdata = NULL;
 	left = NULL;
 	true_stmt = NULL;
+	pkg_stmt = NULL;
 	right = NULL;
 	parent = NULL;
 	next = NULL;
@@ -68,6 +70,7 @@ GPerlParser::GPerlParser(vector<GPerlToken *> *tokens, int _argc, char **_argv)
 {
 	it = tokens->begin();
 	end = tokens->end();
+	pkgs = new vector<GPerlCell *>();
 	iterate_count = 0;
 	func_iterate_count = 0;
 	vidx = 0;
@@ -255,6 +258,7 @@ GPerlAST *GPerlParser::parse(void)
 
 	while (it != end) {
 		GPerlToken *t = (GPerlToken *)*it;
+		if (!t) break;
 		DBG_P("L[%d] : ", iterate_count);
 		DBG_PL("(%s)", t->info.name);
 		switch (t->info.type) {
@@ -303,13 +307,24 @@ GPerlAST *GPerlParser::parse(void)
 			break;
 		}
 		case Var: case ArrayVar: case HashVar: case ArgumentArray: case SpecificValue:
-		case Int: case Double: case String: case Call: case BuiltinFunc: case Key: case CodeVar:
+		case Int: case Double: case String: case Call: case BuiltinFunc: case Key: case CodeVar: {
+			GPerlScope *pkg = NULL;
 			if (isCallDeclFlag && t->info.type != Call && t->info.type != BuiltinFunc) {
 				t->info.type = CodeVar;
 				isCallDeclFlag = false;
+			} else if (packageFlag) {
+				root = new GPerlCell(Package, t->data);
+				MOVE_NEXT_TOKEN();
+				pkg = parse();
+				pkg->root = pkg->root->next;
+				root->pkg_stmt = pkg;
+				pkgs->insert(pkgs->begin(), 1, root);
+				packageFlag = false;
+				break;
 			}
 			parseValue(t, &blocks, NULL);
 			break;
+		}
 		case Shift:
 			if (blocks.block_num > 0 && blocks.lastNode()->type == Assign) {
 				GPerlCell *assign = blocks.lastNode();

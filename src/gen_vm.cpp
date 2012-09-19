@@ -20,6 +20,7 @@ GPerlValue GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 	string outbuf = "";
 	root.stack_bottom = stack;
 	root.callstack_bottom = callstack_bottom;
+	GPerlValue *global_vmemory = global_vmemory;
 	root.global_vmemory = global_vmemory;
 #ifdef USING_JIT
 	GPerlJITCompiler jit_compiler;

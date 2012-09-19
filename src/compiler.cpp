@@ -1,5 +1,10 @@
 #include <gperl.hpp>
 using namespace std;
+
+GPerlPackage::GPerlPackage(void) : GPerlCompiler()
+{
+}
+
 GPerlCompiler::GPerlCompiler(void) : dst(0), src(0), code_num(0),
 									 func_index(0),
 									 args_count(0), recv_args_count(0)
@@ -180,6 +185,7 @@ void GPerlCompiler::genFunctionCode(GPerlCell *path)
 	DBG_PL("========= FUNCTION DECL END ==========");
 	args_count = 0;
 	recv_args_count = 0;
+	mtd_map[code->name] = code->func;
 }
 
 void GPerlCompiler::genIfStmtCode(GPerlCell *path)
@@ -721,6 +727,20 @@ GPerlVirtualMachineCode *GPerlCompiler::createVMCode(GPerlCell *c)
 		code->dst = 0;
 		code->src = dst-1;
 		break;
+	case Package: {
+		GPerlPackage pkg;
+		GPerlVirtualMachineCode *code = pkg.compile(c->pkg_stmt);
+		pkg.dumpPureVMCode(code);
+		/*
+		map<string, GPerlVirtualMachineCode *>::iterator it = pkg.mtd_map.begin();
+		asm("int3");
+		while (it != pkg.mtd_map.end()) {
+			string fname = (string)it->first();
+			GPerlVirtualMachineCode *f = (GPerlVirtualMachineCode *)(*it).second();
+		}
+		*/
+		break;
+	}
 	default:
 		code->op = NOP;
 		break;

@@ -125,6 +125,7 @@ public:
 		GPerlCell *right;
 		GPerlScope *false_stmt;
 	};
+	GPerlScope *pkg_stmt; /* for 'package PKGNAME;' */
 	GPerlCell *next;/* for next stmt */
 	GPerlCell *vargs[MAX_ARGSTACK_SIZE]; /* for print */
 	int argsize;
@@ -187,7 +188,7 @@ public:
 	int indent;
 	int argc;
 	char **argv;
-
+	std::vector<GPerlCell *> *pkgs;
 	std::vector<GPerlToken *>::iterator it;
 	std::vector<GPerlToken *>::iterator end;
 
@@ -392,8 +393,10 @@ typedef struct _GPerlVirtualMachineCode {
 	void *opnext; /* for direct threading */
 } GPerlVirtualMachineCode;
 
+class GPerlPackage;
 class GPerlCompiler {
 public:
+	std::vector<GPerlPackage *> *pkgs;
 	int dst;
 	int src;
 	int code_num;
@@ -410,6 +413,7 @@ public:
 	int func_index;
 	int args_count;/* for CALL */
 	int recv_args_count; /* for ARGMOV */
+	std::map<std::string, GPerlVirtualMachineCode *> mtd_map;
 	std::map<std::string, int> local_vmap;
 	std::map<std::string, int> global_vmap;
 
@@ -471,6 +475,11 @@ public:
 	void popVMCode(void);
 	void dumpVMCode(GPerlVirtualMachineCode *code);
 	void dumpPureVMCode(GPerlVirtualMachineCode *codes);
+};
+
+class GPerlPackage : public GPerlCompiler {
+public:
+	GPerlPackage(void);
 };
 
 typedef GPerlCell GPerlNode;

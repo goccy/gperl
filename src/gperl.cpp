@@ -126,6 +126,11 @@ GPerlValue GPerl::eval(char *script, int argc, char **argv)
 	}
 	DBG_PL("==============<PARSE>==============");
 	GPerlAST *ast = p->parse();
+	if (p->pkgs->size() > 0) {
+		for (size_t i = 0; i < p->pkgs->size(); i++) {
+			ast->add(p->pkgs->at(i));
+		}
+	}
 #ifdef USING_GRAPH_DEBUG
 	ast->show();//graph debug with graphviz
 #endif
