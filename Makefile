@@ -20,6 +20,7 @@ objs = build/main.o \
 	build/array.o\
 	build/hash.o\
 	build/func.o\
+	build/class.o\
 	build/undef.o\
 	build/jit.o\
 	$(READLINE_DIR)/build/greadline.o\
@@ -75,6 +76,9 @@ build/hash.o : src/hash.cpp
 	$(CC) $(CFLAGS) -o $@ -c $^
 
 build/func.o : src/func.cpp
+	$(CC) $(CFLAGS) -o $@ -c $^
+
+build/class.o : src/class.cpp
 	$(CC) $(CFLAGS) -o $@ -c $^
 
 build/undef.o : src/undef.cpp

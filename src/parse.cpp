@@ -307,7 +307,7 @@ GPerlAST *GPerlParser::parse(void)
 			break;
 		}
 		case Var: case ArrayVar: case HashVar: case ArgumentArray: case SpecificValue:
-		case Int: case Double: case String: case Call: case BuiltinFunc: case Key: case CodeVar: {
+		case Int: case Double: case String: case Call: case BuiltinFunc: case Key: case CodeVar: case Class: {
 			GPerlScope *pkg = NULL;
 			if (isCallDeclFlag && t->info.type != Call && t->info.type != BuiltinFunc) {
 				t->info.type = CodeVar;

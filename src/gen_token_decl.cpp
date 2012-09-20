@@ -52,6 +52,7 @@ GPerlTokenInfo decl_tokens[] = {
 	{Arrow, "Arrow", "=>"},
 	{Pointer, "Pointer", "->"},
 	{Package, "Package", "package"},
+	{Class, "Class", ""},
 	{Shift, "Shift", "shift"},
 	{CallDecl, "CallDecl", "&"},
 	{CodeRef, "CodeRef", "\\&"},

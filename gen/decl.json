@@ -265,6 +265,11 @@
 	 "parse_func" : ""
  },
  {
+	 "type" : "Class",
+	 "data" : "",
+	 "parse_func" : ""
+ },
+ {
 	 "type" : "Shift",
 	 "data" : "shift",
 	 "parse_func" : ""

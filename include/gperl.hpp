@@ -396,7 +396,7 @@ typedef struct _GPerlVirtualMachineCode {
 class GPerlPackage;
 class GPerlCompiler {
 public:
-	std::vector<GPerlPackage *> *pkgs;
+	std::vector<GPerlClass *> *clses;
 	int dst;
 	int src;
 	int code_num;
@@ -418,7 +418,7 @@ public:
 	std::map<std::string, int> global_vmap;
 
 	GPerlCompiler(void);
-	GPerlVirtualMachineCode *compile(GPerlAST *ast);
+	GPerlVirtualMachineCode *compile(GPerlAST *ast, std::vector<GPerlClass *> *clses);
 	void finalCompile(std::vector<GPerlVirtualMachineCode *> *f);
 	void optimizeFuncCode(std::vector<GPerlVirtualMachineCode *> *f, std::string fname);
 	GPerlVirtualMachineCode *getPureCodes(std::vector<GPerlVirtualMachineCode *> *c);
@@ -448,6 +448,8 @@ public:
 	void setArrayAt(GPerlVirtualMachineCode *code, GPerlCell *c);
 	void setHashAt(GPerlVirtualMachineCode *code, GPerlCell *c);
 	void setArrow(GPerlVirtualMachineCode *code, GPerlCell *c);
+	GPerlClass *getClassByName(std::string name);
+	void setPointer(GPerlVirtualMachineCode *code, GPerlCell *c);
 	void setArraySet(GPerlVirtualMachineCode *code, GPerlCell *c);
 	void setArrayDereference(GPerlVirtualMachineCode *code, GPerlCell *c);
 	void setHashDereference(GPerlVirtualMachineCode *code, GPerlCell *c);
@@ -463,7 +465,7 @@ public:
 	GPerlVirtualMachineCode *createJMP(int jmp_num);
 	void addWriteCode(void);
 	void addPushCode(int i, int dst_, GPerlT type);
-	void genFunctionCallCode(GPerlCell *p);
+	void genFunctionCallCode(GPerlCell *p, int offset);
 	void genFunctionCode(GPerlCell *path);
 	void genMapFunctionCode(GPerlCell *path);
 	void genIfStmtCode(GPerlCell *path);
@@ -611,6 +613,7 @@ extern GPerlObject *new_GPerlArray(GPerlValue v, GPerlValue *args);
 extern GPerlHash *new_GPerlInitHash(GPerlValue *list, size_t asize);
 extern GPerlObject *new_GPerlHash(GPerlValue v, GPerlValue *args);
 extern GPerlHash *GPerlHash_copy(GPerlHash *h);
+extern GPerlClass *new_GPerlClass(const char *class_name, GPerlFunc **mtds);
 extern GPerlString *new_GPerlInitString(char *s, size_t len);
 extern GPerlObject *new_GPerlString(GPerlValue v, GPerlValue *args);
 extern GPerlObject *new_GPerlFunc(const char *fname, GPerlVirtualMachineCode *code);
