@@ -344,18 +344,18 @@ struct _GPerlClassExtend;
 
 typedef struct _GPerlClass {
 	GPerlObjectHeader h;
+	_GPerlClassExtend *ext;
 	GPerlHash *fields;
 	GPerlFunc **mtds;
-	_GPerlClassExtend *ext;
 	void (*write)(GPerlValue v);
 } GPerlClass;
 
 typedef struct _GPerlClassExtend {
 	GPerlObjectHeader h;
-	const char *class_name;
 	GPerlValue *vars;
 	GPerlClass *super;
-	void *slot4;
+	const char *class_name;
+	GPerlString **mtd_names;
 } GPerlClassExtend;
 
 typedef struct _GPerlUndef {
@@ -517,8 +517,10 @@ class GPerlVirtualMachine {
 public:
 	GPerlObject *variable_memory[MAX_VARIABLE_NUM];
 	GPerlVirtualMachineCode *func_memory[MAX_FUNC_NUM];
+	GPerlClass **pkg_table;
+	std::vector<GPerlClass *> *pkgs;
 
-	GPerlVirtualMachine();
+	GPerlVirtualMachine(std::vector<GPerlClass *> *pkgs);
 	void setToFuncMemory(GPerlVirtualMachineCode *func, int idx);
 	GPerlVirtualMachineCode *getFromFuncMemory(int idx);
 	GPerlEnv *createCallStack(void);

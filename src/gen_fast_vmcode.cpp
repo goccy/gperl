@@ -3062,6 +3062,46 @@
 		pc++;
 		BREAK();
 	});
+	CASE(A_STATIC_CALL, {
+		GPERL_STATIC_CALL(0, pc->src, A_STATIC_CALL);
+		pc++;
+		BREAK();
+	});
+	CASE(B_STATIC_CALL, {
+		GPERL_STATIC_CALL(1, pc->src, B_STATIC_CALL);
+		pc++;
+		BREAK();
+	});
+	CASE(C_STATIC_CALL, {
+		GPERL_STATIC_CALL(2, pc->src, C_STATIC_CALL);
+		pc++;
+		BREAK();
+	});
+	CASE(D_STATIC_CALL, {
+		GPERL_STATIC_CALL(3, pc->src, D_STATIC_CALL);
+		pc++;
+		BREAK();
+	});
+	CASE(A_DYNAMIC_CALL, {
+		GPERL_DYNAMIC_CALL(0, pc->src, A_DYNAMIC_CALL);
+		pc++;
+		BREAK();
+	});
+	CASE(B_DYNAMIC_CALL, {
+		GPERL_DYNAMIC_CALL(1, pc->src, B_DYNAMIC_CALL);
+		pc++;
+		BREAK();
+	});
+	CASE(C_DYNAMIC_CALL, {
+		GPERL_DYNAMIC_CALL(2, pc->src, C_DYNAMIC_CALL);
+		pc++;
+		BREAK();
+	});
+	CASE(D_DYNAMIC_CALL, {
+		GPERL_DYNAMIC_CALL(3, pc->src, D_DYNAMIC_CALL);
+		pc++;
+		BREAK();
+	});
 	CASE(A_CALL, {
 		GPERL_CALL(0, pc->src, A_CALL);
 		pc++;

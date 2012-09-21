@@ -231,6 +231,13 @@
      "args" : [{"argstack" : "(callstack+1)->argstack[0]"}]
  },
  {
+	 "code" : "BLESS",
+	 "type" : 0,
+	 "const" : 0,
+	 "fast_type" : 0,
+     "args" : [{"argstack" : "(callstack+1)->argstack"}]
+ },
+ {
 	 "code" : "JMP",
 	 "type" : 0,
 	 "const" : 0,
@@ -281,6 +288,20 @@
  },
  {
 	 "code" : "CLOSURE",
+	 "type" : 0,
+	 "const" : 0,
+	 "fast_type" : 2,
+     "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}, {"NAME" : "callname"}]
+ },
+ {
+	 "code" : "STATIC_CALL",
+	 "type" : 0,
+	 "const" : 0,
+	 "fast_type" : 2,
+     "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}, {"NAME" : "callname"}]
+ },
+ {
+	 "code" : "DYNAMIC_CALL",
 	 "type" : 0,
 	 "const" : 0,
 	 "fast_type" : 2,

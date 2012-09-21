@@ -742,16 +742,23 @@ GPerlVirtualMachineCode *GPerlCompiler::createVMCode(GPerlCell *c)
 		map<string, GPerlVirtualMachineCode *>::iterator it = pkg.mtd_map.begin();
 		size_t mtd_n = pkg.mtd_map.size();
 		GPerlFunc **mtd_table = (GPerlFunc **)safe_malloc(PTR_SIZE * HASH_TABLE_SIZE);
+		GPerlString **mtd_names = (GPerlString **)safe_malloc(PTR_SIZE * (mtd_n + 1));
+		mtd_names[mtd_n] = NULL;
 		for (size_t i = 0; i < mtd_n; i++) {
 			string fname = (string)(*it).first;
 			GPerlVirtualMachineCode *f = (GPerlVirtualMachineCode *)(*it).second;
 			char *name = (char *)cstr(fname);
-			unsigned long h = hash(name, strlen(name) + 1) % HASH_TABLE_SIZE;
-			DBG_PL("name = [%s], hash = [%lu]", name, h);
-			mtd_table[h] = (GPerlFunc *)new_GPerlFunc(cstr(fname), f);
+			size_t len = strlen(name) + 1;
+			char *new_name = (char *)safe_malloc(len);
+			memcpy(new_name, name, len);
+			GPerlString *s = new_GPerlInitString(new_name, len);
+			mtd_names[i] = s;
+			DBG_PL("name = [%s], hash = [%lu]", new_name, s->hash);
+			mtd_table[s->hash] = (GPerlFunc *)new_GPerlFunc(new_name, f);
 			it++;
 		}
 		GPerlClass *gclass = new_GPerlClass(cstr(c->rawstr), mtd_table);
+		gclass->ext->mtd_names = mtd_names;
 		clses->push_back(gclass);
 		if (c->rawstr == "main") {
 			vector<GPerlVirtualMachineCode *> *main_codes = pkg.codes;
@@ -1097,7 +1104,7 @@ void GPerlCompiler::setPointer(GPerlVirtualMachineCode *code, GPerlCell *c)
 		addPushCode(0, dst, String);
 		genFunctionCallCode(c->right, 1);
 		GPerlVirtualMachineCode *mtd_call = new GPerlVirtualMachineCode();
-		mtd_call->op = CLOSURE;//STATIC_CALL
+		mtd_call->op = STATIC_CALL;
 		mtd_call->dst = dst - 1;
 		mtd_call->src = dst;
 		mtd_call->name = mtd_name;
@@ -1120,7 +1127,7 @@ void GPerlCompiler::setPointer(GPerlVirtualMachineCode *code, GPerlCell *c)
 		addPushCode(0, dst, Object);
 		genFunctionCallCode(c->right, 1);
 		GPerlVirtualMachineCode *mtd_call = new GPerlVirtualMachineCode();
-		mtd_call->op = CLOSURE;
+		mtd_call->op = DYNAMIC_CALL;
 		mtd_call->dst = dst - 1;
 		mtd_call->src = self_reg_idx;
 		mtd_call->name = mtd_name;
@@ -1460,6 +1467,10 @@ void GPerlCompiler::setBFUNC(GPerlVirtualMachineCode *code, GPerlCell *c)
 	} else if (c->rawstr == "values") {
 		DBG_PL("Values");
 		code->op = VALUES;
+	} else if (c->rawstr == "bless") {
+		DBG_PL("Bless");
+		code->op = BLESS;
+		code->dst = dst - 1;
 	}
 	args_count = 0;
 }

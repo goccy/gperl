@@ -140,7 +140,7 @@ GPerlValue GPerl::eval(char *script, int argc, char **argv)
 	DBG_PL("-----------<DUMP VMCODE>-----------");
 	compiler.dumpPureVMCode(codes);
 	DBG_PL("-----------------------------------");
-	GPerlVirtualMachine *vm = new GPerlVirtualMachine();
+	GPerlVirtualMachine *vm = new GPerlVirtualMachine(compiler.clses);
 	DBG_PL("=============<RUNTIME>=============");
 	mm->switchGC();
 	vm->run(codes);//create threading code

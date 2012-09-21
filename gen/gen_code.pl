@@ -424,10 +424,20 @@ sub gen_vm_run_code {
                 $ret .= "\t\tpc++;\n";
             }
             if ($_ =~ /THCODE/) {
-                $ret .= "\t\tcreateDirectThreadingCode(codes, jmp_table);\n";
-                $ret .= "\t\t(void)block_table;\n";
-                $ret .= "\t\t//createSelectiveInliningCode(codes, jmp_table, block_table);\n";
-                $ret .= "\t\treturn reg[0];\n";
+                $ret .= q{		createDirectThreadingCode(codes, jmp_table);
+		size_t pkgs_n = pkgs->size();
+		for (size_t i = 0; i < pkgs_n; i++) {
+			GPerlClass *gclass = (GPerlClass *)pkgs->at(i);
+			GPerlString **mtd_names = gclass->ext->mtd_names;
+			for (size_t j = 0; mtd_names[j] != NULL; j++) {
+				GPerlFunc *mtd = gclass->mtds[mtd_names[j]->hash];
+				createDirectThreadingCode(mtd->code, jmp_table);
+			}
+		}
+		(void)block_table;
+		//createSelectiveInliningCode(codes, jmp_table, block_table);
+		return reg[0];
+        };
             } else {
                 $ret .= "\t\tBREAK();\n";
             }
