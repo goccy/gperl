@@ -126,6 +126,7 @@ public:
 		GPerlCell *right;
 		GPerlScope *false_stmt;
 	};
+	GPerlScope *pkg_stmt; /* for 'package PKGNAME;' */
 	GPerlCell *next;/* for next stmt */
 	GPerlCell *vargs[MAX_ARGSTACK_SIZE]; /* for print */
 	int argsize;
@@ -188,7 +189,7 @@ public:
 	int indent;
 	int argc;
 	char **argv;
-
+	std::vector<GPerlCell *> *pkgs;
 	std::vector<GPerlToken *>::iterator it;
 	std::vector<GPerlToken *>::iterator end;
 
@@ -344,18 +345,18 @@ struct _GPerlClassExtend;
 
 typedef struct _GPerlClass {
 	GPerlObjectHeader h;
+	_GPerlClassExtend *ext;
 	GPerlHash *fields;
 	GPerlFunc **mtds;
-	_GPerlClassExtend *ext;
 	void (*write)(GPerlValue v);
 } GPerlClass;
 
 typedef struct _GPerlClassExtend {
 	GPerlObjectHeader h;
-	const char *class_name;
 	GPerlValue *vars;
 	GPerlClass *super;
-	void *slot4;
+	const char *class_name;
+	GPerlString **mtd_names;
 } GPerlClassExtend;
 
 typedef struct _GPerlUndef {
@@ -393,8 +394,10 @@ typedef struct _GPerlVirtualMachineCode {
 	void *opnext; /* for direct threading */
 } GPerlVirtualMachineCode;
 
+class GPerlPackage;
 class GPerlCompiler {
 public:
+	std::vector<GPerlClass *> *clses;
 	int dst;
 	int src;
 	int code_num;
@@ -411,11 +414,12 @@ public:
 	int func_index;
 	int args_count;/* for CALL */
 	int recv_args_count; /* for ARGMOV */
+	std::map<std::string, GPerlVirtualMachineCode *> mtd_map;
 	std::map<std::string, int> local_vmap;
 	std::map<std::string, int> global_vmap;
 
 	GPerlCompiler(void);
-	GPerlVirtualMachineCode *compile(GPerlAST *ast);
+	GPerlVirtualMachineCode *compile(GPerlAST *ast, std::vector<GPerlClass *> *clses);
 	void finalCompile(std::vector<GPerlVirtualMachineCode *> *f);
 	void optimizeFuncCode(std::vector<GPerlVirtualMachineCode *> *f, std::string fname);
 	GPerlVirtualMachineCode *getPureCodes(std::vector<GPerlVirtualMachineCode *> *c);
@@ -445,6 +449,8 @@ public:
 	void setArrayAt(GPerlVirtualMachineCode *code, GPerlCell *c);
 	void setHashAt(GPerlVirtualMachineCode *code, GPerlCell *c);
 	void setArrow(GPerlVirtualMachineCode *code, GPerlCell *c);
+	GPerlClass *getClassByName(std::string name);
+	void setPointer(GPerlVirtualMachineCode *code, GPerlCell *c);
 	void setArraySet(GPerlVirtualMachineCode *code, GPerlCell *c);
 	void setArrayDereference(GPerlVirtualMachineCode *code, GPerlCell *c);
 	void setHashDereference(GPerlVirtualMachineCode *code, GPerlCell *c);
@@ -460,7 +466,7 @@ public:
 	GPerlVirtualMachineCode *createJMP(int jmp_num);
 	void addWriteCode(void);
 	void addPushCode(int i, int dst_, GPerlT type);
-	void genFunctionCallCode(GPerlCell *p);
+	void genFunctionCallCode(GPerlCell *p, int offset);
 	void genFunctionCode(GPerlCell *path);
 	void genMapFunctionCode(GPerlCell *path);
 	void genIfStmtCode(GPerlCell *path);
@@ -472,6 +478,11 @@ public:
 	void popVMCode(void);
 	void dumpVMCode(GPerlVirtualMachineCode *code);
 	void dumpPureVMCode(GPerlVirtualMachineCode *codes);
+};
+
+class GPerlPackage : public GPerlCompiler {
+public:
+	GPerlPackage(void);
 };
 
 typedef GPerlCell GPerlNode;
@@ -513,8 +524,10 @@ class GPerlVirtualMachine {
 public:
 	GPerlObject *variable_memory[MAX_VARIABLE_NUM];
 	GPerlVirtualMachineCode *func_memory[MAX_FUNC_NUM];
+	GPerlClass **pkg_table;
+	std::vector<GPerlClass *> *pkgs;
 
-	GPerlVirtualMachine();
+	GPerlVirtualMachine(std::vector<GPerlClass *> *pkgs);
 	void setToFuncMemory(GPerlVirtualMachineCode *func, int idx);
 	GPerlVirtualMachineCode *getFromFuncMemory(int idx);
 	GPerlEnv *createCallStack(void);
@@ -611,6 +624,7 @@ extern GPerlObject *new_GPerlArray(GPerlValue v, GPerlValue *args);
 extern GPerlHash *new_GPerlInitHash(GPerlValue *list, size_t asize);
 extern GPerlObject *new_GPerlHash(GPerlValue v, GPerlValue *args);
 extern GPerlHash *GPerlHash_copy(GPerlHash *h);
+extern GPerlClass *new_GPerlClass(const char *class_name, GPerlFunc **mtds);
 extern GPerlString *new_GPerlInitString(char *s, size_t len);
 extern GPerlObject *new_GPerlString(GPerlValue v, GPerlValue *args);
 extern GPerlObject *new_GPerlFunc(const char *fname, GPerlVirtualMachineCode *code);

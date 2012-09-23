@@ -449,6 +449,7 @@ void GPerlTokenizer::annotateTokens(vector<GPerlToken *> *tokens)
 	vector<GPerlToken *>::iterator it = tokens->begin();
 	vector<string> vardecl_list;
 	vector<string> funcdecl_list;
+	vector<string> pkgdecl_list;
 	int cur_type = 0;
 	while (it != tokens->end()) {
 		GPerlToken *t = (GPerlToken *)*it;
@@ -544,6 +545,11 @@ void GPerlTokenizer::annotateTokens(vector<GPerlToken *> *tokens)
 		} else if (search(funcdecl_list, t->data)) {
 			t->info = getTokenInfo("Call", NULL);
 			cur_type = Call;
+		} else if (cur_type == Package) {
+			t->info = getTokenInfo("Class", NULL);
+			pkgdecl_list.push_back(t->data);
+		} else if (search(pkgdecl_list, t->data)) {
+			t->info = getTokenInfo("Class", NULL);
 		} else {
 			//string
 			if (t->info.type != String) {

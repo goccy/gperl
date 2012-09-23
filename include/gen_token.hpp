@@ -43,6 +43,7 @@ typedef enum {
 	Arrow,
 	Pointer,
 	Package,
+	Class,
 	Shift,
 	CallDecl,
 	CodeRef,

@@ -41,8 +41,20 @@ void clear_cwb(void)
 	cwb->idx = 0;
 }
 
-GPerlVirtualMachine::GPerlVirtualMachine(void)
+GPerlVirtualMachine::GPerlVirtualMachine(vector<GPerlClass *> *pkgs)
 {
+	vector<GPerlClass *>::iterator it = pkgs->begin();
+	this->pkgs = pkgs;
+	size_t pkg_n = pkgs->size();
+	pkg_table = (GPerlClass **)safe_malloc(PTR_SIZE * HASH_TABLE_SIZE);
+	for (size_t i = 0; i < pkg_n; i++) {
+		GPerlClass *gclass = (GPerlClass *)(*it);
+		char *class_name = (char *)gclass->ext->class_name;
+		unsigned long h = hash(class_name, strlen(class_name) + 1) % HASH_TABLE_SIZE;
+		DBG_PL("name = [%s], hash = [%lu]", class_name, h);
+		pkg_table[h] = gclass;
+		it++;
+	}
 }
 
 void GPerlVirtualMachine::setToFuncMemory(GPerlVirtualMachineCode *func, int idx)

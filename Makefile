@@ -1,7 +1,7 @@
 CC = g++-4.2
 READLINE_DIR = lib/greadline
-#CFLAGS = -O2 -g -Wall -W -fomit-frame-pointer -I./include/ -I$(READLINE_DIR)/include #-DSTATIC_TYPING_MODE #-DDEBUG_MODE #-DUSING_JIT #-DUSING_GRAPH_DEBUG
-CFLAGS = -O0 -g3 -gdwarf-2 -Wall -W -fpermissive -I./include/ -I$(READLINE_DIR)/include -I/opt/local/include/ -DDEBUG_MODE -DUSING_GRAPH_DEBUG
+CFLAGS = -O2 -g -Wall -W -fomit-frame-pointer -I./include/ -I$(READLINE_DIR)/include #-DSTATIC_TYPING_MODE #-DDEBUG_MODE #-DUSING_JIT #-DUSING_GRAPH_DEBUG
+#CFLAGS = -O0 -g3 -gdwarf-2 -Wall -W -fpermissive -I./include/ -I$(READLINE_DIR)/include -I/opt/local/include/ -DDEBUG_MODE -DUSING_GRAPH_DEBUG
 READLINE_CFLAGS= -O2 -Wall -W -I$(READLINE_DIR)/include/
 LDLIBS = -L/usr/local/lib/x86_64 -ljit #`pkg-config libgvc --libs` -lpthread
 target = gperl
@@ -20,6 +20,7 @@ objs = build/main.o \
 	build/array.o\
 	build/hash.o\
 	build/func.o\
+	build/class.o\
 	build/undef.o\
 	build/jit.o\
 	$(READLINE_DIR)/build/greadline.o\
@@ -75,6 +76,9 @@ build/hash.o : src/hash.cpp
 	$(CC) $(CFLAGS) -o $@ -c $^
 
 build/func.o : src/func.cpp
+	$(CC) $(CFLAGS) -o $@ -c $^
+
+build/class.o : src/class.cpp
 	$(CC) $(CFLAGS) -o $@ -c $^
 
 build/undef.o : src/undef.cpp

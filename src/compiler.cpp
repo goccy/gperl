@@ -1,5 +1,10 @@
 #include <gperl.hpp>
 using namespace std;
+
+GPerlPackage::GPerlPackage(void) : GPerlCompiler()
+{
+}
+
 GPerlCompiler::GPerlCompiler(void) : dst(0), src(0), code_num(0),
 									 func_index(0),
 									 args_count(0), recv_args_count(0)
@@ -13,11 +18,15 @@ GPerlCompiler::GPerlCompiler(void) : dst(0), src(0), code_num(0),
 		variable_types[i] = Undefined;
 	}
 	codes = new vector<GPerlVirtualMachineCode *>();
+	clses = new vector<GPerlClass *>();
 	func_code = NULL;
 }
 
-GPerlVirtualMachineCode *GPerlCompiler::compile(GPerlAST *ast)
+GPerlVirtualMachineCode *GPerlCompiler::compile(GPerlAST *ast, vector<GPerlClass *> *_clses)
 {
+	if (_clses) {
+		clses->insert(clses->end(), _clses->begin(), _clses->end());
+	}
 	GPerlCell *root = ast->root;
 	GPerlVirtualMachineCode *thcode = createTHCODE();
 	addVMCode(thcode);
@@ -52,7 +61,8 @@ void GPerlCompiler::compile_(GPerlCell *path)
 		if (branch) {
 			if (branch == path) return;
 			if (parent->type != AddEqual && parent->type != SubEqual &&
-				parent->type != MulEqual && parent->type != DivEqual) {
+				parent->type != MulEqual && parent->type != DivEqual &&
+				parent->type != Pointer) {
 				if (isRIGHT_LEAF_NODE(branch)) {
 					genVMCode(branch);
 				} else if (isNotFALSE_STMT(parent)) {
@@ -68,7 +78,7 @@ void GPerlCompiler::compile_(GPerlCell *path)
 void GPerlCompiler::genVMCode(GPerlCell *path) {
 	GPerlVirtualMachineCode *code;
 	if (path->type == Call || path->type == BuiltinFunc || path->type == CodeVar) {
-		genFunctionCallCode(path);
+		genFunctionCallCode(path, 0);
 	} else if (path->type == IfStmt || path->type == ElsifStmt) {
 		genIfStmtCode(path);
 	} else if (path->type == WhileStmt) {
@@ -88,7 +98,7 @@ void GPerlCompiler::genVMCode(GPerlCell *path) {
 	dumpVMCode(code);
 }
 
-void GPerlCompiler::genFunctionCallCode(GPerlCell *p)
+void GPerlCompiler::genFunctionCallCode(GPerlCell *p, int offset)
 {
 	size_t argsize = p->argsize;
 	int dststack[argsize];
@@ -101,7 +111,7 @@ void GPerlCompiler::genFunctionCallCode(GPerlCell *p)
 	}
 	for (size_t i = 0; i < argsize; i++) {
 		if (p->type == Call || p->type == BuiltinFunc || p->type == CodeVar) {
-			addPushCode(i, dststack[i], p->vargs[i]->type);
+			addPushCode(i + offset, dststack[i], p->vargs[i]->type);
 		}
 	}
 }
@@ -180,6 +190,7 @@ void GPerlCompiler::genFunctionCode(GPerlCell *path)
 	DBG_PL("========= FUNCTION DECL END ==========");
 	args_count = 0;
 	recv_args_count = 0;
+	mtd_map[code->name] = code->func;
 }
 
 void GPerlCompiler::genIfStmtCode(GPerlCell *path)
@@ -710,6 +721,9 @@ GPerlVirtualMachineCode *GPerlCompiler::createVMCode(GPerlCell *c)
 	case Arrow:
 		setArrow(code, c);
 		break;
+	case Pointer:
+		setPointer(code, c);
+		break;
 	case HashAt:
 		setHashAt(code, c);
 		break;
@@ -721,6 +735,39 @@ GPerlVirtualMachineCode *GPerlCompiler::createVMCode(GPerlCell *c)
 		code->dst = 0;
 		code->src = dst-1;
 		break;
+	case Package: {
+		GPerlPackage pkg;
+		GPerlVirtualMachineCode *pkg_code = pkg.compile(c->pkg_stmt, clses);
+		pkg.dumpPureVMCode(pkg_code);
+		map<string, GPerlVirtualMachineCode *>::iterator it = pkg.mtd_map.begin();
+		size_t mtd_n = pkg.mtd_map.size();
+		GPerlFunc **mtd_table = (GPerlFunc **)safe_malloc(PTR_SIZE * HASH_TABLE_SIZE);
+		GPerlString **mtd_names = (GPerlString **)safe_malloc(PTR_SIZE * (mtd_n + 1));
+		mtd_names[mtd_n] = NULL;
+		for (size_t i = 0; i < mtd_n; i++) {
+			string fname = (string)(*it).first;
+			GPerlVirtualMachineCode *f = (GPerlVirtualMachineCode *)(*it).second;
+			char *name = (char *)cstr(fname);
+			size_t len = strlen(name) + 1;
+			char *new_name = (char *)safe_malloc(len);
+			memcpy(new_name, name, len);
+			GPerlString *s = new_GPerlInitString(new_name, len);
+			mtd_names[i] = s;
+			DBG_PL("name = [%s], hash = [%lu]", new_name, s->hash);
+			mtd_table[s->hash] = (GPerlFunc *)new_GPerlFunc(new_name, f);
+			it++;
+		}
+		GPerlClass *gclass = new_GPerlClass(cstr(c->rawstr), mtd_table);
+		gclass->ext->mtd_names = mtd_names;
+		clses->push_back(gclass);
+		if (c->rawstr == "main") {
+			vector<GPerlVirtualMachineCode *> *main_codes = pkg.codes;
+			main_codes->erase(main_codes->begin());//remove THCODE
+			codes->insert(codes->end(), main_codes->begin(), main_codes->end());
+		}
+		code->op = NOP;
+		break;
+	}
 	default:
 		code->op = NOP;
 		break;
@@ -1019,6 +1066,82 @@ void GPerlCompiler::setArrow(GPerlVirtualMachineCode *code, GPerlCell *)
 	code->op = NOP;
 }
 
+GPerlClass *GPerlCompiler::getClassByName(string name)
+{
+	size_t size = clses->size();
+	for (size_t i = 0; i < size; i++) {
+		GPerlClass *gclass = clses->at(i);
+		if (gclass->ext->class_name == name) {
+			return gclass;
+		}
+	}
+	return NULL;
+}
+
+void GPerlCompiler::setPointer(GPerlVirtualMachineCode *code, GPerlCell *c)
+{
+	DBG_PL("Pointer");
+	if (c->parent && c->parent->type == HashAt) {
+		code->op = NOP;
+		return;
+	}
+	if (c->left->type == Class) {
+		//Static Method Call
+		string class_name = c->left->rawstr;
+		GPerlClass *gclass = getClassByName(class_name);
+		char *mtd_name = (char *)cstr(c->right->rawstr);
+		unsigned long h = hash(mtd_name, strlen(mtd_name) + 1) % HASH_TABLE_SIZE;
+		DBG_PL("mtd_name = [%s], hash = [%lu]", mtd_name, h);
+		GPerlFunc *mtd = gclass->mtds[h];
+		if (!mtd) {
+			fprintf(stdout, "error!!: cannot find method name[%s]\n", mtd_name);
+			exit(EXIT_FAILURE);
+		}
+		GPerlVirtualMachineCode *smov = new GPerlVirtualMachineCode();
+		setMOV(smov, new GPerlCell(String, class_name));
+		addVMCode(smov);
+		dumpVMCode(smov);
+		addPushCode(0, dst, String);
+		genFunctionCallCode(c->right, 1);
+		GPerlVirtualMachineCode *mtd_call = new GPerlVirtualMachineCode();
+		mtd_call->op = STATIC_CALL;
+		mtd_call->dst = dst - 1;
+		mtd_call->src = dst;
+		mtd_call->name = mtd_name;
+		mtd_call->argc = args_count;
+		mtd_call->cur_reg_top = dst;
+		OBJECT_init(mtd_call->v, mtd);
+		setEscapeStackNum(mtd_call, c->right);
+		addVMCode(mtd_call);
+		dumpVMCode(mtd_call);
+		args_count = 0;
+		code->op = NOP;
+	} else {
+		//Dynamic Method Call
+		char *mtd_name = (char *)cstr(c->right->rawstr);
+		GPerlVirtualMachineCode *vmov = new GPerlVirtualMachineCode();
+		int self_reg_idx = dst - 1;
+		setVMOV(vmov, c->left);
+		addVMCode(vmov);
+		dumpVMCode(vmov);
+		addPushCode(0, dst, Object);
+		genFunctionCallCode(c->right, 1);
+		GPerlVirtualMachineCode *mtd_call = new GPerlVirtualMachineCode();
+		mtd_call->op = DYNAMIC_CALL;
+		mtd_call->dst = dst - 1;
+		mtd_call->src = self_reg_idx;
+		mtd_call->name = mtd_name;
+		mtd_call->hash = hash(mtd_name, strlen(mtd_name) + 1) % HASH_TABLE_SIZE;
+		mtd_call->argc = args_count;
+		mtd_call->cur_reg_top = dst;
+		setEscapeStackNum(mtd_call, c->right);
+		addVMCode(mtd_call);
+		dumpVMCode(mtd_call);
+		args_count = 0;
+		code->op = NOP;
+	}
+}
+
 void GPerlCompiler::setIS(GPerlVirtualMachineCode *code, GPerlCell *)
 {
 	code->op = IS;
@@ -1085,6 +1208,7 @@ void GPerlCompiler::setVMOV(GPerlVirtualMachineCode *code, GPerlCell *c)
 		addVMCode(closure);
 		dumpVMCode(closure);
 		code->op = NOP;
+		args_count = 0;
 	} else {
 		reg_type[dst] = Object;
 	}
@@ -1343,6 +1467,10 @@ void GPerlCompiler::setBFUNC(GPerlVirtualMachineCode *code, GPerlCell *c)
 	} else if (c->rawstr == "values") {
 		DBG_PL("Values");
 		code->op = VALUES;
+	} else if (c->rawstr == "bless") {
+		DBG_PL("Bless");
+		code->op = BLESS;
+		code->dst = dst - 1;
 	}
 	args_count = 0;
 }
@@ -1515,7 +1643,7 @@ void GPerlCompiler::dumpVMCode(GPerlVirtualMachineCode *code)
 
 void GPerlCompiler::dumpPureVMCode(GPerlVirtualMachineCode *c)
 {
-	int code_n = (codes->size() > (size_t)code_num) ? code_num : codes->size();
+	int code_n = codes->size();//(codes->size() > (size_t)code_num) ? code_num : codes->size();
 	for (int i = 0; i < code_n; i++) {
 		dumpVMCode(&c[i]);
 	}

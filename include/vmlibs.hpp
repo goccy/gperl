@@ -12,7 +12,7 @@
 #define END(op) L_##op##_END:
 
 #define BREAK() GOTO_NEXTOP()
-#define _CASE(op) L(op) : { /*DBG_PL(#op);*/ }
+#define _CASE(op) L(op) : { DBG_PL(#op); }
 #define CASE(op, block) _CASE(op) { START(op); block; END(op); }
 #define RETURN() { goto *callstack->ret_addr; }
 
@@ -369,6 +369,14 @@ static inline GPerlArray *GPERL_VALUES(GPerlValue arg)
 	}
 }
 
+#define GPERL_BLESS(args) do {								\
+		GPerlHash *self = (GPerlHash *)getObject(args[0]);	\
+		GPerlString *class_name = getStringObj(args[1]);	\
+		GPerlClass *gclass = pkg_table[class_name->hash];	\
+		gclass->fields = self;								\
+		OBJECT_init(reg[pc->dst], gclass);					\
+	} while (0);
+
 #define GPERL_JMP() pc += pc->jmp
 #define GPERL_FUNCSET(func, dst) setToFuncMemory(func, dst)
 #define GPERL_SETv(name, dst)
@@ -404,6 +412,23 @@ static inline GPerlArray *GPERL_VALUES(GPerlValue arg)
 		PROLOGUE(NAME);										\
 		INVOKE_FUNC();										\
 		EPILOGUE(dst, NAME);								\
+	} while (0);
+
+#define GPERL_STATIC_CALL(dst, src, NAME) do {				\
+		GPerlFunc *mtd = (GPerlFunc *)getObject(pc->v);		\
+		top   = mtd->code;									\
+		PROLOGUE(NAME);										\
+		INVOKE_FUNC();										\
+		EPILOGUE(dst, NAME);								\
+	} while (0);
+
+#define GPERL_DYNAMIC_CALL(dst, src, NAME) do {							\
+		GPerlClass *self = (GPerlClass *)getObject((callstack+1)->argstack[src]); \
+		GPerlFunc *mtd = self->mtds[pc->hash];							\
+		top   = mtd->code;												\
+		PROLOGUE(NAME);													\
+		INVOKE_FUNC();													\
+		EPILOGUE(dst, NAME);											\
 	} while (0);
 
 #define GPERL_CALL(dst, src, NAME) {				\
@@ -647,24 +672,48 @@ static inline GPerlArray *GPERL_VALUES(GPerlValue arg)
 	} while (0);
 
 #define GPERL_HASH_AT(dst, src, idx) do {								\
-		GPerlHash *h = (GPerlHash *)getObject(stack[src]);				\
+		GPerlObject *o = (GPerlObject *)getObject(stack[src]);			\
+		GPerlHash *h = NULL;											\
+		if (o->h.type == Hash || o->h.type == HashRef) {				\
+			h = (GPerlHash *)o;											\
+		} else {														\
+			h = ((GPerlClass *)o)->fields;								\
+		}																\
 		GPerlString *key = getStringObj(reg[idx]);						\
 		reg[dst] = h->table[key->hash];									\
 	} while (0);
 
 #define GPERL_HASH_gAT(dst, src, idx) do {								\
-		GPerlHash *h = (GPerlHash *)getObject(global_vmemory[src]);		\
+		GPerlObject *o = (GPerlObject *)getObject(global_vmemory[src]);	\
+		GPerlHash *h = NULL;											\
+		if (o->h.type == Hash || o->h.type == HashRef) {				\
+			h = (GPerlHash *)o;											\
+		} else {														\
+			h = ((GPerlClass *)o)->fields;								\
+		}																\
 		GPerlString *key = getStringObj(reg[idx]);						\
 		reg[dst] = h->table[key->hash];									\
 	} while (0);
 
 #define GPERL_HASH_ATC(dst, src, hash) do {								\
-		GPerlHash *h = (GPerlHash *)getObject(stack[src]);				\
+		GPerlObject *o = (GPerlObject *)getObject(stack[src]);			\
+		GPerlHash *h = NULL;											\
+		if (o->h.type == Hash || o->h.type == HashRef) {				\
+			h = (GPerlHash *)o;											\
+		} else {														\
+			h = ((GPerlClass *)o)->fields;								\
+		}																\
 		reg[dst] = h->table[hash];										\
 	} while (0);
 
 #define GPERL_HASH_gATC(dst, src, hash) do {							\
-		GPerlHash *h = (GPerlHash *)getObject(global_vmemory[src]);		\
+		GPerlObject *o = (GPerlObject *)getObject(global_vmemory[src]);	\
+		GPerlHash *h = NULL;											\
+		if (o->h.type == Hash || o->h.type == HashRef) {				\
+			h = (GPerlHash *)o;											\
+		} else {														\
+			h = ((GPerlClass *)o)->fields;								\
+		}																\
 		reg[dst] = h->table[hash];										\
 	} while (0);
 
