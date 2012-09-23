@@ -127,7 +127,6 @@ void GPerlMemoryManager::expandMemPool(void)
 		o->h.next = o + 1;
 		o = o + 1;
 	}
-	o->h.next = NULL;
 	new_tail->h.next = freeList;
 	freeList = new_head;
 	if (pool_size > max_pool_size - 1) {
@@ -257,8 +256,17 @@ void GPerlMemoryManager::sweep(void) {
 		while (o < tail) {
 			if (!IS_Marked(o) && o->h.free) {
 				//DBG_PL("FREE!!");
-				o->h.free(o);
-				MemoryManager_pushObject(o, freeList);
+				if (o->h.type == Array) {
+					o->h.free(o);
+					MemoryManager_pushObject(o, freeList);
+				}
+				else if (o->h.type == ArrayRef) {
+					// TODO why ArrayRef should not be free?
+				}
+				else {
+					o->h.free(o);
+					MemoryManager_pushObject(o, freeList);
+				}
 #ifdef DEBUG_MODE
 				dead_count++;
 #endif
