@@ -22,5 +22,6 @@ sub get_age {
 package main;
 
 my $person = Person->new("goccy", 25);
+print($person, "\n");
 print($person->get_name(), "\n");
 print($person->get_age(), "\n");

@@ -3,7 +3,9 @@
 void Class_write(GPerlValue o)
 {
 	GPerlClass *c = (GPerlClass *)getObject(o);
-	(void)c;
+	char buf[32] = {0};
+	sprintf(buf, "%s=HASH(%p)", c->ext->class_name, c->fields);
+	write_cwb(buf);
 }
 
 void Class_mark(GPerlObject* o)
