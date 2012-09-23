@@ -17,23 +17,6 @@ sigjmp_buf expand_mem;
 	o = list;                               \
 	list = list->h.next;                    \
 }
-/*
-#define MemoryManager_popObject(o, list) {      \
-o = list;                               \
-list = list->h.next;					\
-}
-*/
-
-#define GPerlObject_BodyClear(o) {               \
-	/*o->h.type = 0;*/                          \
-	o->h.mark_flag = 0;                     \
-	o->h.next = 0;                          \
-	o->slot1 = 0;                           \
-	o->slot2 = 0;                           \
-	o->write = 0;                           \
-	o->mark = 0;                            \
-	o->free = 0;                            \
-}
 
 #define MemoryManager_pushObject(o, list) { \
 	memset(o, '\0', OBJECT_SIZE);           \
