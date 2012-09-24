@@ -1,24 +1,44 @@
 #include <gperl.hpp>
 
 using namespace std;
-char *cwb;
-int cwb_idx = 0;
+GPerlCWB* cwb;
+
+GPerlCWB* init_cwb(size_t bufsize)
+{
+	GPerlCWB* cwb = (GPerlCWB*)safe_malloc(sizeof(GPerlCWB));
+	cwb->buf = (char*)safe_malloc(bufsize);
+	cwb->bufsize = bufsize;
+	return cwb;
+}
+
+void free_cwb(GPerlCWB* cwb)
+{
+	safe_free((void*)cwb->buf, cwb->bufsize);
+	safe_free((void*)cwb, sizeof(GPerlCWB));
+}
+
+void expand_cwb(size_t size)
+{
+	cwb->bufsize = size;
+	cwb->buf = (char*)realloc(cwb->buf, size);
+}
+
 void write_cwb(char *buf)
 {
+	size_t idx = cwb->idx;
 	size_t buf_size = strlen(buf);
-	strncpy(cwb + cwb_idx, buf, buf_size);
-	cwb_idx += buf_size;
-	if (cwb_idx > MAX_CWB_SIZE) {
-		fprintf(stderr, "ERROR: cwb_idx = [%d] > %d\n", cwb_idx, MAX_CWB_SIZE);
-		memset(cwb, 0, MAX_CWB_SIZE);
-		cwb_idx = 0;
+	strncpy(cwb->buf + idx, buf, buf_size);
+	cwb->idx += buf_size;
+	if (idx > cwb->bufsize) {
+		DBG_PL("Expand CWB %lu", cwb->bufsize);
+		expand_cwb(cwb->bufsize * 2);
 	}
 }
 
 void clear_cwb(void)
 {
-	memset(cwb, 0, cwb_idx);
-	cwb_idx = 0;
+	memset(cwb->buf, 0, cwb->idx);
+	cwb->idx = 0;
 }
 
 GPerlVirtualMachine::GPerlVirtualMachine(vector<GPerlClass *> *pkgs)
