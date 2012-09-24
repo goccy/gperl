@@ -99,13 +99,13 @@
 		BREAK();
 	});
 	CASE(AB_ADD, {
-		int dst_type = TYPE_CHECK(reg[pc->dst]);
-		int src_type = TYPE_CHECK(reg[pc->src]);
-#ifdef STATIC_TYPING_MODE
-		pc->opnext = jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
-#else /* DYNAMIC_TYPING_MODE */
-		goto *jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
-#endif
+		int type = TYPE_CHECK(reg[pc->dst]);
+		goto *jmp_table[pc->op + 2 + type];
+		BREAK();
+	});
+	CASE(AB_STATIC_ADD, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+		pc->opnext = jmp_table[pc->op + 1 + type];
 		BREAK();
 	});
 	CASE(AB_dADD, {
@@ -129,13 +129,13 @@
 		BREAK();
 	});
 	CASE(AC_ADD, {
-		int dst_type = TYPE_CHECK(reg[pc->dst]);
-		int src_type = TYPE_CHECK(reg[pc->src]);
-#ifdef STATIC_TYPING_MODE
-		pc->opnext = jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
-#else /* DYNAMIC_TYPING_MODE */
-		goto *jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
-#endif
+		int type = TYPE_CHECK(reg[pc->dst]);
+		goto *jmp_table[pc->op + 2 + type];
+		BREAK();
+	});
+	CASE(AC_STATIC_ADD, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+		pc->opnext = jmp_table[pc->op + 1 + type];
 		BREAK();
 	});
 	CASE(AC_dADD, {
@@ -159,13 +159,13 @@
 		BREAK();
 	});
 	CASE(AD_ADD, {
-		int dst_type = TYPE_CHECK(reg[pc->dst]);
-		int src_type = TYPE_CHECK(reg[pc->src]);
-#ifdef STATIC_TYPING_MODE
-		pc->opnext = jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
-#else /* DYNAMIC_TYPING_MODE */
-		goto *jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
-#endif
+		int type = TYPE_CHECK(reg[pc->dst]);
+		goto *jmp_table[pc->op + 2 + type];
+		BREAK();
+	});
+	CASE(AD_STATIC_ADD, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+		pc->opnext = jmp_table[pc->op + 1 + type];
 		BREAK();
 	});
 	CASE(AD_dADD, {
@@ -189,13 +189,13 @@
 		BREAK();
 	});
 	CASE(BC_ADD, {
-		int dst_type = TYPE_CHECK(reg[pc->dst]);
-		int src_type = TYPE_CHECK(reg[pc->src]);
-#ifdef STATIC_TYPING_MODE
-		pc->opnext = jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
-#else /* DYNAMIC_TYPING_MODE */
-		goto *jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
-#endif
+		int type = TYPE_CHECK(reg[pc->dst]);
+		goto *jmp_table[pc->op + 2 + type];
+		BREAK();
+	});
+	CASE(BC_STATIC_ADD, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+		pc->opnext = jmp_table[pc->op + 1 + type];
 		BREAK();
 	});
 	CASE(BC_dADD, {
@@ -219,13 +219,13 @@
 		BREAK();
 	});
 	CASE(BD_ADD, {
-		int dst_type = TYPE_CHECK(reg[pc->dst]);
-		int src_type = TYPE_CHECK(reg[pc->src]);
-#ifdef STATIC_TYPING_MODE
-		pc->opnext = jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
-#else /* DYNAMIC_TYPING_MODE */
-		goto *jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
-#endif
+		int type = TYPE_CHECK(reg[pc->dst]);
+		goto *jmp_table[pc->op + 2 + type];
+		BREAK();
+	});
+	CASE(BD_STATIC_ADD, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+		pc->opnext = jmp_table[pc->op + 1 + type];
 		BREAK();
 	});
 	CASE(BD_dADD, {
@@ -249,13 +249,13 @@
 		BREAK();
 	});
 	CASE(CD_ADD, {
-		int dst_type = TYPE_CHECK(reg[pc->dst]);
-		int src_type = TYPE_CHECK(reg[pc->src]);
-#ifdef STATIC_TYPING_MODE
-		pc->opnext = jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
-#else /* DYNAMIC_TYPING_MODE */
-		goto *jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
-#endif
+		int type = TYPE_CHECK(reg[pc->dst]);
+		goto *jmp_table[pc->op + 2 + type];
+		BREAK();
+	});
+	CASE(CD_STATIC_ADD, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+		pc->opnext = jmp_table[pc->op + 1 + type];
 		BREAK();
 	});
 	CASE(CD_dADD, {
@@ -359,13 +359,13 @@
 		BREAK();
 	});
 	CASE(AB_SUB, {
-		int dst_type = TYPE_CHECK(reg[pc->dst]);
-		int src_type = TYPE_CHECK(reg[pc->src]);
-#ifdef STATIC_TYPING_MODE
-		pc->opnext = jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
-#else /* DYNAMIC_TYPING_MODE */
-		goto *jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
-#endif
+		int type = TYPE_CHECK(reg[pc->dst]);
+		goto *jmp_table[pc->op + 2 + type];
+		BREAK();
+	});
+	CASE(AB_STATIC_SUB, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+		pc->opnext = jmp_table[pc->op + 1 + type];
 		BREAK();
 	});
 	CASE(AB_dSUB, {
@@ -384,13 +384,13 @@
 		BREAK();
 	});
 	CASE(AC_SUB, {
-		int dst_type = TYPE_CHECK(reg[pc->dst]);
-		int src_type = TYPE_CHECK(reg[pc->src]);
-#ifdef STATIC_TYPING_MODE
-		pc->opnext = jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
-#else /* DYNAMIC_TYPING_MODE */
-		goto *jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
-#endif
+		int type = TYPE_CHECK(reg[pc->dst]);
+		goto *jmp_table[pc->op + 2 + type];
+		BREAK();
+	});
+	CASE(AC_STATIC_SUB, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+		pc->opnext = jmp_table[pc->op + 1 + type];
 		BREAK();
 	});
 	CASE(AC_dSUB, {
@@ -409,13 +409,13 @@
 		BREAK();
 	});
 	CASE(AD_SUB, {
-		int dst_type = TYPE_CHECK(reg[pc->dst]);
-		int src_type = TYPE_CHECK(reg[pc->src]);
-#ifdef STATIC_TYPING_MODE
-		pc->opnext = jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
-#else /* DYNAMIC_TYPING_MODE */
-		goto *jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
-#endif
+		int type = TYPE_CHECK(reg[pc->dst]);
+		goto *jmp_table[pc->op + 2 + type];
+		BREAK();
+	});
+	CASE(AD_STATIC_SUB, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+		pc->opnext = jmp_table[pc->op + 1 + type];
 		BREAK();
 	});
 	CASE(AD_dSUB, {
@@ -434,13 +434,13 @@
 		BREAK();
 	});
 	CASE(BC_SUB, {
-		int dst_type = TYPE_CHECK(reg[pc->dst]);
-		int src_type = TYPE_CHECK(reg[pc->src]);
-#ifdef STATIC_TYPING_MODE
-		pc->opnext = jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
-#else /* DYNAMIC_TYPING_MODE */
-		goto *jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
-#endif
+		int type = TYPE_CHECK(reg[pc->dst]);
+		goto *jmp_table[pc->op + 2 + type];
+		BREAK();
+	});
+	CASE(BC_STATIC_SUB, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+		pc->opnext = jmp_table[pc->op + 1 + type];
 		BREAK();
 	});
 	CASE(BC_dSUB, {
@@ -459,13 +459,13 @@
 		BREAK();
 	});
 	CASE(BD_SUB, {
-		int dst_type = TYPE_CHECK(reg[pc->dst]);
-		int src_type = TYPE_CHECK(reg[pc->src]);
-#ifdef STATIC_TYPING_MODE
-		pc->opnext = jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
-#else /* DYNAMIC_TYPING_MODE */
-		goto *jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
-#endif
+		int type = TYPE_CHECK(reg[pc->dst]);
+		goto *jmp_table[pc->op + 2 + type];
+		BREAK();
+	});
+	CASE(BD_STATIC_SUB, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+		pc->opnext = jmp_table[pc->op + 1 + type];
 		BREAK();
 	});
 	CASE(BD_dSUB, {
@@ -484,13 +484,13 @@
 		BREAK();
 	});
 	CASE(CD_SUB, {
-		int dst_type = TYPE_CHECK(reg[pc->dst]);
-		int src_type = TYPE_CHECK(reg[pc->src]);
-#ifdef STATIC_TYPING_MODE
-		pc->opnext = jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
-#else /* DYNAMIC_TYPING_MODE */
-		goto *jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
-#endif
+		int type = TYPE_CHECK(reg[pc->dst]);
+		goto *jmp_table[pc->op + 2 + type];
+		BREAK();
+	});
+	CASE(CD_STATIC_SUB, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+		pc->opnext = jmp_table[pc->op + 1 + type];
 		BREAK();
 	});
 	CASE(CD_dSUB, {
@@ -569,13 +569,13 @@
 		BREAK();
 	});
 	CASE(AB_MUL, {
-		int dst_type = TYPE_CHECK(reg[pc->dst]);
-		int src_type = TYPE_CHECK(reg[pc->src]);
-#ifdef STATIC_TYPING_MODE
-		pc->opnext = jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
-#else /* DYNAMIC_TYPING_MODE */
-		goto *jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
-#endif
+		int type = TYPE_CHECK(reg[pc->dst]);
+		goto *jmp_table[pc->op + 2 + type];
+		BREAK();
+	});
+	CASE(AB_STATIC_MUL, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+		pc->opnext = jmp_table[pc->op + 1 + type];
 		BREAK();
 	});
 	CASE(AB_dMUL, {
@@ -599,13 +599,13 @@
 		BREAK();
 	});
 	CASE(AC_MUL, {
-		int dst_type = TYPE_CHECK(reg[pc->dst]);
-		int src_type = TYPE_CHECK(reg[pc->src]);
-#ifdef STATIC_TYPING_MODE
-		pc->opnext = jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
-#else /* DYNAMIC_TYPING_MODE */
-		goto *jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
-#endif
+		int type = TYPE_CHECK(reg[pc->dst]);
+		goto *jmp_table[pc->op + 2 + type];
+		BREAK();
+	});
+	CASE(AC_STATIC_MUL, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+		pc->opnext = jmp_table[pc->op + 1 + type];
 		BREAK();
 	});
 	CASE(AC_dMUL, {
@@ -629,13 +629,13 @@
 		BREAK();
 	});
 	CASE(AD_MUL, {
-		int dst_type = TYPE_CHECK(reg[pc->dst]);
-		int src_type = TYPE_CHECK(reg[pc->src]);
-#ifdef STATIC_TYPING_MODE
-		pc->opnext = jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
-#else /* DYNAMIC_TYPING_MODE */
-		goto *jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
-#endif
+		int type = TYPE_CHECK(reg[pc->dst]);
+		goto *jmp_table[pc->op + 2 + type];
+		BREAK();
+	});
+	CASE(AD_STATIC_MUL, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+		pc->opnext = jmp_table[pc->op + 1 + type];
 		BREAK();
 	});
 	CASE(AD_dMUL, {
@@ -659,13 +659,13 @@
 		BREAK();
 	});
 	CASE(BC_MUL, {
-		int dst_type = TYPE_CHECK(reg[pc->dst]);
-		int src_type = TYPE_CHECK(reg[pc->src]);
-#ifdef STATIC_TYPING_MODE
-		pc->opnext = jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
-#else /* DYNAMIC_TYPING_MODE */
-		goto *jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
-#endif
+		int type = TYPE_CHECK(reg[pc->dst]);
+		goto *jmp_table[pc->op + 2 + type];
+		BREAK();
+	});
+	CASE(BC_STATIC_MUL, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+		pc->opnext = jmp_table[pc->op + 1 + type];
 		BREAK();
 	});
 	CASE(BC_dMUL, {
@@ -689,13 +689,13 @@
 		BREAK();
 	});
 	CASE(BD_MUL, {
-		int dst_type = TYPE_CHECK(reg[pc->dst]);
-		int src_type = TYPE_CHECK(reg[pc->src]);
-#ifdef STATIC_TYPING_MODE
-		pc->opnext = jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
-#else /* DYNAMIC_TYPING_MODE */
-		goto *jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
-#endif
+		int type = TYPE_CHECK(reg[pc->dst]);
+		goto *jmp_table[pc->op + 2 + type];
+		BREAK();
+	});
+	CASE(BD_STATIC_MUL, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+		pc->opnext = jmp_table[pc->op + 1 + type];
 		BREAK();
 	});
 	CASE(BD_dMUL, {
@@ -719,13 +719,13 @@
 		BREAK();
 	});
 	CASE(CD_MUL, {
-		int dst_type = TYPE_CHECK(reg[pc->dst]);
-		int src_type = TYPE_CHECK(reg[pc->src]);
-#ifdef STATIC_TYPING_MODE
-		pc->opnext = jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
-#else /* DYNAMIC_TYPING_MODE */
-		goto *jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
-#endif
+		int type = TYPE_CHECK(reg[pc->dst]);
+		goto *jmp_table[pc->op + 2 + type];
+		BREAK();
+	});
+	CASE(CD_STATIC_MUL, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+		pc->opnext = jmp_table[pc->op + 1 + type];
 		BREAK();
 	});
 	CASE(CD_dMUL, {
@@ -829,13 +829,13 @@
 		BREAK();
 	});
 	CASE(AB_DIV, {
-		int dst_type = TYPE_CHECK(reg[pc->dst]);
-		int src_type = TYPE_CHECK(reg[pc->src]);
-#ifdef STATIC_TYPING_MODE
-		pc->opnext = jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
-#else /* DYNAMIC_TYPING_MODE */
-		goto *jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
-#endif
+		int type = TYPE_CHECK(reg[pc->dst]);
+		goto *jmp_table[pc->op + 2 + type];
+		BREAK();
+	});
+	CASE(AB_STATIC_DIV, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+		pc->opnext = jmp_table[pc->op + 1 + type];
 		BREAK();
 	});
 	CASE(AB_dDIV, {
@@ -854,13 +854,13 @@
 		BREAK();
 	});
 	CASE(AC_DIV, {
-		int dst_type = TYPE_CHECK(reg[pc->dst]);
-		int src_type = TYPE_CHECK(reg[pc->src]);
-#ifdef STATIC_TYPING_MODE
-		pc->opnext = jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
-#else /* DYNAMIC_TYPING_MODE */
-		goto *jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
-#endif
+		int type = TYPE_CHECK(reg[pc->dst]);
+		goto *jmp_table[pc->op + 2 + type];
+		BREAK();
+	});
+	CASE(AC_STATIC_DIV, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+		pc->opnext = jmp_table[pc->op + 1 + type];
 		BREAK();
 	});
 	CASE(AC_dDIV, {
@@ -879,13 +879,13 @@
 		BREAK();
 	});
 	CASE(AD_DIV, {
-		int dst_type = TYPE_CHECK(reg[pc->dst]);
-		int src_type = TYPE_CHECK(reg[pc->src]);
-#ifdef STATIC_TYPING_MODE
-		pc->opnext = jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
-#else /* DYNAMIC_TYPING_MODE */
-		goto *jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
-#endif
+		int type = TYPE_CHECK(reg[pc->dst]);
+		goto *jmp_table[pc->op + 2 + type];
+		BREAK();
+	});
+	CASE(AD_STATIC_DIV, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+		pc->opnext = jmp_table[pc->op + 1 + type];
 		BREAK();
 	});
 	CASE(AD_dDIV, {
@@ -904,13 +904,13 @@
 		BREAK();
 	});
 	CASE(BC_DIV, {
-		int dst_type = TYPE_CHECK(reg[pc->dst]);
-		int src_type = TYPE_CHECK(reg[pc->src]);
-#ifdef STATIC_TYPING_MODE
-		pc->opnext = jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
-#else /* DYNAMIC_TYPING_MODE */
-		goto *jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
-#endif
+		int type = TYPE_CHECK(reg[pc->dst]);
+		goto *jmp_table[pc->op + 2 + type];
+		BREAK();
+	});
+	CASE(BC_STATIC_DIV, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+		pc->opnext = jmp_table[pc->op + 1 + type];
 		BREAK();
 	});
 	CASE(BC_dDIV, {
@@ -929,13 +929,13 @@
 		BREAK();
 	});
 	CASE(BD_DIV, {
-		int dst_type = TYPE_CHECK(reg[pc->dst]);
-		int src_type = TYPE_CHECK(reg[pc->src]);
-#ifdef STATIC_TYPING_MODE
-		pc->opnext = jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
-#else /* DYNAMIC_TYPING_MODE */
-		goto *jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
-#endif
+		int type = TYPE_CHECK(reg[pc->dst]);
+		goto *jmp_table[pc->op + 2 + type];
+		BREAK();
+	});
+	CASE(BD_STATIC_DIV, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+		pc->opnext = jmp_table[pc->op + 1 + type];
 		BREAK();
 	});
 	CASE(BD_dDIV, {
@@ -954,13 +954,13 @@
 		BREAK();
 	});
 	CASE(CD_DIV, {
-		int dst_type = TYPE_CHECK(reg[pc->dst]);
-		int src_type = TYPE_CHECK(reg[pc->src]);
-#ifdef STATIC_TYPING_MODE
-		pc->opnext = jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
-#else /* DYNAMIC_TYPING_MODE */
-		goto *jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
-#endif
+		int type = TYPE_CHECK(reg[pc->dst]);
+		goto *jmp_table[pc->op + 2 + type];
+		BREAK();
+	});
+	CASE(CD_STATIC_DIV, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+		pc->opnext = jmp_table[pc->op + 1 + type];
 		BREAK();
 	});
 	CASE(CD_dDIV, {
@@ -1039,13 +1039,13 @@
 		BREAK();
 	});
 	CASE(AB_LSHIFT, {
-		int dst_type = TYPE_CHECK(reg[pc->dst]);
-		int src_type = TYPE_CHECK(reg[pc->src]);
-#ifdef STATIC_TYPING_MODE
-		pc->opnext = jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
-#else /* DYNAMIC_TYPING_MODE */
-		goto *jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
-#endif
+		int type = TYPE_CHECK(reg[pc->dst]);
+		goto *jmp_table[pc->op + 2 + type];
+		BREAK();
+	});
+	CASE(AB_STATIC_LSHIFT, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+		pc->opnext = jmp_table[pc->op + 1 + type];
 		BREAK();
 	});
 	CASE(AB_dLSHIFT, {
@@ -1069,13 +1069,13 @@
 		BREAK();
 	});
 	CASE(AC_LSHIFT, {
-		int dst_type = TYPE_CHECK(reg[pc->dst]);
-		int src_type = TYPE_CHECK(reg[pc->src]);
-#ifdef STATIC_TYPING_MODE
-		pc->opnext = jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
-#else /* DYNAMIC_TYPING_MODE */
-		goto *jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
-#endif
+		int type = TYPE_CHECK(reg[pc->dst]);
+		goto *jmp_table[pc->op + 2 + type];
+		BREAK();
+	});
+	CASE(AC_STATIC_LSHIFT, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+		pc->opnext = jmp_table[pc->op + 1 + type];
 		BREAK();
 	});
 	CASE(AC_dLSHIFT, {
@@ -1099,13 +1099,13 @@
 		BREAK();
 	});
 	CASE(AD_LSHIFT, {
-		int dst_type = TYPE_CHECK(reg[pc->dst]);
-		int src_type = TYPE_CHECK(reg[pc->src]);
-#ifdef STATIC_TYPING_MODE
-		pc->opnext = jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
-#else /* DYNAMIC_TYPING_MODE */
-		goto *jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
-#endif
+		int type = TYPE_CHECK(reg[pc->dst]);
+		goto *jmp_table[pc->op + 2 + type];
+		BREAK();
+	});
+	CASE(AD_STATIC_LSHIFT, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+		pc->opnext = jmp_table[pc->op + 1 + type];
 		BREAK();
 	});
 	CASE(AD_dLSHIFT, {
@@ -1129,13 +1129,13 @@
 		BREAK();
 	});
 	CASE(BC_LSHIFT, {
-		int dst_type = TYPE_CHECK(reg[pc->dst]);
-		int src_type = TYPE_CHECK(reg[pc->src]);
-#ifdef STATIC_TYPING_MODE
-		pc->opnext = jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
-#else /* DYNAMIC_TYPING_MODE */
-		goto *jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
-#endif
+		int type = TYPE_CHECK(reg[pc->dst]);
+		goto *jmp_table[pc->op + 2 + type];
+		BREAK();
+	});
+	CASE(BC_STATIC_LSHIFT, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+		pc->opnext = jmp_table[pc->op + 1 + type];
 		BREAK();
 	});
 	CASE(BC_dLSHIFT, {
@@ -1159,13 +1159,13 @@
 		BREAK();
 	});
 	CASE(BD_LSHIFT, {
-		int dst_type = TYPE_CHECK(reg[pc->dst]);
-		int src_type = TYPE_CHECK(reg[pc->src]);
-#ifdef STATIC_TYPING_MODE
-		pc->opnext = jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
-#else /* DYNAMIC_TYPING_MODE */
-		goto *jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
-#endif
+		int type = TYPE_CHECK(reg[pc->dst]);
+		goto *jmp_table[pc->op + 2 + type];
+		BREAK();
+	});
+	CASE(BD_STATIC_LSHIFT, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+		pc->opnext = jmp_table[pc->op + 1 + type];
 		BREAK();
 	});
 	CASE(BD_dLSHIFT, {
@@ -1189,13 +1189,13 @@
 		BREAK();
 	});
 	CASE(CD_LSHIFT, {
-		int dst_type = TYPE_CHECK(reg[pc->dst]);
-		int src_type = TYPE_CHECK(reg[pc->src]);
-#ifdef STATIC_TYPING_MODE
-		pc->opnext = jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
-#else /* DYNAMIC_TYPING_MODE */
-		goto *jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
-#endif
+		int type = TYPE_CHECK(reg[pc->dst]);
+		goto *jmp_table[pc->op + 2 + type];
+		BREAK();
+	});
+	CASE(CD_STATIC_LSHIFT, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+		pc->opnext = jmp_table[pc->op + 1 + type];
 		BREAK();
 	});
 	CASE(CD_dLSHIFT, {
@@ -1319,13 +1319,13 @@
 		BREAK();
 	});
 	CASE(AB_RSHIFT, {
-		int dst_type = TYPE_CHECK(reg[pc->dst]);
-		int src_type = TYPE_CHECK(reg[pc->src]);
-#ifdef STATIC_TYPING_MODE
-		pc->opnext = jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
-#else /* DYNAMIC_TYPING_MODE */
-		goto *jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
-#endif
+		int type = TYPE_CHECK(reg[pc->dst]);
+		goto *jmp_table[pc->op + 2 + type];
+		BREAK();
+	});
+	CASE(AB_STATIC_RSHIFT, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+		pc->opnext = jmp_table[pc->op + 1 + type];
 		BREAK();
 	});
 	CASE(AB_dRSHIFT, {
@@ -1349,13 +1349,13 @@
 		BREAK();
 	});
 	CASE(AC_RSHIFT, {
-		int dst_type = TYPE_CHECK(reg[pc->dst]);
-		int src_type = TYPE_CHECK(reg[pc->src]);
-#ifdef STATIC_TYPING_MODE
-		pc->opnext = jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
-#else /* DYNAMIC_TYPING_MODE */
-		goto *jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
-#endif
+		int type = TYPE_CHECK(reg[pc->dst]);
+		goto *jmp_table[pc->op + 2 + type];
+		BREAK();
+	});
+	CASE(AC_STATIC_RSHIFT, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+		pc->opnext = jmp_table[pc->op + 1 + type];
 		BREAK();
 	});
 	CASE(AC_dRSHIFT, {
@@ -1379,13 +1379,13 @@
 		BREAK();
 	});
 	CASE(AD_RSHIFT, {
-		int dst_type = TYPE_CHECK(reg[pc->dst]);
-		int src_type = TYPE_CHECK(reg[pc->src]);
-#ifdef STATIC_TYPING_MODE
-		pc->opnext = jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
-#else /* DYNAMIC_TYPING_MODE */
-		goto *jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
-#endif
+		int type = TYPE_CHECK(reg[pc->dst]);
+		goto *jmp_table[pc->op + 2 + type];
+		BREAK();
+	});
+	CASE(AD_STATIC_RSHIFT, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+		pc->opnext = jmp_table[pc->op + 1 + type];
 		BREAK();
 	});
 	CASE(AD_dRSHIFT, {
@@ -1409,13 +1409,13 @@
 		BREAK();
 	});
 	CASE(BC_RSHIFT, {
-		int dst_type = TYPE_CHECK(reg[pc->dst]);
-		int src_type = TYPE_CHECK(reg[pc->src]);
-#ifdef STATIC_TYPING_MODE
-		pc->opnext = jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
-#else /* DYNAMIC_TYPING_MODE */
-		goto *jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
-#endif
+		int type = TYPE_CHECK(reg[pc->dst]);
+		goto *jmp_table[pc->op + 2 + type];
+		BREAK();
+	});
+	CASE(BC_STATIC_RSHIFT, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+		pc->opnext = jmp_table[pc->op + 1 + type];
 		BREAK();
 	});
 	CASE(BC_dRSHIFT, {
@@ -1439,13 +1439,13 @@
 		BREAK();
 	});
 	CASE(BD_RSHIFT, {
-		int dst_type = TYPE_CHECK(reg[pc->dst]);
-		int src_type = TYPE_CHECK(reg[pc->src]);
-#ifdef STATIC_TYPING_MODE
-		pc->opnext = jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
-#else /* DYNAMIC_TYPING_MODE */
-		goto *jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
-#endif
+		int type = TYPE_CHECK(reg[pc->dst]);
+		goto *jmp_table[pc->op + 2 + type];
+		BREAK();
+	});
+	CASE(BD_STATIC_RSHIFT, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+		pc->opnext = jmp_table[pc->op + 1 + type];
 		BREAK();
 	});
 	CASE(BD_dRSHIFT, {
@@ -1469,13 +1469,13 @@
 		BREAK();
 	});
 	CASE(CD_RSHIFT, {
-		int dst_type = TYPE_CHECK(reg[pc->dst]);
-		int src_type = TYPE_CHECK(reg[pc->src]);
-#ifdef STATIC_TYPING_MODE
-		pc->opnext = jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
-#else /* DYNAMIC_TYPING_MODE */
-		goto *jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
-#endif
+		int type = TYPE_CHECK(reg[pc->dst]);
+		goto *jmp_table[pc->op + 2 + type];
+		BREAK();
+	});
+	CASE(CD_STATIC_RSHIFT, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+		pc->opnext = jmp_table[pc->op + 1 + type];
 		BREAK();
 	});
 	CASE(CD_dRSHIFT, {
@@ -1599,13 +1599,13 @@
 		BREAK();
 	});
 	CASE(A_JG, {
-		int dst_type = TYPE_CHECK(reg[pc->dst]);
-		int src_type = TYPE_CHECK(reg[pc->src]);
-#ifdef STATIC_TYPING_MODE
-		pc->opnext = jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
-#else /* DYNAMIC_TYPING_MODE */
-		goto *jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
-#endif
+		int type = TYPE_CHECK(reg[pc->dst]);
+		goto *jmp_table[pc->op + 2 + type];
+		BREAK();
+	});
+	CASE(A_STATIC_JG, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+		pc->opnext = jmp_table[pc->op + 1 + type];
 		BREAK();
 	});
 	CASE(A_dJG, {
@@ -1625,13 +1625,13 @@
 		BREAK();
 	});
 	CASE(B_JG, {
-		int dst_type = TYPE_CHECK(reg[pc->dst]);
-		int src_type = TYPE_CHECK(reg[pc->src]);
-#ifdef STATIC_TYPING_MODE
-		pc->opnext = jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
-#else /* DYNAMIC_TYPING_MODE */
-		goto *jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
-#endif
+		int type = TYPE_CHECK(reg[pc->dst]);
+		goto *jmp_table[pc->op + 2 + type];
+		BREAK();
+	});
+	CASE(B_STATIC_JG, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+		pc->opnext = jmp_table[pc->op + 1 + type];
 		BREAK();
 	});
 	CASE(B_dJG, {
@@ -1651,13 +1651,13 @@
 		BREAK();
 	});
 	CASE(C_JG, {
-		int dst_type = TYPE_CHECK(reg[pc->dst]);
-		int src_type = TYPE_CHECK(reg[pc->src]);
-#ifdef STATIC_TYPING_MODE
-		pc->opnext = jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
-#else /* DYNAMIC_TYPING_MODE */
-		goto *jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
-#endif
+		int type = TYPE_CHECK(reg[pc->dst]);
+		goto *jmp_table[pc->op + 2 + type];
+		BREAK();
+	});
+	CASE(C_STATIC_JG, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+		pc->opnext = jmp_table[pc->op + 1 + type];
 		BREAK();
 	});
 	CASE(C_dJG, {
@@ -1677,13 +1677,13 @@
 		BREAK();
 	});
 	CASE(D_JG, {
-		int dst_type = TYPE_CHECK(reg[pc->dst]);
-		int src_type = TYPE_CHECK(reg[pc->src]);
-#ifdef STATIC_TYPING_MODE
-		pc->opnext = jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
-#else /* DYNAMIC_TYPING_MODE */
-		goto *jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
-#endif
+		int type = TYPE_CHECK(reg[pc->dst]);
+		goto *jmp_table[pc->op + 2 + type];
+		BREAK();
+	});
+	CASE(D_STATIC_JG, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+		pc->opnext = jmp_table[pc->op + 1 + type];
 		BREAK();
 	});
 	CASE(D_dJG, {
@@ -1783,13 +1783,13 @@
 		BREAK();
 	});
 	CASE(A_JL, {
-		int dst_type = TYPE_CHECK(reg[pc->dst]);
-		int src_type = TYPE_CHECK(reg[pc->src]);
-#ifdef STATIC_TYPING_MODE
-		pc->opnext = jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
-#else /* DYNAMIC_TYPING_MODE */
-		goto *jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
-#endif
+		int type = TYPE_CHECK(reg[pc->dst]);
+		goto *jmp_table[pc->op + 2 + type];
+		BREAK();
+	});
+	CASE(A_STATIC_JL, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+		pc->opnext = jmp_table[pc->op + 1 + type];
 		BREAK();
 	});
 	CASE(A_dJL, {
@@ -1809,13 +1809,13 @@
 		BREAK();
 	});
 	CASE(B_JL, {
-		int dst_type = TYPE_CHECK(reg[pc->dst]);
-		int src_type = TYPE_CHECK(reg[pc->src]);
-#ifdef STATIC_TYPING_MODE
-		pc->opnext = jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
-#else /* DYNAMIC_TYPING_MODE */
-		goto *jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
-#endif
+		int type = TYPE_CHECK(reg[pc->dst]);
+		goto *jmp_table[pc->op + 2 + type];
+		BREAK();
+	});
+	CASE(B_STATIC_JL, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+		pc->opnext = jmp_table[pc->op + 1 + type];
 		BREAK();
 	});
 	CASE(B_dJL, {
@@ -1835,13 +1835,13 @@
 		BREAK();
 	});
 	CASE(C_JL, {
-		int dst_type = TYPE_CHECK(reg[pc->dst]);
-		int src_type = TYPE_CHECK(reg[pc->src]);
-#ifdef STATIC_TYPING_MODE
-		pc->opnext = jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
-#else /* DYNAMIC_TYPING_MODE */
-		goto *jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
-#endif
+		int type = TYPE_CHECK(reg[pc->dst]);
+		goto *jmp_table[pc->op + 2 + type];
+		BREAK();
+	});
+	CASE(C_STATIC_JL, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+		pc->opnext = jmp_table[pc->op + 1 + type];
 		BREAK();
 	});
 	CASE(C_dJL, {
@@ -1861,13 +1861,13 @@
 		BREAK();
 	});
 	CASE(D_JL, {
-		int dst_type = TYPE_CHECK(reg[pc->dst]);
-		int src_type = TYPE_CHECK(reg[pc->src]);
-#ifdef STATIC_TYPING_MODE
-		pc->opnext = jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
-#else /* DYNAMIC_TYPING_MODE */
-		goto *jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
-#endif
+		int type = TYPE_CHECK(reg[pc->dst]);
+		goto *jmp_table[pc->op + 2 + type];
+		BREAK();
+	});
+	CASE(D_STATIC_JL, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+		pc->opnext = jmp_table[pc->op + 1 + type];
 		BREAK();
 	});
 	CASE(D_dJL, {
@@ -1967,13 +1967,13 @@
 		BREAK();
 	});
 	CASE(A_JGE, {
-		int dst_type = TYPE_CHECK(reg[pc->dst]);
-		int src_type = TYPE_CHECK(reg[pc->src]);
-#ifdef STATIC_TYPING_MODE
-		pc->opnext = jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
-#else /* DYNAMIC_TYPING_MODE */
-		goto *jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
-#endif
+		int type = TYPE_CHECK(reg[pc->dst]);
+		goto *jmp_table[pc->op + 2 + type];
+		BREAK();
+	});
+	CASE(A_STATIC_JGE, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+		pc->opnext = jmp_table[pc->op + 1 + type];
 		BREAK();
 	});
 	CASE(A_dJGE, {
@@ -1993,13 +1993,13 @@
 		BREAK();
 	});
 	CASE(B_JGE, {
-		int dst_type = TYPE_CHECK(reg[pc->dst]);
-		int src_type = TYPE_CHECK(reg[pc->src]);
-#ifdef STATIC_TYPING_MODE
-		pc->opnext = jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
-#else /* DYNAMIC_TYPING_MODE */
-		goto *jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
-#endif
+		int type = TYPE_CHECK(reg[pc->dst]);
+		goto *jmp_table[pc->op + 2 + type];
+		BREAK();
+	});
+	CASE(B_STATIC_JGE, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+		pc->opnext = jmp_table[pc->op + 1 + type];
 		BREAK();
 	});
 	CASE(B_dJGE, {
@@ -2019,13 +2019,13 @@
 		BREAK();
 	});
 	CASE(C_JGE, {
-		int dst_type = TYPE_CHECK(reg[pc->dst]);
-		int src_type = TYPE_CHECK(reg[pc->src]);
-#ifdef STATIC_TYPING_MODE
-		pc->opnext = jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
-#else /* DYNAMIC_TYPING_MODE */
-		goto *jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
-#endif
+		int type = TYPE_CHECK(reg[pc->dst]);
+		goto *jmp_table[pc->op + 2 + type];
+		BREAK();
+	});
+	CASE(C_STATIC_JGE, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+		pc->opnext = jmp_table[pc->op + 1 + type];
 		BREAK();
 	});
 	CASE(C_dJGE, {
@@ -2045,13 +2045,13 @@
 		BREAK();
 	});
 	CASE(D_JGE, {
-		int dst_type = TYPE_CHECK(reg[pc->dst]);
-		int src_type = TYPE_CHECK(reg[pc->src]);
-#ifdef STATIC_TYPING_MODE
-		pc->opnext = jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
-#else /* DYNAMIC_TYPING_MODE */
-		goto *jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
-#endif
+		int type = TYPE_CHECK(reg[pc->dst]);
+		goto *jmp_table[pc->op + 2 + type];
+		BREAK();
+	});
+	CASE(D_STATIC_JGE, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+		pc->opnext = jmp_table[pc->op + 1 + type];
 		BREAK();
 	});
 	CASE(D_dJGE, {
@@ -2151,13 +2151,13 @@
 		BREAK();
 	});
 	CASE(A_JLE, {
-		int dst_type = TYPE_CHECK(reg[pc->dst]);
-		int src_type = TYPE_CHECK(reg[pc->src]);
-#ifdef STATIC_TYPING_MODE
-		pc->opnext = jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
-#else /* DYNAMIC_TYPING_MODE */
-		goto *jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
-#endif
+		int type = TYPE_CHECK(reg[pc->dst]);
+		goto *jmp_table[pc->op + 2 + type];
+		BREAK();
+	});
+	CASE(A_STATIC_JLE, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+		pc->opnext = jmp_table[pc->op + 1 + type];
 		BREAK();
 	});
 	CASE(A_dJLE, {
@@ -2177,13 +2177,13 @@
 		BREAK();
 	});
 	CASE(B_JLE, {
-		int dst_type = TYPE_CHECK(reg[pc->dst]);
-		int src_type = TYPE_CHECK(reg[pc->src]);
-#ifdef STATIC_TYPING_MODE
-		pc->opnext = jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
-#else /* DYNAMIC_TYPING_MODE */
-		goto *jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
-#endif
+		int type = TYPE_CHECK(reg[pc->dst]);
+		goto *jmp_table[pc->op + 2 + type];
+		BREAK();
+	});
+	CASE(B_STATIC_JLE, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+		pc->opnext = jmp_table[pc->op + 1 + type];
 		BREAK();
 	});
 	CASE(B_dJLE, {
@@ -2203,13 +2203,13 @@
 		BREAK();
 	});
 	CASE(C_JLE, {
-		int dst_type = TYPE_CHECK(reg[pc->dst]);
-		int src_type = TYPE_CHECK(reg[pc->src]);
-#ifdef STATIC_TYPING_MODE
-		pc->opnext = jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
-#else /* DYNAMIC_TYPING_MODE */
-		goto *jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
-#endif
+		int type = TYPE_CHECK(reg[pc->dst]);
+		goto *jmp_table[pc->op + 2 + type];
+		BREAK();
+	});
+	CASE(C_STATIC_JLE, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+		pc->opnext = jmp_table[pc->op + 1 + type];
 		BREAK();
 	});
 	CASE(C_dJLE, {
@@ -2229,13 +2229,13 @@
 		BREAK();
 	});
 	CASE(D_JLE, {
-		int dst_type = TYPE_CHECK(reg[pc->dst]);
-		int src_type = TYPE_CHECK(reg[pc->src]);
-#ifdef STATIC_TYPING_MODE
-		pc->opnext = jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
-#else /* DYNAMIC_TYPING_MODE */
-		goto *jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
-#endif
+		int type = TYPE_CHECK(reg[pc->dst]);
+		goto *jmp_table[pc->op + 2 + type];
+		BREAK();
+	});
+	CASE(D_STATIC_JLE, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+		pc->opnext = jmp_table[pc->op + 1 + type];
 		BREAK();
 	});
 	CASE(D_dJLE, {
@@ -2335,13 +2335,13 @@
 		BREAK();
 	});
 	CASE(A_JE, {
-		int dst_type = TYPE_CHECK(reg[pc->dst]);
-		int src_type = TYPE_CHECK(reg[pc->src]);
-#ifdef STATIC_TYPING_MODE
-		pc->opnext = jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
-#else /* DYNAMIC_TYPING_MODE */
-		goto *jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
-#endif
+		int type = TYPE_CHECK(reg[pc->dst]);
+		goto *jmp_table[pc->op + 2 + type];
+		BREAK();
+	});
+	CASE(A_STATIC_JE, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+		pc->opnext = jmp_table[pc->op + 1 + type];
 		BREAK();
 	});
 	CASE(A_dJE, {
@@ -2361,13 +2361,13 @@
 		BREAK();
 	});
 	CASE(B_JE, {
-		int dst_type = TYPE_CHECK(reg[pc->dst]);
-		int src_type = TYPE_CHECK(reg[pc->src]);
-#ifdef STATIC_TYPING_MODE
-		pc->opnext = jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
-#else /* DYNAMIC_TYPING_MODE */
-		goto *jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
-#endif
+		int type = TYPE_CHECK(reg[pc->dst]);
+		goto *jmp_table[pc->op + 2 + type];
+		BREAK();
+	});
+	CASE(B_STATIC_JE, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+		pc->opnext = jmp_table[pc->op + 1 + type];
 		BREAK();
 	});
 	CASE(B_dJE, {
@@ -2387,13 +2387,13 @@
 		BREAK();
 	});
 	CASE(C_JE, {
-		int dst_type = TYPE_CHECK(reg[pc->dst]);
-		int src_type = TYPE_CHECK(reg[pc->src]);
-#ifdef STATIC_TYPING_MODE
-		pc->opnext = jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
-#else /* DYNAMIC_TYPING_MODE */
-		goto *jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
-#endif
+		int type = TYPE_CHECK(reg[pc->dst]);
+		goto *jmp_table[pc->op + 2 + type];
+		BREAK();
+	});
+	CASE(C_STATIC_JE, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+		pc->opnext = jmp_table[pc->op + 1 + type];
 		BREAK();
 	});
 	CASE(C_dJE, {
@@ -2413,13 +2413,13 @@
 		BREAK();
 	});
 	CASE(D_JE, {
-		int dst_type = TYPE_CHECK(reg[pc->dst]);
-		int src_type = TYPE_CHECK(reg[pc->src]);
-#ifdef STATIC_TYPING_MODE
-		pc->opnext = jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
-#else /* DYNAMIC_TYPING_MODE */
-		goto *jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
-#endif
+		int type = TYPE_CHECK(reg[pc->dst]);
+		goto *jmp_table[pc->op + 2 + type];
+		BREAK();
+	});
+	CASE(D_STATIC_JE, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+		pc->opnext = jmp_table[pc->op + 1 + type];
 		BREAK();
 	});
 	CASE(D_dJE, {
@@ -2519,13 +2519,13 @@
 		BREAK();
 	});
 	CASE(A_JNE, {
-		int dst_type = TYPE_CHECK(reg[pc->dst]);
-		int src_type = TYPE_CHECK(reg[pc->src]);
-#ifdef STATIC_TYPING_MODE
-		pc->opnext = jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
-#else /* DYNAMIC_TYPING_MODE */
-		goto *jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
-#endif
+		int type = TYPE_CHECK(reg[pc->dst]);
+		goto *jmp_table[pc->op + 2 + type];
+		BREAK();
+	});
+	CASE(A_STATIC_JNE, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+		pc->opnext = jmp_table[pc->op + 1 + type];
 		BREAK();
 	});
 	CASE(A_dJNE, {
@@ -2545,13 +2545,13 @@
 		BREAK();
 	});
 	CASE(B_JNE, {
-		int dst_type = TYPE_CHECK(reg[pc->dst]);
-		int src_type = TYPE_CHECK(reg[pc->src]);
-#ifdef STATIC_TYPING_MODE
-		pc->opnext = jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
-#else /* DYNAMIC_TYPING_MODE */
-		goto *jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
-#endif
+		int type = TYPE_CHECK(reg[pc->dst]);
+		goto *jmp_table[pc->op + 2 + type];
+		BREAK();
+	});
+	CASE(B_STATIC_JNE, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+		pc->opnext = jmp_table[pc->op + 1 + type];
 		BREAK();
 	});
 	CASE(B_dJNE, {
@@ -2571,13 +2571,13 @@
 		BREAK();
 	});
 	CASE(C_JNE, {
-		int dst_type = TYPE_CHECK(reg[pc->dst]);
-		int src_type = TYPE_CHECK(reg[pc->src]);
-#ifdef STATIC_TYPING_MODE
-		pc->opnext = jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
-#else /* DYNAMIC_TYPING_MODE */
-		goto *jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
-#endif
+		int type = TYPE_CHECK(reg[pc->dst]);
+		goto *jmp_table[pc->op + 2 + type];
+		BREAK();
+	});
+	CASE(C_STATIC_JNE, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+		pc->opnext = jmp_table[pc->op + 1 + type];
 		BREAK();
 	});
 	CASE(C_dJNE, {
@@ -2597,13 +2597,13 @@
 		BREAK();
 	});
 	CASE(D_JNE, {
-		int dst_type = TYPE_CHECK(reg[pc->dst]);
-		int src_type = TYPE_CHECK(reg[pc->src]);
-#ifdef STATIC_TYPING_MODE
-		pc->opnext = jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
-#else /* DYNAMIC_TYPING_MODE */
-		goto *jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
-#endif
+		int type = TYPE_CHECK(reg[pc->dst]);
+		goto *jmp_table[pc->op + 2 + type];
+		BREAK();
+	});
+	CASE(D_STATIC_JNE, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+		pc->opnext = jmp_table[pc->op + 1 + type];
 		BREAK();
 	});
 	CASE(D_dJNE, {
@@ -2707,6 +2707,11 @@
 		pc++;
 		BREAK();
 	});
+	CASE(A_STATIC_StringADD, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+		pc->opnext = jmp_table[pc->op + 1 + type];
+		BREAK();
+	});
 	CASE(A_dStringADD, {
 		GPERL_dStringADD(0, pc->v);
 		pc++;
@@ -2730,6 +2735,11 @@
 	CASE(B_StringADD, {
 		GPERL_StringADD(1, pc->v);
 		pc++;
+		BREAK();
+	});
+	CASE(B_STATIC_StringADD, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+		pc->opnext = jmp_table[pc->op + 1 + type];
 		BREAK();
 	});
 	CASE(B_dStringADD, {
@@ -2757,6 +2767,11 @@
 		pc++;
 		BREAK();
 	});
+	CASE(C_STATIC_StringADD, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+		pc->opnext = jmp_table[pc->op + 1 + type];
+		BREAK();
+	});
 	CASE(C_dStringADD, {
 		GPERL_dStringADD(2, pc->v);
 		pc++;
@@ -2780,6 +2795,11 @@
 	CASE(D_StringADD, {
 		GPERL_StringADD(3, pc->v);
 		pc++;
+		BREAK();
+	});
+	CASE(D_STATIC_StringADD, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+		pc->opnext = jmp_table[pc->op + 1 + type];
 		BREAK();
 	});
 	CASE(D_dStringADD, {
@@ -2907,6 +2927,11 @@
 		pc++;
 		BREAK();
 	});
+	CASE(A_STATIC_WRITE, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+		pc->opnext = jmp_table[pc->op + 1 + type];
+		BREAK();
+	});
 	CASE(A_dWRITE, {
 		GPERL_dWRITE(0);
 		pc++;
@@ -2930,6 +2955,11 @@
 	CASE(B_WRITE, {
 		GPERL_WRITE(1);
 		pc++;
+		BREAK();
+	});
+	CASE(B_STATIC_WRITE, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+		pc->opnext = jmp_table[pc->op + 1 + type];
 		BREAK();
 	});
 	CASE(B_dWRITE, {
@@ -2957,6 +2987,11 @@
 		pc++;
 		BREAK();
 	});
+	CASE(C_STATIC_WRITE, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+		pc->opnext = jmp_table[pc->op + 1 + type];
+		BREAK();
+	});
 	CASE(C_dWRITE, {
 		GPERL_dWRITE(2);
 		pc++;
@@ -2980,6 +3015,11 @@
 	CASE(D_WRITE, {
 		GPERL_WRITE(3);
 		pc++;
+		BREAK();
+	});
+	CASE(D_STATIC_WRITE, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+		pc->opnext = jmp_table[pc->op + 1 + type];
 		BREAK();
 	});
 	CASE(D_dWRITE, {
@@ -3063,23 +3103,23 @@
 		BREAK();
 	});
 	CASE(A_STATIC_CALL, {
-		GPERL_STATIC_CALL(0, pc->src, A_STATIC_CALL);
-		pc++;
+		int type = TYPE_CHECK(reg[pc->dst]);
+		pc->opnext = jmp_table[pc->op + 1 + type];
 		BREAK();
 	});
 	CASE(B_STATIC_CALL, {
-		GPERL_STATIC_CALL(1, pc->src, B_STATIC_CALL);
-		pc++;
+		int type = TYPE_CHECK(reg[pc->dst]);
+		pc->opnext = jmp_table[pc->op + 1 + type];
 		BREAK();
 	});
 	CASE(C_STATIC_CALL, {
-		GPERL_STATIC_CALL(2, pc->src, C_STATIC_CALL);
-		pc++;
+		int type = TYPE_CHECK(reg[pc->dst]);
+		pc->opnext = jmp_table[pc->op + 1 + type];
 		BREAK();
 	});
 	CASE(D_STATIC_CALL, {
-		GPERL_STATIC_CALL(3, pc->src, D_STATIC_CALL);
-		pc++;
+		int type = TYPE_CHECK(reg[pc->dst]);
+		pc->opnext = jmp_table[pc->op + 1 + type];
 		BREAK();
 	});
 	CASE(A_DYNAMIC_CALL, {
@@ -3307,6 +3347,11 @@
 		pc++;
 		BREAK();
 	});
+	CASE(A_STATIC_SHIFT, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+		pc->opnext = jmp_table[pc->op + 1 + type];
+		BREAK();
+	});
 	CASE(A_dSHIFT, {
 		GPERL_dSHIFT(0);
 		pc++;
@@ -3330,6 +3375,11 @@
 	CASE(B_SHIFT, {
 		GPERL_SHIFT(1);
 		pc++;
+		BREAK();
+	});
+	CASE(B_STATIC_SHIFT, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+		pc->opnext = jmp_table[pc->op + 1 + type];
 		BREAK();
 	});
 	CASE(B_dSHIFT, {
@@ -3357,6 +3407,11 @@
 		pc++;
 		BREAK();
 	});
+	CASE(C_STATIC_SHIFT, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+		pc->opnext = jmp_table[pc->op + 1 + type];
+		BREAK();
+	});
 	CASE(C_dSHIFT, {
 		GPERL_dSHIFT(2);
 		pc++;
@@ -3380,6 +3435,11 @@
 	CASE(D_SHIFT, {
 		GPERL_SHIFT(3);
 		pc++;
+		BREAK();
+	});
+	CASE(D_STATIC_SHIFT, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+		pc->opnext = jmp_table[pc->op + 1 + type];
 		BREAK();
 	});
 	CASE(D_dSHIFT, {

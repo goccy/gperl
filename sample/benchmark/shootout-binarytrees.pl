@@ -29,7 +29,7 @@ my $max_depth = 15;
 my $min_depth = 4;
 
 if ($min_depth + 2 > $max_depth) {
-	$max_depth = $min_depth + 2;
+    $max_depth = $min_depth + 2;
 }
 
 my $stretch_depth = $max_depth + 1;

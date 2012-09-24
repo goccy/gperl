@@ -307,6 +307,10 @@ GPerlTokens *GPerlTokenizer::tokenize(char *script)
 				token[token_idx] = script[i];
 				token_idx++;
 				break;
+			} else if (i + 1 < script_size && script[i + 1] == '@') {
+				tokens->push_back(new GPerlToken(string("#@")));
+				i++;
+				break;
 			}
 			while (script[i] != '\n' && i < script_size) {i++;}
 			break;
@@ -372,6 +376,11 @@ GPerlTokens *GPerlTokenizer::tokenize(char *script)
 		}
 		case '\n':
 			if (isSKIP()) break;
+			if (token_idx > 0) {
+				tokens->push_back(new GPerlToken(token));
+				memset(token, 0, max_token_size);
+				token_idx = 0;
+			}
 			escapeFlag = false;
 			break;
 		case '0': case '1': case '2': case '3': case '4': case '5':
@@ -483,7 +492,7 @@ void GPerlTokenizer::annotateTokens(vector<GPerlToken *> *tokens)
 			data == "for"   || data == "foreach" ||
 			data == "$_"    || data == "map"   ||
 			data == "@_"    || data == "@ARGV" ||
-			data == "return") {
+			data == "#@"    || data == "return") {
 			DBG_PL("TOKEN = [%s]", cstr(data));
 			t->info = getTokenInfo(NULL, cstr(data));
 			cur_type = t->info.type;

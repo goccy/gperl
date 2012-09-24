@@ -389,6 +389,7 @@ typedef struct _GPerlVirtualMachineCode {
 	int arg1;
 	int arg2;
 	int arg3;
+	int jit_count_down;
 	const char *name;
 	struct _GPerlVirtualMachineCode *func;
 	void *opnext; /* for direct threading */
@@ -417,11 +418,15 @@ public:
 	std::map<std::string, GPerlVirtualMachineCode *> mtd_map;
 	std::map<std::string, int> local_vmap;
 	std::map<std::string, int> global_vmap;
+	bool StaticTypingFlag;
+	bool JITSafeFlag;
 
 	GPerlCompiler(void);
 	GPerlVirtualMachineCode *compile(GPerlAST *ast, std::vector<GPerlClass *> *clses);
 	void finalCompile(std::vector<GPerlVirtualMachineCode *> *f);
 	void optimizeFuncCode(std::vector<GPerlVirtualMachineCode *> *f, std::string fname);
+	void staticTypingCompile(std::vector<GPerlVirtualMachineCode *> *f);
+	void jitSafeCompile(std::vector<GPerlVirtualMachineCode *> *f);
 	GPerlVirtualMachineCode *getPureCodes(std::vector<GPerlVirtualMachineCode *> *c);
 	void compile_(GPerlCell *path);
 	void setToVariableNames(const char *name);
@@ -444,6 +449,7 @@ public:
 	void setCALL(GPerlVirtualMachineCode *code, GPerlCell *c);
 	void setBFUNC(GPerlVirtualMachineCode *code, GPerlCell *c);
 	void setFUNC(GPerlVirtualMachineCode *code, GPerlCell *c);
+	void setAnnotation(GPerlVirtualMachineCode *code, GPerlCell *c);
 	void setArrayARGMOV(GPerlVirtualMachineCode *code, GPerlCell *c);
 	void setARGMOV(GPerlVirtualMachineCode *code, GPerlCell *c);
 	void setArrayAt(GPerlVirtualMachineCode *code, GPerlCell *c);

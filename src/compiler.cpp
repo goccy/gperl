@@ -175,6 +175,11 @@ void GPerlCompiler::genFunctionCode(GPerlCell *path)
 	ADD_FUNCCODE_TO_CODES(codes);
 	optimizeFuncCode(codes, path->fname);
 	COPY_CURRENT_CODE(codes, func_code);//codes => func_code
+	if (StaticTypingFlag) {
+		staticTypingCompile(func_code);
+	} else if (JITSafeFlag) {
+		jitSafeCompile(func_code);
+	}
 #ifndef ENABLE_JIT_COMPILE
 	finalCompile(func_code);
 #endif
@@ -191,6 +196,55 @@ void GPerlCompiler::genFunctionCode(GPerlCell *path)
 	args_count = 0;
 	recv_args_count = 0;
 	mtd_map[code->name] = code->func;
+	StaticTypingFlag = false;
+	JITSafeFlag = false;
+}
+
+void GPerlCompiler::staticTypingCompile(vector<GPerlVirtualMachineCode *> *f)
+{
+	DBG_PL("StaticTypingCompile");
+	vector<GPerlVirtualMachineCode *>::iterator it = f->begin();
+	while (it != f->end()) {
+		GPerlVirtualMachineCode *c = *it;
+		switch (c->op) {
+		case ADD: case SUB: case MUL: case DIV:
+		case LSHIFT: case RSHIFT:
+		case JG: case JL: case JGE: case JLE: case JE: case JNE:
+		case ISNOT: case StringADD:
+		case INC: case gINC: case DEC: case gDEC:
+		case WRITE: case SHIFT:
+			c->op = decl_codes[c->op + 1].code;
+			break;
+		default:
+			break;
+		}
+		it++;
+	}
+}
+
+void GPerlCompiler::jitSafeCompile(vector<GPerlVirtualMachineCode *> *f)
+{
+	DBG_PL("JITSafeCompile");
+	int jit_count_down = 0;
+	vector<GPerlVirtualMachineCode *>::iterator it = f->begin();
+	while (it != f->end()) {
+		GPerlVirtualMachineCode *c = *it;
+		switch (c->op) {
+		case ADD: case SUB: case MUL: case DIV:
+		case LSHIFT: case RSHIFT:
+		case JG: case JL: case JGE: case JLE: case JE: case JNE:
+		case ISNOT: case StringADD:
+		case INC: case gINC: case DEC: case gDEC:
+		case WRITE: case SHIFT: case CALL: case SELFCALL:
+			jit_count_down++;
+			break;
+		default:
+			break;
+		}
+		it++;
+	}
+	DBG_PL("jit_count_down = [%d]", jit_count_down);
+	(*f->begin())->jit_count_down = jit_count_down;
 }
 
 void GPerlCompiler::genIfStmtCode(GPerlCell *path)
@@ -488,11 +542,17 @@ void GPerlCompiler::finalCompile(vector<GPerlVirtualMachineCode *> *code)
 		case ADD:
 			OPCREATE_TYPE1(ADD);
 			break;
+		case STATIC_ADD:
+			OPCREATE_TYPE1(STATIC_ADD);
+			break;
 		case iADD:
 			OPCREATE_TYPE1(iADD);
 			break;
 		case SUB:
 			OPCREATE_TYPE1(SUB);
+			break;
+		case STATIC_SUB:
+			OPCREATE_TYPE1(STATIC_SUB);
 			break;
 		case iSUB:
 			OPCREATE_TYPE1(iSUB);
@@ -507,8 +567,14 @@ void GPerlCompiler::finalCompile(vector<GPerlVirtualMachineCode *> *code)
 		case JL:
 			OPCREATE_TYPE2(JL);
 			break;
+		case STATIC_JL:
+			OPCREATE_TYPE2(STATIC_JL);
+			break;
 		case JG:
 			OPCREATE_TYPE2(JG);
+			break;
+		case STATIC_JG:
+			OPCREATE_TYPE2(STATIC_JG);
 			break;
 		case iJLC:
 			OPCREATE_TYPE2(iJLC);
@@ -726,6 +792,9 @@ GPerlVirtualMachineCode *GPerlCompiler::createVMCode(GPerlCell *c)
 		break;
 	case HashAt:
 		setHashAt(code, c);
+		break;
+	case Annotation:
+		setAnnotation(code, c);
 		break;
 	case Function:
 		setFUNC(code, c);
@@ -1473,6 +1542,17 @@ void GPerlCompiler::setBFUNC(GPerlVirtualMachineCode *code, GPerlCell *c)
 		code->dst = dst - 1;
 	}
 	args_count = 0;
+}
+
+void GPerlCompiler::setAnnotation(GPerlVirtualMachineCode *code, GPerlCell *c)
+{
+	DBG_PL("Annotation");
+	if (c->rawstr == "static_typing") {
+		StaticTypingFlag = true;
+	} else if (c->rawstr == "jit_safe") {
+		JITSafeFlag = true;
+	}
+	code->op = NOP;
 }
 
 void GPerlCompiler::setFUNC(GPerlVirtualMachineCode *code, GPerlCell *c)

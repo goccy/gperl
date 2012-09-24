@@ -254,6 +254,7 @@ GPerlAST *GPerlParser::parse(void)
 	bool foreachStmtFlag = false;
 	bool condIndentFlag = false;
 	bool packageFlag = false;
+	bool annotateFlag = false;
 	GPerlT prev_type = Undefined;
 
 	while (it != end) {
@@ -320,6 +321,11 @@ GPerlAST *GPerlParser::parse(void)
 				root->pkg_stmt = pkg;
 				pkgs->insert(pkgs->begin(), 1, root);
 				packageFlag = false;
+				break;
+			} else if (annotateFlag) {
+				root = new GPerlCell(Annotation, t->data);
+				ast->add(root);
+				annotateFlag = false;
 				break;
 			}
 			parseValue(t, &blocks, NULL);
@@ -752,6 +758,11 @@ GPerlAST *GPerlParser::parse(void)
 			v->vargs[v->argsize] = stmt;
 			v->argsize++;
 			blocks.clearNodes();
+			break;
+		}
+		case Annotation: {
+			DBG_PL("Annotation");
+			annotateFlag = true;
 			break;
 		}
 		case SemiColon: {

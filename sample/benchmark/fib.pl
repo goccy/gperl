@@ -1,3 +1,4 @@
+#@static_typing
 sub fib {
 	if ($_[0] < 3) {
 		return 1;
