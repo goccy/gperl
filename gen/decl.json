@@ -300,6 +300,11 @@
 	 "parse_func" : ""
  },
  {
+	 "type" : "Annotation",
+	 "data" : "#@",
+	 "parse_func" : ""
+ },
+ {
      "type" : "ArgumentArray",
      "data" : "@_",
      "parse_func" : ""

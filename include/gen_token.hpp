@@ -50,6 +50,7 @@ typedef enum {
 	WhileStmt,
 	ForStmt,
 	ForeachStmt,
+	Annotation,
 	ArgumentArray,
 	SpecificValue,
 	ProgramArgument,

@@ -34,6 +34,7 @@ sub get_inst_data {
         }
         push(@inst_names, ${inst_name});
         if ($type_flag) {# gen Int, Double, String, Object, (TypeInference)
+            push(@inst_names, "STATIC_${inst_name}");
             push(@inst_names, "d${inst_name}");
             push(@inst_names, "i${inst_name}");
             if ($inst_name !~ /SUB/ && $inst_name !~ /DIV/) {
@@ -43,6 +44,7 @@ sub get_inst_data {
             if ($fast_type) {
                 foreach (@fast_prefix) {
                     push(@fast_inst_names, "${_}_${inst_name}");
+                    push(@fast_inst_names, "${_}_STATIC_${inst_name}");
                     push(@fast_inst_names, "${_}_d${inst_name}");
                     push(@fast_inst_names, "${_}_i${inst_name}");
                     if ($inst_name !~ /SUB/ && $inst_name !~ /DIV/) {
@@ -310,14 +312,27 @@ GPerlValue GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 
 ";
 
-my $type_check_code =
+
+my $single_static_type_check_code =
+"		int type = TYPE_CHECK(reg[pc->dst]);
+		pc->opnext = jmp_table[pc->op + 1 + type];
+";
+
+my $single_type_check_code =
+"		int type = TYPE_CHECK(reg[pc->dst]);
+		goto *jmp_table[pc->op + 2 + type];
+";
+
+my $double_static_type_check_code =
 "		int dst_type = TYPE_CHECK(reg[pc->dst]);
 		int src_type = TYPE_CHECK(reg[pc->src]);
-#ifdef STATIC_TYPING_MODE
 		pc->opnext = jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
-#else /* DYNAMIC_TYPING_MODE */
-		goto *jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
-#endif
+";
+
+my $double_type_check_code =
+"		int dst_type = TYPE_CHECK(reg[pc->dst]);
+		int src_type = TYPE_CHECK(reg[pc->src]);
+		goto *jmp_table[pc->op + 2 + ((dst_type + src_type) >> 1)];
 ";
 
 sub gen_vm_run_code {
@@ -354,8 +369,10 @@ sub gen_vm_run_code {
                 if ($_ =~ /C$/) {
                     $decl_args =~ s/pc->src/pc->v/;
                     $ret .= "\t\tGPERL_${prefix}CMP_JMPC(" . $decl_args . ");\n";
-                } elsif($prefix eq "") {
-                    $ret .= $type_check_code;
+                } elsif ($prefix eq "") {
+                    $ret .= $double_type_check_code;
+                } elsif ($prefix eq "S") {
+                    $ret .= $double_static_type_check_code;
                 } else {
                     $ret .= "\t\tGPERL_${prefix}CMP_JMP(" . $decl_args . ");\n";
                 }
@@ -371,15 +388,10 @@ sub gen_vm_run_code {
                     } else {
                         $ret .= "\t\tGPERL_${prefix}IS(" . $decl_args . ");\n";
                     }
+                } elsif ($prefix eq "S") {
+                    $ret .= $single_static_type_check_code;
                 } elsif ($prefix eq "") {
-                    $ret .=
-                        "		int type = TYPE_CHECK(reg[pc->dst]);
-#ifdef STATIC_TYPING_MODE
-		pc->opnext = jmp_table[pc->op + 1 + type];
-#else /* DYNAMIC_TYPING_MODE */
-		goto *jmp_table[pc->op + 1 + type];
-#endif
-";
+                    $ret .= $single_type_check_code;
                 } else {
                     if ($_ =~ /NOT/) {
                         $ret .= "\t\tGPERL_${prefix}ISNOT(" . $decl_args . ");\n";
@@ -388,10 +400,21 @@ sub gen_vm_run_code {
                     }
                 }
             } elsif ($_ =~ /THCODE/) {
+            } elsif ($_ =~ /STATIC/ && $_ !~ /CALL/) {
+                if ($_ =~ "ADD" || $_ =~ "SUB" ||
+                    $_ =~ "MUL" || $_ =~ "DIV" ||
+                    $_ =~ "LSHIFT" || $_ =~ "RSHIFT") {
+                    $ret .= $double_static_type_check_code;
+                } else {
+                    my $check_code .= $single_static_type_check_code;
+                    $check_code =~ s/reg\[pc\-\>dst\]/stack[pc->dst]/ if ($_ eq "STATIC_INC" || $_ eq "STATIC_DEC");
+                    $check_code =~ s/reg\[pc\-\>dst\]/global_vmemory[pc->dst]/ if ($_ eq "STATIC_gINC" || $_ eq "STATIC_gDEC");
+                    $ret .= $check_code;
+                }
             } elsif ($_ eq "ADD" || $_ eq "SUB" ||
                      $_ eq "MUL" || $_ eq "DIV" ||
                      $_ eq "LSHIFT" || $_ eq "RSHIFT") {
-                $ret .= $type_check_code;
+                $ret .= $double_type_check_code;
             } elsif ($_ =~ /ADDC/ || $_ =~ /SUBC/ ||
                      $_ =~ /MULC/ || $_ =~ /DIVC/ ||
                      $_ =~ /LSHIFTC/ || $_ =~ /RSHIFTC/) {
@@ -399,14 +422,7 @@ sub gen_vm_run_code {
                 $ret .= "\t\tGPERL_${_}(" . $decl_args . ");\n";
                 $ret .= "\t\tpc++;\n";
             } elsif ($_ eq "WRITE" || $_ eq "INC" || $_ eq "gINC" || $_ eq "DEC" || $_ eq "gDEC") {
-                my $check_code .=
-"		int type = TYPE_CHECK(reg[pc->dst]);
-#ifdef STATIC_TYPING_MODE
-		pc->opnext = jmp_table[pc->op + 1 + type];
-#else /* DYNAMIC_TYPING_MODE */
-		goto *jmp_table[pc->op + 1 + type];
-#endif
-";
+                my $check_code .= $single_type_check_code;
                 $check_code =~ s/reg\[pc\-\>dst\]/stack[pc->dst]/ if ($_ eq "INC" || $_ eq "DEC");
                 $check_code =~ s/reg\[pc\-\>dst\]/global_vmemory[pc->dst]/ if ($_ eq "gINC" || $_ eq "gDEC");
                 $ret .= $check_code;
@@ -548,15 +564,19 @@ sub gen_fast_vm_code {
                 if ($_ =~ /C$/) {
                     $decl_args =~ s/pc->src/pc->v/;
                     $ret .= "\t\tGPERL_${prefix}CMP_JMPC(" . $decl_args . ");\n";
+                } elsif ($prefix eq "S") {
+                    $ret .= $single_static_type_check_code;
                 } elsif ($prefix eq "") {
-                    $ret .= $type_check_code;
+                    $ret .= $single_type_check_code;
                 } else {
                     $ret .= "\t\tGPERL_${prefix}CMP_JMP(" . $decl_args . ");\n";
                 }
+            } elsif ($_code[1] =~ /STATIC/) {
+                $ret .= $single_static_type_check_code;
             } elsif ($_code[1] eq "ADD" || $_code[1] eq "SUB" ||
                      $_code[1] eq "MUL" || $_code[1] eq "DIV" ||
                      $_code[1] eq "LSHIFT" || $_code[1] eq "RSHIFT") {
-                $ret .= $type_check_code;
+                $ret .= $single_type_check_code;
             } elsif ($_code[1] =~ /ADDC/ || $_code[1] =~ /SUBC/ ||
                      $_code[1] =~ /MULC/ || $_code[1] =~ /DIVC/ ||
                      $_code[1] =~ /LSHIFTC/ || $_code[1] =~ /RSHIFTC/) {
