@@ -1,32 +1,28 @@
 #include <gperl.hpp>
 #include <sys/time.h>
 #include <time.h>
+#include <assert.h>
 
 double total_time = 0.0f;
 double malloc_time = 0.0f;
 double gettimeofday_sec(void)
 {
-    struct timeval tv;
-    gettimeofday(&tv, NULL);
-    return tv.tv_sec + tv.tv_usec * 1e-6;
+	struct timeval tv;
+	gettimeofday(&tv, NULL);
+	return tv.tv_sec + tv.tv_usec * 1e-6;
 }
 
 sigjmp_buf expand_mem;
-#define MemoryManager_popObject(o, list) {      \
-		o = list;								\
-		list = list->h.next;					\
-	}
-/*
-#define MemoryManager_popObject(o, list) {      \
-		o = list;                               \
-		list = list->h.next;					\
-	}
-*/
-#define MemoryManager_pushObject(o, list) {     \
-		memset(o, 0, OBJECT_SIZE);              \
-		o->h.next = list;                       \
-		list = o;                               \
-	}
+#define MemoryManager_popObject(o, list) {  \
+	o = list;                               \
+	list = list->h.next;                    \
+}
+
+#define MemoryManager_pushObject(o, list) { \
+	memset(o, '\0', OBJECT_SIZE);           \
+	o->h.next = list;                       \
+	list = o;                               \
+}
 
 GPerlValue global_vmemory[MAX_GLOBAL_MEMORY_SIZE];
 GPerlValue init_values[MAX_INIT_VALUES_SIZE];
@@ -102,7 +98,6 @@ GPerlMemoryManager::GPerlMemoryManager(void)
 
 void GPerlMemoryManager::expandMemPool(void)
 {
-	DBG_PL("Expand Heap");
 	GPerlMemPool* new_pool = (GPerlMemPool*)safe_malloc(sizeof(GPerlMemPool));
 	new_pool->body = (GPerlObject *)safe_malloc(MEMORY_POOL_SIZE);
 	new_pool->size = MEMORY_POOL_SIZE;
@@ -115,7 +110,6 @@ void GPerlMemoryManager::expandMemPool(void)
 		o->h.next = o + 1;
 		o = o + 1;
 	}
-	o->h.next = NULL;
 	new_tail->h.next = freeList;
 	freeList = new_head;
 	if (pool_size > max_pool_size - 1) {
@@ -129,6 +123,7 @@ void GPerlMemoryManager::expandMemPool(void)
 	}
 	pools[pool_size] = new_pool;
 	pool_size++;
+	DBG_PL("Expanded Heap size: %lu, max_size: %lu (%lu)kb", pool_size, max_pool_size, pool_size * MEMORY_POOL_SIZE / 1024);
 }
 
 GPerlObject* GPerlMemoryManager::gmalloc(void) {
@@ -146,6 +141,10 @@ GPerlObject* GPerlMemoryManager::gmalloc(void) {
 	//DBG_PL("malloc");
 	return ret;
 }
+
+#define MARK_SET(o) o->h.mark_flag = 1
+#define MARK_RESET(o) o->h.mark_flag = 0
+#define IS_Marked(o) o->h.mark_flag
 
 void GPerlMemoryManager::mark(GPerlValue v) {
 	switch (TYPE_CHECK(v)) {
@@ -165,17 +164,14 @@ void GPerlMemoryManager::mark(GPerlValue v) {
 	}
 }
 
-#define MARK_RESET() o->h.mark_flag = 0;
-#define IS_Marked(o) o->h.mark_flag
-
 void GPerlMemoryManager::gc(void)
 {
-    //double s1 = gettimeofday_sec();
+	//double s1 = gettimeofday_sec();
 	(this->*_gc)();
-    //double s2 = gettimeofday_sec();
-    //double time = s2 - s1;
-    //total_time += time;
-    //fprintf(stderr, "gc_time = [%f]\n", time);
+	//double s2 = gettimeofday_sec();
+	//double time = s2 - s1;
+	//total_time += time;
+	//fprintf(stderr, "gc_time = [%f]\n", time);
 }
 
 /* switch dummy_gc => msgc (before Runtime) */
@@ -243,13 +239,22 @@ void GPerlMemoryManager::sweep(void) {
 		while (o < tail) {
 			if (!IS_Marked(o) && o->h.free) {
 				//DBG_PL("FREE!!");
-				o->h.free(o);
-				MemoryManager_pushObject(o, freeList);
+				if (o->h.type == Array) {
+					o->h.free(o);
+					MemoryManager_pushObject(o, freeList);
+				}
+				else if (o->h.type == ArrayRef) {
+					// TODO why ArrayRef should not be free?
+				}
+				else {
+					o->h.free(o);
+					MemoryManager_pushObject(o, freeList);
+				}
 #ifdef DEBUG_MODE
 				dead_count++;
 #endif
 			} else {
-				MARK_RESET();
+				MARK_RESET(o);
 			}
 			o++;
 		}

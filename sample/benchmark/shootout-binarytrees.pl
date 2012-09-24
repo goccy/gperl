@@ -25,7 +25,7 @@ sub check_tree {
     return $value + $value2;
 }
 
-my $max_depth = 12;
+my $max_depth = 15;
 my $min_depth = 4;
 
 if ($min_depth + 2 > $max_depth) {
