@@ -2922,6 +2922,26 @@
 		pc++;
 		BREAK();
 	});
+	CASE(A_JIT_COUNTDOWN_RET, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+		goto *jmp_table[pc->op + 2 + type];
+		BREAK();
+	});
+	CASE(B_JIT_COUNTDOWN_RET, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+		goto *jmp_table[pc->op + 2 + type];
+		BREAK();
+	});
+	CASE(C_JIT_COUNTDOWN_RET, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+		goto *jmp_table[pc->op + 2 + type];
+		BREAK();
+	});
+	CASE(D_JIT_COUNTDOWN_RET, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+		goto *jmp_table[pc->op + 2 + type];
+		BREAK();
+	});
 	CASE(A_WRITE, {
 		GPERL_WRITE(0);
 		pc++;
@@ -3162,6 +3182,46 @@
 		pc++;
 		BREAK();
 	});
+	CASE(A_JIT_CALL, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+		goto *jmp_table[pc->op + 2 + type];
+		BREAK();
+	});
+	CASE(B_JIT_CALL, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+		goto *jmp_table[pc->op + 2 + type];
+		BREAK();
+	});
+	CASE(C_JIT_CALL, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+		goto *jmp_table[pc->op + 2 + type];
+		BREAK();
+	});
+	CASE(D_JIT_CALL, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+		goto *jmp_table[pc->op + 2 + type];
+		BREAK();
+	});
+	CASE(A_JIT_COUNTDOWN_CALL, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+		goto *jmp_table[pc->op + 2 + type];
+		BREAK();
+	});
+	CASE(B_JIT_COUNTDOWN_CALL, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+		goto *jmp_table[pc->op + 2 + type];
+		BREAK();
+	});
+	CASE(C_JIT_COUNTDOWN_CALL, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+		goto *jmp_table[pc->op + 2 + type];
+		BREAK();
+	});
+	CASE(D_JIT_COUNTDOWN_CALL, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+		goto *jmp_table[pc->op + 2 + type];
+		BREAK();
+	});
 	CASE(A_FASTCALL0, {
 		GPERL_FASTCALL0(pc->arg0, 0, pc->src, A_FASTCALL0);
 		pc++;
@@ -3180,6 +3240,26 @@
 	CASE(D_FASTCALL0, {
 		GPERL_FASTCALL0(pc->arg0, 3, pc->src, D_FASTCALL0);
 		pc++;
+		BREAK();
+	});
+	CASE(A_JIT_COUNTDOWN_FASTCALL0, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+		goto *jmp_table[pc->op + 2 + type];
+		BREAK();
+	});
+	CASE(B_JIT_COUNTDOWN_FASTCALL0, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+		goto *jmp_table[pc->op + 2 + type];
+		BREAK();
+	});
+	CASE(C_JIT_COUNTDOWN_FASTCALL0, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+		goto *jmp_table[pc->op + 2 + type];
+		BREAK();
+	});
+	CASE(D_JIT_COUNTDOWN_FASTCALL0, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+		goto *jmp_table[pc->op + 2 + type];
 		BREAK();
 	});
 	CASE(A_FASTCALL1, {
@@ -3202,6 +3282,26 @@
 		pc++;
 		BREAK();
 	});
+	CASE(A_JIT_COUNTDOWN_FASTCALL1, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+		goto *jmp_table[pc->op + 2 + type];
+		BREAK();
+	});
+	CASE(B_JIT_COUNTDOWN_FASTCALL1, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+		goto *jmp_table[pc->op + 2 + type];
+		BREAK();
+	});
+	CASE(C_JIT_COUNTDOWN_FASTCALL1, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+		goto *jmp_table[pc->op + 2 + type];
+		BREAK();
+	});
+	CASE(D_JIT_COUNTDOWN_FASTCALL1, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+		goto *jmp_table[pc->op + 2 + type];
+		BREAK();
+	});
 	CASE(A_FASTCALL2, {
 		GPERL_FASTCALL2(pc->arg0, pc->arg1, pc->arg2, 0, pc->src, A_FASTCALL2);
 		pc++;
@@ -3220,6 +3320,26 @@
 	CASE(D_FASTCALL2, {
 		GPERL_FASTCALL2(pc->arg0, pc->arg1, pc->arg2, 3, pc->src, D_FASTCALL2);
 		pc++;
+		BREAK();
+	});
+	CASE(A_JIT_COUNTDOWN_FASTCALL2, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+		goto *jmp_table[pc->op + 2 + type];
+		BREAK();
+	});
+	CASE(B_JIT_COUNTDOWN_FASTCALL2, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+		goto *jmp_table[pc->op + 2 + type];
+		BREAK();
+	});
+	CASE(C_JIT_COUNTDOWN_FASTCALL2, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+		goto *jmp_table[pc->op + 2 + type];
+		BREAK();
+	});
+	CASE(D_JIT_COUNTDOWN_FASTCALL2, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+		goto *jmp_table[pc->op + 2 + type];
 		BREAK();
 	});
 	CASE(A_FASTCALL3, {
@@ -3242,6 +3362,26 @@
 		pc++;
 		BREAK();
 	});
+	CASE(A_JIT_COUNTDOWN_FASTCALL3, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+		goto *jmp_table[pc->op + 2 + type];
+		BREAK();
+	});
+	CASE(B_JIT_COUNTDOWN_FASTCALL3, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+		goto *jmp_table[pc->op + 2 + type];
+		BREAK();
+	});
+	CASE(C_JIT_COUNTDOWN_FASTCALL3, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+		goto *jmp_table[pc->op + 2 + type];
+		BREAK();
+	});
+	CASE(D_JIT_COUNTDOWN_FASTCALL3, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+		goto *jmp_table[pc->op + 2 + type];
+		BREAK();
+	});
 	CASE(A_SELFCALL, {
 		GPERL_SELFCALL(0, A_SELFCALL);
 		pc++;
@@ -3260,6 +3400,46 @@
 	CASE(D_SELFCALL, {
 		GPERL_SELFCALL(3, D_SELFCALL);
 		pc++;
+		BREAK();
+	});
+	CASE(A_JIT_SELFCALL, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+		goto *jmp_table[pc->op + 2 + type];
+		BREAK();
+	});
+	CASE(B_JIT_SELFCALL, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+		goto *jmp_table[pc->op + 2 + type];
+		BREAK();
+	});
+	CASE(C_JIT_SELFCALL, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+		goto *jmp_table[pc->op + 2 + type];
+		BREAK();
+	});
+	CASE(D_JIT_SELFCALL, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+		goto *jmp_table[pc->op + 2 + type];
+		BREAK();
+	});
+	CASE(A_JIT_COUNTDOWN_SELFCALL, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+		goto *jmp_table[pc->op + 2 + type];
+		BREAK();
+	});
+	CASE(B_JIT_COUNTDOWN_SELFCALL, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+		goto *jmp_table[pc->op + 2 + type];
+		BREAK();
+	});
+	CASE(C_JIT_COUNTDOWN_SELFCALL, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+		goto *jmp_table[pc->op + 2 + type];
+		BREAK();
+	});
+	CASE(D_JIT_COUNTDOWN_SELFCALL, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+		goto *jmp_table[pc->op + 2 + type];
 		BREAK();
 	});
 	CASE(A_SELF_FASTCALL0, {
@@ -3282,6 +3462,26 @@
 		pc++;
 		BREAK();
 	});
+	CASE(A_JIT_COUNTDOWN_SELF_FASTCALL0, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+		goto *jmp_table[pc->op + 2 + type];
+		BREAK();
+	});
+	CASE(B_JIT_COUNTDOWN_SELF_FASTCALL0, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+		goto *jmp_table[pc->op + 2 + type];
+		BREAK();
+	});
+	CASE(C_JIT_COUNTDOWN_SELF_FASTCALL0, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+		goto *jmp_table[pc->op + 2 + type];
+		BREAK();
+	});
+	CASE(D_JIT_COUNTDOWN_SELF_FASTCALL0, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+		goto *jmp_table[pc->op + 2 + type];
+		BREAK();
+	});
 	CASE(A_SELF_FASTCALL1, {
 		GPERL_SELF_FASTCALL1(pc->arg0, pc->arg1, 0, A_SELF_FASTCALL1);
 		pc++;
@@ -3300,6 +3500,26 @@
 	CASE(D_SELF_FASTCALL1, {
 		GPERL_SELF_FASTCALL1(pc->arg0, pc->arg1, 3, D_SELF_FASTCALL1);
 		pc++;
+		BREAK();
+	});
+	CASE(A_JIT_COUNTDOWN_SELF_FASTCALL1, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+		goto *jmp_table[pc->op + 2 + type];
+		BREAK();
+	});
+	CASE(B_JIT_COUNTDOWN_SELF_FASTCALL1, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+		goto *jmp_table[pc->op + 2 + type];
+		BREAK();
+	});
+	CASE(C_JIT_COUNTDOWN_SELF_FASTCALL1, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+		goto *jmp_table[pc->op + 2 + type];
+		BREAK();
+	});
+	CASE(D_JIT_COUNTDOWN_SELF_FASTCALL1, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+		goto *jmp_table[pc->op + 2 + type];
 		BREAK();
 	});
 	CASE(A_SELF_FASTCALL2, {
@@ -3322,6 +3542,26 @@
 		pc++;
 		BREAK();
 	});
+	CASE(A_JIT_COUNTDOWN_SELF_FASTCALL2, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+		goto *jmp_table[pc->op + 2 + type];
+		BREAK();
+	});
+	CASE(B_JIT_COUNTDOWN_SELF_FASTCALL2, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+		goto *jmp_table[pc->op + 2 + type];
+		BREAK();
+	});
+	CASE(C_JIT_COUNTDOWN_SELF_FASTCALL2, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+		goto *jmp_table[pc->op + 2 + type];
+		BREAK();
+	});
+	CASE(D_JIT_COUNTDOWN_SELF_FASTCALL2, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+		goto *jmp_table[pc->op + 2 + type];
+		BREAK();
+	});
 	CASE(A_SELF_FASTCALL3, {
 		GPERL_SELF_FASTCALL3(pc->arg0, pc->arg1, pc->arg2, pc->arg3, 0, A_SELF_FASTCALL3);
 		pc++;
@@ -3340,6 +3580,26 @@
 	CASE(D_SELF_FASTCALL3, {
 		GPERL_SELF_FASTCALL3(pc->arg0, pc->arg1, pc->arg2, pc->arg3, 3, D_SELF_FASTCALL3);
 		pc++;
+		BREAK();
+	});
+	CASE(A_JIT_COUNTDOWN_SELF_FASTCALL3, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+		goto *jmp_table[pc->op + 2 + type];
+		BREAK();
+	});
+	CASE(B_JIT_COUNTDOWN_SELF_FASTCALL3, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+		goto *jmp_table[pc->op + 2 + type];
+		BREAK();
+	});
+	CASE(C_JIT_COUNTDOWN_SELF_FASTCALL3, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+		goto *jmp_table[pc->op + 2 + type];
+		BREAK();
+	});
+	CASE(D_JIT_COUNTDOWN_SELF_FASTCALL3, {
+		int type = TYPE_CHECK(reg[pc->dst]);
+		goto *jmp_table[pc->op + 2 + type];
 		BREAK();
 	});
 	CASE(A_SHIFT, {

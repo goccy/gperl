@@ -292,6 +292,32 @@
 #define GPERL_ogDEC(dst)
 
 #define GPERL_RET(src) reg[0] = reg[src]; RETURN();
+
+#define JIT_SET_TYPE(type, reg) do {			\
+		switch (TYPE_CHECK(reg)) {				\
+		case 0: type = Double;					\
+			break;								\
+		case 1: type = Int;						\
+			break;								\
+		case 2: type = String;					\
+			break;								\
+		case 3: type = Object;					\
+			break;								\
+		}										\
+	} while (0);
+
+#define GPERL_JIT_COUNTDOWN_RET(src) do {					\
+		reg[0] = reg[src];									\
+		pc->op = decl_codes[pc->op - 1].code;				\
+		if (!top->is_defined_return_type) {					\
+			JITParam *prm = getParam(top);					\
+			JIT_SET_TYPE(prm->return_type, reg[0]);			\
+			top->is_defined_return_type = true;				\
+		}													\
+		pc->opnext = jmp_table[RET];						\
+		RETURN();											\
+	} while (0);
+
 #define GPERL_NOP()
 
 #define GPERL_WRITE(dst)
@@ -439,6 +465,17 @@ static inline GPerlArray *GPERL_VALUES(GPerlValue arg)
 		EPILOGUE(dst, NAME);						\
 	}
 
+#define GPERL_JIT_COUNTDOWN_CALL(dst, src, NAME) {	\
+		code_ = func_memory[src];					\
+		top   = code_;								\
+		pc->op = decl_codes[pc->op - 2].code;		\
+		pc->opnext = jmp_table[pc->op - 2];			\
+		top->jit_count_down--;						\
+		PROLOGUE(NAME);								\
+		INVOKE_FUNC();								\
+		EPILOGUE(dst, NAME);						\
+	}
+
 #define GPERL_FASTCALL0(arg0, dst, src, NAME) {		\
 		code_ = func_memory[src];					\
 		top   = code_;								\
@@ -446,6 +483,23 @@ static inline GPerlArray *GPERL_VALUES(GPerlValue arg)
 		argstack[0] = reg[arg0];					\
 		INVOKE_FUNC();								\
 		EPILOGUE(dst, NAME);						\
+	}
+
+#define GPERL_JIT_COUNTDOWN_FASTCALL0(arg0, dst, src, NAME) {	\
+		code_ = func_memory[src];								\
+		top   = code_;											\
+		pc->op = decl_codes[pc->op - 1].code;					\
+		pc->opnext = jmp_table[pc->op - 1];						\
+		JITParam *prm = getParam(top);							\
+		if (prm->argc == 0) {									\
+			prm->argc = 1;										\
+			JIT_SET_TYPE(prm->arg_types[0], reg[arg0]);			\
+		}														\
+		top->jit_count_down--;									\
+		PROLOGUE(NAME);											\
+		argstack[0] = reg[arg0];								\
+		INVOKE_FUNC();											\
+		EPILOGUE(dst, NAME);									\
 	}
 
 #define GPERL_FASTCALL1(arg0, arg1, dst, src, NAME) {	\
@@ -458,6 +512,25 @@ static inline GPerlArray *GPERL_VALUES(GPerlValue arg)
 		EPILOGUE(dst, NAME);							\
 	}
 
+#define GPERL_JIT_COUNTDOWN_FASTCALL1(arg0, arg1, dst, src, NAME) {	\
+		code_ = func_memory[src];									\
+		top   = code_;												\
+		pc->op = decl_codes[pc->op - 1].code;						\
+		pc->opnext = jmp_table[pc->op - 1];							\
+		JITParam *prm = getParam(top);								\
+		if (prm->argc == 0) {										\
+			prm->argc = 2;											\
+			JIT_SET_TYPE(prm->arg_types[0], reg[arg0]);				\
+			JIT_SET_TYPE(prm->arg_types[1], reg[arg1]);				\
+		}															\
+		top->jit_count_down--;										\
+		PROLOGUE(NAME);												\
+		argstack[0] = reg[arg0];									\
+		argstack[1] = reg[arg1];									\
+		INVOKE_FUNC();												\
+		EPILOGUE(dst, NAME);										\
+	}
+
 #define GPERL_FASTCALL2(arg0, arg1, arg2, dst, src, NAME) {	\
 		code_ = func_memory[src];							\
 		top   = code_;										\
@@ -467,6 +540,27 @@ static inline GPerlArray *GPERL_VALUES(GPerlValue arg)
 		argstack[2] = reg[arg2];							\
 		INVOKE_FUNC();										\
 		EPILOGUE(dst, NAME);								\
+	}
+
+#define GPERL_JIT_COUNTDOWN_FASTCALL2(arg0, arg1, arg2, dst, src, NAME) { \
+		code_ = func_memory[src];										\
+		top   = code_;													\
+		pc->op = decl_codes[pc->op - 1].code;							\
+		pc->opnext = jmp_table[pc->op - 1];								\
+		JITParam *prm = getParam(top);									\
+		if (prm->argc == 0) {											\
+			prm->argc = 3;												\
+			JIT_SET_TYPE(prm->arg_types[0], reg[arg0]);					\
+			JIT_SET_TYPE(prm->arg_types[1], reg[arg1]);					\
+			JIT_SET_TYPE(prm->arg_types[2], reg[arg2]);					\
+		}																\
+		top->jit_count_down--;											\
+		PROLOGUE(NAME);													\
+		argstack[0] = reg[arg0];										\
+		argstack[1] = reg[arg1];										\
+		argstack[2] = reg[arg2];										\
+		INVOKE_FUNC();													\
+		EPILOGUE(dst, NAME);											\
 	}
 
 #define GPERL_FASTCALL3(arg0, arg1, arg2, arg3, dst, src, NAME) {	\
@@ -481,7 +575,39 @@ static inline GPerlArray *GPERL_VALUES(GPerlValue arg)
 		EPILOGUE(dst, NAME);										\
 	}
 
+#define GPERL_JIT_COUNTDOWN_FASTCALL3(arg0, arg1, arg2, arg3, dst, src, NAME) {	\
+		code_ = func_memory[src];										\
+		top   = code_;													\
+		pc->op = decl_codes[pc->op - 1].code;							\
+		pc->opnext = jmp_table[pc->op - 1];								\
+		JITParam *prm = getParam(top);									\
+		if (prm->argc == 0) {											\
+			prm->argc = 4;												\
+			JIT_SET_TYPE(prm->arg_types[0], reg[arg0]);					\
+			JIT_SET_TYPE(prm->arg_types[1], reg[arg1]);					\
+			JIT_SET_TYPE(prm->arg_types[2], reg[arg2]);					\
+			JIT_SET_TYPE(prm->arg_types[3], reg[arg3]);					\
+		}																\
+		top->jit_count_down--;											\
+		PROLOGUE(NAME);													\
+		argstack[0] = reg[arg0];										\
+		argstack[1] = reg[arg1];										\
+		argstack[2] = reg[arg2];										\
+		argstack[3] = reg[arg3];										\
+		INVOKE_FUNC();													\
+		EPILOGUE(dst, NAME);											\
+	}
+
 #define GPERL_SELFCALL(dst, NAME) {					\
+		PROLOGUE(NAME);								\
+		INVOKE_FUNC();								\
+		EPILOGUE(dst, NAME);						\
+	}
+
+#define GPERL_JIT_COUNTDOWN_SELFCALL(dst, NAME) {	\
+		pc->op = decl_codes[pc->op - 2].code;		\
+		pc->opnext = jmp_table[pc->op - 2];			\
+		top->jit_count_down--;						\
 		PROLOGUE(NAME);								\
 		INVOKE_FUNC();								\
 		EPILOGUE(dst, NAME);						\
@@ -494,12 +620,44 @@ static inline GPerlArray *GPERL_VALUES(GPerlValue arg)
 		EPILOGUE(dst, NAME);						\
 	}
 
+#define GPERL_JIT_COUNTDOWN_SELF_FASTCALL0(arg0, dst, NAME) {	\
+		pc->op = decl_codes[pc->op - 1].code;					\
+		pc->opnext = jmp_table[pc->op - 1];						\
+		JITParam *prm = getParam(top);							\
+		if (prm->argc == 0) {									\
+			prm->argc = 1;										\
+			JIT_SET_TYPE(prm->arg_types[0], reg[arg0]);			\
+		}														\
+		top->jit_count_down--;									\
+		PROLOGUE(NAME);											\
+		argstack[0] = reg[arg0];								\
+		INVOKE_FUNC();											\
+		EPILOGUE(dst, NAME);									\
+	}
+
 #define GPERL_SELF_FASTCALL1(arg0, arg1, dst, NAME) {	\
 		PROLOGUE(NAME);									\
 		argstack[0] = reg[arg0];						\
 		argstack[1] = reg[arg1];						\
 		INVOKE_FUNC();									\
 		EPILOGUE(dst, NAME);							\
+	}
+
+#define GPERL_JIT_COUNTDOWN_SELF_FASTCALL1(arg0, arg1, dst, NAME) {	\
+		pc->op = decl_codes[pc->op - 1].code;						\
+		pc->opnext = jmp_table[pc->op - 1];							\
+		JITParam *prm = getParam(top);								\
+		if (prm->argc == 0) {										\
+			prm->argc = 2;											\
+			JIT_SET_TYPE(prm->arg_types[0], reg[arg0]);				\
+			JIT_SET_TYPE(prm->arg_types[1], reg[arg1]);				\
+		}															\
+		top->jit_count_down--;										\
+		PROLOGUE(NAME);												\
+		argstack[0] = reg[arg0];									\
+		argstack[1] = reg[arg1];									\
+		INVOKE_FUNC();												\
+		EPILOGUE(dst, NAME);										\
 	}
 
 #define GPERL_SELF_FASTCALL2(arg0, arg1, arg2, dst, NAME) {	\
@@ -509,6 +667,25 @@ static inline GPerlArray *GPERL_VALUES(GPerlValue arg)
 		argstack[2] = reg[arg2];							\
 		INVOKE_FUNC();										\
 		EPILOGUE(dst, NAME);								\
+	}
+
+#define GPERL_JIT_COUNTDOWN_SELF_FASTCALL2(arg0, arg1, arg2, dst, NAME) { \
+		pc->op = decl_codes[pc->op - 1].code;							\
+		pc->opnext = jmp_table[pc->op - 1];								\
+		JITParam *prm = getParam(top);									\
+		if (prm->argc == 0) {											\
+			prm->argc = 3;												\
+			JIT_SET_TYPE(prm->arg_types[0], reg[arg0]);					\
+			JIT_SET_TYPE(prm->arg_types[1], reg[arg1]);					\
+			JIT_SET_TYPE(prm->arg_types[2], reg[arg2]);					\
+		}																\
+		top->jit_count_down--;											\
+		PROLOGUE(NAME);													\
+		argstack[0] = reg[arg0];										\
+		argstack[1] = reg[arg1];										\
+		argstack[2] = reg[arg2];										\
+		INVOKE_FUNC();													\
+		EPILOGUE(dst, NAME);											\
 	}
 
 #define GPERL_SELF_FASTCALL3(arg0, arg1, arg2, arg3, dst, NAME) {	\
@@ -521,20 +698,37 @@ static inline GPerlArray *GPERL_VALUES(GPerlValue arg)
 		EPILOGUE(dst, NAME);										\
 	}
 
-#define GPERL_JIT_CALL(src, env) {                              \
-		code_ = func_memory[src];								\
-		top   = code_;											\
-		args->list = (callstack+1)->argstack;					\
-		args->size = pc->argc;									\
-		unsigned int result = jit_compiler.compile(top, &env);	\
-		INT_init(reg[pc->dst], result);							\
+#define GPERL_JIT_COUNTDOWN_SELF_FASTCALL3(arg0, arg1, arg2, arg3, dst, NAME) {	\
+		pc->op = decl_codes[pc->op - 1].code;							\
+		pc->opnext = jmp_table[pc->op - 1];								\
+		JITParam *prm = getParam(top);									\
+		if (prm->argc == 0) {											\
+			prm->argc = 4;												\
+			JIT_SET_TYPE(prm->arg_types[0], reg[arg0]);					\
+			JIT_SET_TYPE(prm->arg_types[1], reg[arg1]);					\
+			JIT_SET_TYPE(prm->arg_types[2], reg[arg2]);					\
+			JIT_SET_TYPE(prm->arg_types[3], reg[arg3]);					\
+		}																\
+		top->jit_count_down--;											\
+		PROLOGUE(NAME);													\
+		argstack[0] = reg[arg0];										\
+		argstack[1] = reg[arg1];										\
+		argstack[2] = reg[arg2];										\
+		argstack[3] = reg[arg3];										\
+		INVOKE_FUNC();													\
+		EPILOGUE(dst, NAME);											\
 	}
 
-#define GPERL_JIT_SELFCALL(top, env) {                          \
-		args->list = (callstack+1)->argstack;					\
-		args->size = pc->argc;									\
-		unsigned int result = jit_compiler.compile(top, &env);	\
-		INT_init(reg[pc->dst], result);							\
+#define GPERL_JIT_CALL(dst, src, NAME) {								\
+		code_ = func_memory[src];										\
+		top   = code_;													\
+		JITParam *param = getParam(top);								\
+		reg[dst] = jit_compiler.run(param->func, (callstack+1)->argstack, param); \
+	}
+
+#define GPERL_JIT_SELFCALL(dst, NAME) {								\
+		JITParam *param = getParam(top);								\
+		reg[dst] = jit_compiler.run(param->func, (callstack+1)->argstack, param); \
 	}
 
 #define GPERL_SHIFT(src)

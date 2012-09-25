@@ -143,3 +143,16 @@ GPerlObject **GPerlVirtualMachine::createArgStack(void)
 	}
 	return (GPerlObject **)argstack_;
 }
+
+JITParam *GPerlVirtualMachine::getParam(GPerlVirtualMachineCode *top)
+{
+	JITParams *params = this->params;
+	size_t params_num = params->params_num;
+	JITParam **prms = params->params;
+	for (size_t i = 0; i < params_num; i++) {
+		if (prms[i]->mtd == top) {
+			return prms[i];
+		}
+	}
+	return NULL;
+}

@@ -282,8 +282,39 @@ my $run_init =
 #include <vmlibs.hpp>
 
 using namespace std;
+bool isRunFinished = false;
+static void *jitTimingCheck(void *args)
+{
+	DBG_PL(\"jitTimingCheck\");
+	JITParams *params = (JITParams *)args;
+	size_t params_num = params->params_num;
+	JITParam **prms = params->params;
+	while (!isRunFinished) {
+		for (size_t i = 0; i < params_num; i++) {
+			if (prms[i]->mtd->jit_count_down == 0 && prms[i]->return_type != Return) {
+				//DBG_PL(\"Start JIT Compile\");
+				GPerlJITCompiler jit_compiler;
+				prms[i]->func = jit_compiler.compile(prms[i]);
+				size_t calls_num = prms[i]->calls_num;
+				for (size_t j = 0; j < calls_num; j++) {
+					switch ((prms->mtd + prms->offset[j])->op) {
+					case CALL: case FASTCALL0: case FASTCALL1: case FASTCALL2: case FASTCALL3:
+						(prms[i]->mtd + prms[i]->offsets[j])->opnext = jmp_tbl[JIT_CALL];
+						break;
+					case SELFCALL: case SELF_FASTCALL0: case SELF_FASTCALL1: case SELF_FASTCALL2:
+						(prms[i]->mtd + prms[i]->offsets[j])->opnext = jmp_tbl[JIT_SELF_CALL];
+						break;
+					default:
+						break;
+					}
+				}
+			}
+		}
+	}
+    return NULL;
+}
 
-GPerlValue GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
+GPerlValue GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes, JITParams *params)
 {
 	GPerlVirtualMachineCode *pc = codes, *code_ = NULL, *top = NULL;
 	GPerlValue *stack = createMachineStack();
@@ -300,14 +331,16 @@ GPerlValue GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 	root.stack_bottom = stack;
 	root.callstack_bottom = callstack_bottom;
 	root.global_vmemory = global_vmemory;
-#ifdef USING_JIT
-	GPerlJITCompiler jit_compiler;
-	GPerlJITEnv jit_env;
-	jit_env.callstack = callstack;
-	jit_env.stack = stack;
-	jit_env.args = args;
-#endif
 #include \"gen_label.cpp\"
+#ifdef ENABLE_JIT_COMPILE
+	if (params && params->params_num > 0) {
+		this->params = params;
+		GPerlJITCompiler jit_compiler;
+		pthread_t th;
+		params->jmp_table = jmp_table;
+		pthread_create(&th, NULL, jitTimingCheck, (void *)params);
+	}
+#endif
     DISPATCH_START();
 
 ";
@@ -363,7 +396,7 @@ sub gen_vm_run_code {
                     }
                 }
             }
-            if ($_ =~ /J/ && $_ !~ /JMP/) {
+            if ($_ =~ /J/ && $_ !~ /JMP/ && $_ !~ /JIT/) {
                 my $prefix = substr($_, 0, 1);
                 $prefix = "" if ($prefix =~ /J/);
                 if ($_ =~ /C$/) {

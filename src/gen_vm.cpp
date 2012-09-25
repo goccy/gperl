@@ -3,8 +3,44 @@
 #include <vmlibs.hpp>
 
 using namespace std;
+bool isRunFinished = false;
+static void *jitTimingCheck(void *args)
+{
+	DBG_PL("jitTimingCheck");
+	JITParams *params = (JITParams *)args;
+	void **jmp_tbl = params->jmp_table;
+	size_t params_num = params->params_num;
+	JITParam **prms = params->params;
+	while (!isRunFinished) {
+		for (size_t i = 0; i < params_num; i++) {
+			JITParam *param = prms[i];
+			if (param->mtd->jit_count_down == 0 && param->return_type != Return) {
+				//DBG_PL("Start JIT Compile");
+				asm("int3");
+				GPerlJITCompiler jit_compiler;
+				param->func = jit_compiler.compile(param);
+				size_t calls_num = param->calls_num;
+				GPerlVirtualMachineCode *mtd = param->mtd;
+				for (size_t j = 0; j < calls_num; j++) {
+					int offset = param->offsets[j];
+					switch ((mtd + offset)->op) {
+					case CALL: case FASTCALL0: case FASTCALL1: case FASTCALL2: case FASTCALL3:
+						(mtd + offset)->opnext = jmp_tbl[JIT_CALL];
+						break;
+					case SELFCALL: case SELF_FASTCALL0: case SELF_FASTCALL1: case SELF_FASTCALL2:
+						(mtd + offset)->opnext = jmp_tbl[JIT_SELFCALL];
+						break;
+					default:
+						break;
+					}
+				}
+			}
+		}
+	}
+    return NULL;
+}
 
-GPerlValue GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
+GPerlValue GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes, JITParams *params)
 {
 	GPerlVirtualMachineCode *pc = codes, *code_ = NULL, *top = NULL;
 	GPerlValue *stack = createMachineStack();
@@ -21,14 +57,16 @@ GPerlValue GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 	root.stack_bottom = stack;
 	root.callstack_bottom = callstack_bottom;
 	root.global_vmemory = global_vmemory;
-#ifdef USING_JIT
-	GPerlJITCompiler jit_compiler;
-	GPerlJITEnv jit_env;
-	jit_env.callstack = callstack;
-	jit_env.stack = stack;
-	jit_env.args = args;
-#endif
 #include "gen_label.cpp"
+#ifdef ENABLE_JIT_COMPILE
+	GPerlJITCompiler jit_compiler;
+	if (params && params->params_num > 0) {
+		this->params = params;
+		pthread_t th;
+		params->jmp_table = jmp_table;
+		pthread_create(&th, NULL, jitTimingCheck, (void *)params);
+	}
+#endif
     DISPATCH_START();
 
 	CASE(UNDEF, {
@@ -753,6 +791,11 @@ GPerlValue GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 		pc++;
 		BREAK();
 	});
+	CASE(JIT_COUNTDOWN_RET, {
+		GPERL_JIT_COUNTDOWN_RET(pc->src);
+		pc++;
+		BREAK();
+	});
 	CASE(THCODE, {
 		createDirectThreadingCode(codes, jmp_table);
 		size_t pkgs_n = pkgs->size();
@@ -884,8 +927,23 @@ GPerlValue GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 		pc++;
 		BREAK();
 	});
+	CASE(JIT_CALL, {
+		GPERL_JIT_CALL(pc->dst, pc->src, JIT_CALL);
+		pc++;
+		BREAK();
+	});
+	CASE(JIT_COUNTDOWN_CALL, {
+		GPERL_JIT_COUNTDOWN_CALL(pc->dst, pc->src, JIT_COUNTDOWN_CALL);
+		pc++;
+		BREAK();
+	});
 	CASE(FASTCALL0, {
 		GPERL_FASTCALL0(pc->arg0, pc->dst, pc->src, FASTCALL0);
+		pc++;
+		BREAK();
+	});
+	CASE(JIT_COUNTDOWN_FASTCALL0, {
+		GPERL_JIT_COUNTDOWN_FASTCALL0(pc->arg0, pc->dst, pc->src, JIT_COUNTDOWN_FASTCALL0);
 		pc++;
 		BREAK();
 	});
@@ -894,8 +952,18 @@ GPerlValue GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 		pc++;
 		BREAK();
 	});
+	CASE(JIT_COUNTDOWN_FASTCALL1, {
+		GPERL_JIT_COUNTDOWN_FASTCALL1(pc->arg0, pc->arg1, pc->dst, pc->src, JIT_COUNTDOWN_FASTCALL1);
+		pc++;
+		BREAK();
+	});
 	CASE(FASTCALL2, {
 		GPERL_FASTCALL2(pc->arg0, pc->arg1, pc->arg2, pc->dst, pc->src, FASTCALL2);
+		pc++;
+		BREAK();
+	});
+	CASE(JIT_COUNTDOWN_FASTCALL2, {
+		GPERL_JIT_COUNTDOWN_FASTCALL2(pc->arg0, pc->arg1, pc->arg2, pc->dst, pc->src, JIT_COUNTDOWN_FASTCALL2);
 		pc++;
 		BREAK();
 	});
@@ -904,8 +972,23 @@ GPerlValue GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 		pc++;
 		BREAK();
 	});
+	CASE(JIT_COUNTDOWN_FASTCALL3, {
+		GPERL_JIT_COUNTDOWN_FASTCALL3(pc->arg0, pc->arg1, pc->arg2, pc->arg3, pc->dst, pc->src, JIT_COUNTDOWN_FASTCALL3);
+		pc++;
+		BREAK();
+	});
 	CASE(SELFCALL, {
 		GPERL_SELFCALL(pc->dst, SELFCALL);
+		pc++;
+		BREAK();
+	});
+	CASE(JIT_SELFCALL, {
+		GPERL_JIT_SELFCALL(pc->dst, JIT_SELFCALL);
+		pc++;
+		BREAK();
+	});
+	CASE(JIT_COUNTDOWN_SELFCALL, {
+		GPERL_JIT_COUNTDOWN_SELFCALL(pc->dst, JIT_COUNTDOWN_SELFCALL);
 		pc++;
 		BREAK();
 	});
@@ -914,8 +997,18 @@ GPerlValue GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 		pc++;
 		BREAK();
 	});
+	CASE(JIT_COUNTDOWN_SELF_FASTCALL0, {
+		GPERL_JIT_COUNTDOWN_SELF_FASTCALL0(pc->arg0, pc->dst, JIT_COUNTDOWN_SELF_FASTCALL0);
+		pc++;
+		BREAK();
+	});
 	CASE(SELF_FASTCALL1, {
 		GPERL_SELF_FASTCALL1(pc->arg0, pc->arg1, pc->dst, SELF_FASTCALL1);
+		pc++;
+		BREAK();
+	});
+	CASE(JIT_COUNTDOWN_SELF_FASTCALL1, {
+		GPERL_JIT_COUNTDOWN_SELF_FASTCALL1(pc->arg0, pc->arg1, pc->dst, JIT_COUNTDOWN_SELF_FASTCALL1);
 		pc++;
 		BREAK();
 	});
@@ -924,8 +1017,18 @@ GPerlValue GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes)
 		pc++;
 		BREAK();
 	});
+	CASE(JIT_COUNTDOWN_SELF_FASTCALL2, {
+		GPERL_JIT_COUNTDOWN_SELF_FASTCALL2(pc->arg0, pc->arg1, pc->arg2, pc->dst, JIT_COUNTDOWN_SELF_FASTCALL2);
+		pc++;
+		BREAK();
+	});
 	CASE(SELF_FASTCALL3, {
 		GPERL_SELF_FASTCALL3(pc->arg0, pc->arg1, pc->arg2, pc->arg3, pc->dst, SELF_FASTCALL3);
+		pc++;
+		BREAK();
+	});
+	CASE(JIT_COUNTDOWN_SELF_FASTCALL3, {
+		GPERL_JIT_COUNTDOWN_SELF_FASTCALL3(pc->arg0, pc->arg1, pc->arg2, pc->arg3, pc->dst, JIT_COUNTDOWN_SELF_FASTCALL3);
 		pc++;
 		BREAK();
 	});

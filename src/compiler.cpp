@@ -17,9 +17,12 @@ GPerlCompiler::GPerlCompiler(void) : dst(0), src(0), code_num(0),
 		variable_names[i] = NULL;
 		variable_types[i] = Undefined;
 	}
+	StaticTypingFlag = false;
+	JITSafeFlag = false;
 	codes = new vector<GPerlVirtualMachineCode *>();
 	clses = new vector<GPerlClass *>();
 	func_code = NULL;
+	jit_params = new JITParams();
 }
 
 GPerlVirtualMachineCode *GPerlCompiler::compile(GPerlAST *ast, vector<GPerlClass *> *_clses)
@@ -184,6 +187,9 @@ void GPerlCompiler::genFunctionCode(GPerlCell *path)
 	finalCompile(func_code);
 #endif
 	GPerlVirtualMachineCode *f = getPureCodes(func_code);
+	if (JITSafeFlag) {
+		jit_params->params[jit_params->params_num - 1]->mtd = f;
+	}
 	DBG_PL("========= DUMP FUNC CODE ==========");
 	dumpPureVMCode(f);
 	DBG_PL("===================================");
@@ -222,29 +228,101 @@ void GPerlCompiler::staticTypingCompile(vector<GPerlVirtualMachineCode *> *f)
 	}
 }
 
+JITParams::JITParams(void)
+{
+	params = NULL;
+	params_num = 0;
+}
+
+void JITParams::addParam(JITParam *param)
+{
+	if (!params) {
+		params = (JITParam **)safe_malloc(PTR_SIZE);
+		params[0] = param;
+		params_num++;
+	} else {
+		JITParam **tmp = (JITParam **)realloc(params, PTR_SIZE * (params_num + 1));
+		if (tmp) {
+			params = tmp;
+			params[params_num] = param;
+			params_num++;
+		} else {
+			fprintf(stderr, "cannot reallocate memory!!\n");
+			exit(EXIT_FAILURE);
+		}
+	}
+}
+
+#define SET_JIT_PARAM() do {					\
+		param->offsets[idx] = offset;			\
+		idx++;									\
+		jit_count_down++;						\
+	} while (0);
+
 void GPerlCompiler::jitSafeCompile(vector<GPerlVirtualMachineCode *> *f)
 {
 	DBG_PL("JITSafeCompile");
 	int jit_count_down = 0;
+	size_t offset = 0;
+	JITParam *param = new JITParam();
+	size_t idx = 0;
 	vector<GPerlVirtualMachineCode *>::iterator it = f->begin();
 	while (it != f->end()) {
 		GPerlVirtualMachineCode *c = *it;
 		switch (c->op) {
-		case ADD: case SUB: case MUL: case DIV:
-		case LSHIFT: case RSHIFT:
-		case JG: case JL: case JGE: case JLE: case JE: case JNE:
-		case ISNOT: case StringADD:
-		case INC: case gINC: case DEC: case gDEC:
-		case WRITE: case SHIFT: case CALL: case SELFCALL:
-			jit_count_down++;
+		case CALL:
+			c->op = JIT_COUNTDOWN_CALL;
+			SET_JIT_PARAM();
+			break;
+		case SELFCALL:
+			c->op = JIT_COUNTDOWN_SELFCALL;
+			SET_JIT_PARAM();
+			break;
+		case FASTCALL0:
+			c->op = JIT_COUNTDOWN_FASTCALL0;
+			SET_JIT_PARAM();
+			break;
+		case FASTCALL1:
+			c->op = JIT_COUNTDOWN_FASTCALL1;
+			SET_JIT_PARAM();
+			break;
+		case FASTCALL2:
+			c->op = JIT_COUNTDOWN_FASTCALL2;
+			SET_JIT_PARAM();
+			break;
+		case FASTCALL3:
+			c->op = JIT_COUNTDOWN_FASTCALL3;
+			SET_JIT_PARAM();
+			break;
+		case SELF_FASTCALL0:
+			c->op = JIT_COUNTDOWN_SELF_FASTCALL0;
+			SET_JIT_PARAM();
+			break;
+		case SELF_FASTCALL1:
+			c->op = JIT_COUNTDOWN_SELF_FASTCALL1;
+			SET_JIT_PARAM();
+			break;
+		case SELF_FASTCALL2:
+			c->op = JIT_COUNTDOWN_SELF_FASTCALL2;
+			SET_JIT_PARAM();
+			break;
+		case SELF_FASTCALL3:
+			c->op = JIT_COUNTDOWN_SELF_FASTCALL3;
+			SET_JIT_PARAM();
+			break;
+		case RET:
+			c->op = JIT_COUNTDOWN_RET;
 			break;
 		default:
 			break;
 		}
+		offset++;
 		it++;
 	}
+	param->calls_num = idx;
 	DBG_PL("jit_count_down = [%d]", jit_count_down);
 	(*f->begin())->jit_count_down = jit_count_down;
+	jit_params->addParam(param);
 }
 
 void GPerlCompiler::genIfStmtCode(GPerlCell *path)

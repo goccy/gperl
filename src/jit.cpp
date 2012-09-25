@@ -46,33 +46,24 @@ GPerlJITCompiler::GPerlJITCompiler(void)
 {
 }
 
-unsigned int GPerlJITCompiler::compile(GPerlVirtualMachineCode *codes, GPerlJITEnv *env)
+jit_function_t GPerlJITCompiler::compile(JITParam *param)
 {
-	GPerlVirtualMachineCode *pc = codes;
-	return _compile(pc, env);
-}
-
-unsigned int GPerlJITCompiler::_compile(GPerlVirtualMachineCode *codes, GPerlJITEnv *env)
-{
-	GPerlVirtualMachineCode *pc = codes;
+	GPerlVirtualMachineCode *pc = param->mtd;
 	jit_context_t ctx = jit_context_create();
 	jit_context_build_start(ctx);
-	GPerlArgsArray *args = env->args;
-	int argc = args->size;
-	int arg_size = argc;
+	int argc = param->argc;
 	jit_type_t _params[argc];
-	int i = 0;
-	for (i = 0; i < argc; i++) {
-		switch (TYPE_CHECK(args->list[i])) {
-		case 0: /* Double */
+	for (int i = 0; i < argc; i++) {
+		switch (param->arg_types[i]) {
+		case Int:
 			_params[i] = jit_type_nfloat;
 			break;
-		case 1: /* Int */
+		case Double:
 			_params[i] = jit_type_int;
 			break;
-		case 2: /* String */
+		case String:
 			break;
-		case 3: /* Object */
+		case Object:
 			break;
 		default:
 			break;
@@ -164,27 +155,53 @@ unsigned int GPerlJITCompiler::_compile(GPerlVirtualMachineCode *codes, GPerlJIT
 	}
 	jit_function_compile(func);
 	jit_context_build_end(ctx);
+	return func;
+}
+
+GPerlValue GPerlJITCompiler::run(jit_function_t func, GPerlValue *args, JITParam *param)
+{
+	GPerlValue ret;
+	int argc = param->argc;
 	void *jit_args[argc];
-	jit_uint result;
-	for (int i = 0; i < arg_size; i++) {
-		switch (TYPE_CHECK(args->list[i])) {
-		case 0: /* Double */
-			jit_args[i] = &args->list[i].dvalue;
+	for (int i = 0; i < argc; i++) {
+		switch (param->arg_types[i]) {
+		case Int:
+			jit_args[i] = &args[i].ivalue;
 			break;
-		case 1: /* Int */
-			jit_args[i] = &args->list[i].ivalue;
+		case Double:
+			jit_args[i] = &args[i].dvalue;
 			break;
-		case 2: /* String */
+		case String:
 			break;
-		case 3: /* Object */
+		case Object:
 			break;
 		default:
 			break;
 		}
 	}
-	jit_function_apply(func, jit_args, &result);
-	//fprintf(stderr, "result = [%u]\n", (unsigned int)result);
-	return (unsigned int)result;
+	switch (param->return_type) {
+	case Int: {
+		unsigned int rvalue;
+		jit_function_apply(func, jit_args, &rvalue);
+		DBG_PL("rvalue = [%d]\n", rvalue);
+		INT_init(ret, rvalue);
+		break;
+	}
+	case Double: {
+		double rvalue;
+		jit_function_apply(func, jit_args, &rvalue);
+		DBG_PL("rvalue = [%f]\n", rvalue);
+		DOUBLE_init(ret, rvalue);
+		break;
+	}
+	case String:
+		break;
+	case Object:
+		break;
+	default:
+		break;
+	}
+	return ret;
 }
 
 jit_value_t GPerlJITCompiler::compileMOV(GPerlVirtualMachineCode *pc, jit_function_t *func)

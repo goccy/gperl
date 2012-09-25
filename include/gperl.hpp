@@ -104,7 +104,7 @@ public:
 	GPerlTokenInfo getTokenInfo(const char *name, const char *data);
 	bool search(std::vector<std::string> list, std::string str);
 };
-#define MAX_ARGSTACK_SIZE 8
+#define MAX_ARGSTACK_SIZE 16
 
 class GPerlAST;
 typedef GPerlAST GPerlScope;
@@ -390,11 +390,68 @@ typedef struct _GPerlVirtualMachineCode {
 	int arg2;
 	int arg3;
 	int jit_count_down;
+	bool is_defined_return_type;
 	const char *name;
 	struct _GPerlVirtualMachineCode *func;
 	void *opnext; /* for direct threading */
 } GPerlVirtualMachineCode;
 
+#define MAX_CODE_NUM 32
+#ifdef USING_JIT
+#define ENABLE_JIT_COMPILE
+#include <jit/jit.h>
+
+class JITParam {
+public:
+	GPerlVirtualMachineCode *mtd;   /* to access mtd->jit_count_down    */
+	int offsets[MAX_CODE_NUM];      /* (mtd + offsets[idx]) pointer to CALL or SELF_CALL ... */
+	size_t calls_num;
+	GPerlT return_type;
+	GPerlT arg_types[MAX_ARGSTACK_SIZE];
+	size_t argc;
+	jit_function_t func;
+};
+
+class JITParams {
+public:
+	JITParam **params;
+	size_t params_num;
+	void **jmp_table;
+	JITParams(void);
+	void addParam(JITParam *param);
+};
+
+class GPerlJmpInfo {
+public:
+	jit_label_t label;
+	int jmp_count;
+	GPerlJmpInfo(int jmp_count);
+};
+
+class GPerlJmpStack {
+public:
+	int jmp_stack_idx;
+	GPerlJmpInfo **infs;
+
+	GPerlJmpStack(void);
+	void push(GPerlJmpInfo *info);
+	GPerlJmpInfo *pop(void);
+	bool isJmp(void);
+};
+
+#define MAX_JMP_STACK_SIZE 128
+
+typedef jit_function_t GPerlJITCode;
+class GPerlJITCompiler {
+public:
+	GPerlJITCompiler(void);
+	jit_function_t compile(JITParam *param);
+	GPerlValue run(jit_function_t func, GPerlValue *args, JITParam *param);
+	jit_value_t compileMOV(GPerlVirtualMachineCode *pc, jit_function_t *func);
+	jit_value_t compileVMOV(GPerlVirtualMachineCode *pc, jit_function_t *func);
+};
+
+#endif
 class GPerlPackage;
 class GPerlCompiler {
 public:
@@ -418,6 +475,7 @@ public:
 	std::map<std::string, GPerlVirtualMachineCode *> mtd_map;
 	std::map<std::string, int> local_vmap;
 	std::map<std::string, int> global_vmap;
+	JITParams *jit_params;
 	bool StaticTypingFlag;
 	bool JITSafeFlag;
 
@@ -532,6 +590,7 @@ public:
 	GPerlVirtualMachineCode *func_memory[MAX_FUNC_NUM];
 	GPerlClass **pkg_table;
 	std::vector<GPerlClass *> *pkgs;
+	JITParams *params;
 
 	GPerlVirtualMachine(std::vector<GPerlClass *> *pkgs);
 	void setToFuncMemory(GPerlVirtualMachineCode *func, int idx);
@@ -541,50 +600,9 @@ public:
 	GPerlObject **createArgStack(void);
 	void createDirectThreadingCode(GPerlVirtualMachineCode *codes, void **jmp_tbl);
 	void createSelectiveInliningCode(GPerlVirtualMachineCode *codes, void **jmp_tbl, InstBlock *block_tbl);
-	GPerlValue run(GPerlVirtualMachineCode *codes);
+	JITParam *getParam(GPerlVirtualMachineCode *mtd);
+	GPerlValue run(GPerlVirtualMachineCode *codes, JITParams *params);
 };
-
-#ifdef USING_JIT
-
-#include <jit/jit.h>
-#define ENABLE_JIT_COMPILE
-typedef struct _GPerlJITEnv {
-	GPerlEnv *callstack;
-	GPerlValue *stack;
-	GPerlArgsArray *args;
-} GPerlJITEnv;
-
-class GPerlJmpInfo {
-public:
-	jit_label_t label;
-	int jmp_count;
-	GPerlJmpInfo(int jmp_count);
-};
-
-class GPerlJmpStack {
-public:
-	int jmp_stack_idx;
-	GPerlJmpInfo **infs;
-
-	GPerlJmpStack(void);
-	void push(GPerlJmpInfo *info);
-	GPerlJmpInfo *pop(void);
-	bool isJmp(void);
-};
-
-#define MAX_JMP_STACK_SIZE 128
-
-typedef jit_function_t GPerlJITCode;
-class GPerlJITCompiler {
-public:
-	GPerlJITCompiler(void);
-	unsigned int compile(GPerlVirtualMachineCode *codes, GPerlJITEnv *env);
-	unsigned int _compile(GPerlVirtualMachineCode *codes, GPerlJITEnv *env);
-	jit_value_t compileMOV(GPerlVirtualMachineCode *pc, jit_function_t *func);
-	jit_value_t compileVMOV(GPerlVirtualMachineCode *pc, jit_function_t *func);
-};
-
-#endif
 
 typedef struct _GPerlTraceRoot {
 	/* callstack trace for register */
