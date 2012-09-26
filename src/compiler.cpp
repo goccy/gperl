@@ -183,9 +183,9 @@ void GPerlCompiler::genFunctionCode(GPerlCell *path)
 	} else if (JITSafeFlag) {
 		jitSafeCompile(func_code);
 	}
-#ifndef ENABLE_JIT_COMPILE
-	finalCompile(func_code);
-#endif
+	if (!JITSafeFlag) {
+		finalCompile(func_code);
+	}
 	GPerlVirtualMachineCode *f = getPureCodes(func_code);
 	if (JITSafeFlag) {
 		jit_params->params[jit_params->params_num - 1]->mtd = f;
@@ -1628,7 +1628,9 @@ void GPerlCompiler::setAnnotation(GPerlVirtualMachineCode *code, GPerlCell *c)
 	if (c->rawstr == "static_typing") {
 		StaticTypingFlag = true;
 	} else if (c->rawstr == "jit_safe") {
+#ifdef ENABLE_JIT_COMPILE
 		JITSafeFlag = true;
+#endif
 	}
 	code->op = NOP;
 }

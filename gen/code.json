@@ -428,6 +428,13 @@
      "args" : [{"arg0" : "pc->arg0"}, {"dst" : "pc->dst"}, {"NAME" : "callname"}]
  },
  {
+	 "code" : "JIT_SELF_FASTCALL0",
+	 "type" : 0,
+	 "const" : 0,
+	 "fast_type" : 2,
+     "args" : [{"arg0" : "pc->arg0"}, {"dst" : "pc->dst"}, {"NAME" : "callname"}]
+ },
+ {
 	 "code" : "JIT_COUNTDOWN_SELF_FASTCALL0",
 	 "type" : 0,
 	 "const" : 0,
@@ -436,6 +443,13 @@
  },
  {
 	 "code" : "SELF_FASTCALL1",
+	 "type" : 0,
+	 "const" : 0,
+	 "fast_type" : 2,
+     "args" : [{"arg0" : "pc->arg0"}, {"arg1" : "pc->arg1"}, {"dst" : "pc->dst"}, {"NAME" : "callname"}]
+ },
+ {
+	 "code" : "JIT_SELF_FASTCALL1",
 	 "type" : 0,
 	 "const" : 0,
 	 "fast_type" : 2,
@@ -457,6 +471,14 @@
 			   {"dst" : "pc->dst"}, {"NAME" : "callname"}]
  },
  {
+	 "code" : "JIT_SELF_FASTCALL2",
+	 "type" : 0,
+	 "const" : 0,
+	 "fast_type" : 2,
+     "args" : [{"arg0" : "pc->arg0"}, {"arg1" : "pc->arg1"}, {"arg2" : "pc->arg2"},
+			   {"dst" : "pc->dst"}, {"NAME" : "callname"}]
+ },
+ {
 	 "code" : "JIT_COUNTDOWN_SELF_FASTCALL2",
 	 "type" : 0,
 	 "const" : 0,
@@ -466,6 +488,14 @@
  },
  {
 	 "code" : "SELF_FASTCALL3",
+	 "type" : 0,
+	 "const" : 0,
+	 "fast_type" : 2,
+     "args" : [{"arg0" : "pc->arg0"}, {"arg1" : "pc->arg1"}, {"arg2" : "pc->arg2"},
+			   {"arg3" : "pc->arg3"}, {"dst" : "pc->dst"}, {"NAME" : "callname"}]
+ },
+ {
+	 "code" : "JIT_SELF_FASTCALL3",
 	 "type" : 0,
 	 "const" : 0,
 	 "fast_type" : 2,

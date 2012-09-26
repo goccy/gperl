@@ -12,7 +12,7 @@
 #define END(op) L_##op##_END:
 
 #define BREAK() GOTO_NEXTOP()
-#define _CASE(op) L(op) : { DBG_PL(#op); }
+#define _CASE(op) L(op) : {/* DBG_PL(#op);*/ }
 #define CASE(op, block) _CASE(op) { START(op); block; END(op); }
 #define RETURN() { goto *callstack->ret_addr; }
 
@@ -621,8 +621,8 @@ static inline GPerlArray *GPERL_VALUES(GPerlValue arg)
 	}
 
 #define GPERL_JIT_COUNTDOWN_SELF_FASTCALL0(arg0, dst, NAME) {	\
-		pc->opnext = jmp_table[pc->op - 1];						\
-		pc->op = decl_codes[pc->op - 1].code;					\
+		pc->opnext = jmp_table[pc->op - 2];						\
+		pc->op = decl_codes[pc->op - 2].code;					\
 		JITParam *prm = getParam(top);							\
 		if (prm->argc == 0) {									\
 			prm->argc = 1;										\
@@ -644,8 +644,8 @@ static inline GPerlArray *GPERL_VALUES(GPerlValue arg)
 	}
 
 #define GPERL_JIT_COUNTDOWN_SELF_FASTCALL1(arg0, arg1, dst, NAME) {	\
-		pc->opnext = jmp_table[pc->op - 1];							\
-		pc->op = decl_codes[pc->op - 1].code;						\
+		pc->opnext = jmp_table[pc->op - 2];							\
+		pc->op = decl_codes[pc->op - 2].code;						\
 		JITParam *prm = getParam(top);								\
 		if (prm->argc == 0) {										\
 			prm->argc = 2;											\
@@ -670,8 +670,8 @@ static inline GPerlArray *GPERL_VALUES(GPerlValue arg)
 	}
 
 #define GPERL_JIT_COUNTDOWN_SELF_FASTCALL2(arg0, arg1, arg2, dst, NAME) { \
-		pc->opnext = jmp_table[pc->op - 1];								\
-		pc->op = decl_codes[pc->op - 1].code;							\
+		pc->opnext = jmp_table[pc->op - 2];								\
+		pc->op = decl_codes[pc->op - 2].code;							\
 		JITParam *prm = getParam(top);									\
 		if (prm->argc == 0) {											\
 			prm->argc = 3;												\
@@ -699,8 +699,8 @@ static inline GPerlArray *GPERL_VALUES(GPerlValue arg)
 	}
 
 #define GPERL_JIT_COUNTDOWN_SELF_FASTCALL3(arg0, arg1, arg2, arg3, dst, NAME) {	\
-		pc->opnext = jmp_table[pc->op - 1];								\
-		pc->op = decl_codes[pc->op - 1].code;							\
+		pc->opnext = jmp_table[pc->op - 2];								\
+		pc->op = decl_codes[pc->op - 2].code;							\
 		JITParam *prm = getParam(top);									\
 		if (prm->argc == 0) {											\
 			prm->argc = 4;												\
@@ -728,6 +728,36 @@ static inline GPerlArray *GPERL_VALUES(GPerlValue arg)
 
 #define GPERL_JIT_SELFCALL(dst, NAME) {									\
 		JITParam *param = getParam(top);								\
+		reg[dst] = jit_compiler.run(param->func, (callstack+1)->argstack, param); \
+	}
+
+#define GPERL_JIT_SELF_FASTCALL0(arg0, dst, NAME) {						\
+		JITParam *param = getParam(top);								\
+		(callstack+1)->argstack[0] = reg[arg0];							\
+		reg[dst] = jit_compiler.run(param->func, (callstack+1)->argstack, param); \
+	}
+
+#define GPERL_JIT_SELF_FASTCALL1(arg0, arg1, dst, NAME) {				\
+		JITParam *param = getParam(top);								\
+		(callstack+1)->argstack[0] = reg[arg0];							\
+		(callstack+1)->argstack[1] = reg[arg1];							\
+		reg[dst] = jit_compiler.run(param->func, (callstack+1)->argstack, param); \
+	}
+
+#define GPERL_JIT_SELF_FASTCALL2(arg0, arg1, arg2, dst, NAME) {			\
+		JITParam *param = getParam(top);								\
+		(callstack+1)->argstack[0] = reg[arg0];							\
+		(callstack+1)->argstack[1] = reg[arg1];							\
+		(callstack+1)->argstack[2] = reg[arg2];							\
+		reg[dst] = jit_compiler.run(param->func, (callstack+1)->argstack, param); \
+	}
+
+#define GPERL_JIT_SELF_FASTCALL3(arg0, arg1, arg2, arg3, dst, NAME) {	\
+		JITParam *param = getParam(top);								\
+		(callstack+1)->argstack[0] = reg[arg0];							\
+		(callstack+1)->argstack[1] = reg[arg1];							\
+		(callstack+1)->argstack[2] = reg[arg2];							\
+		(callstack+1)->argstack[3] = reg[arg3];							\
 		reg[dst] = jit_compiler.run(param->func, (callstack+1)->argstack, param); \
 	}
 

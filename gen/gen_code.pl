@@ -287,22 +287,38 @@ static void *jitTimingCheck(void *args)
 {
 	DBG_PL(\"jitTimingCheck\");
 	JITParams *params = (JITParams *)args;
+	void **jmp_tbl = params->jmp_table;
 	size_t params_num = params->params_num;
 	JITParam **prms = params->params;
 	while (!isRunFinished) {
 		for (size_t i = 0; i < params_num; i++) {
-			if (prms[i]->mtd->jit_count_down == 0 && prms[i]->return_type != Return) {
+			JITParam *param = prms[i];
+			if (!param->func && param->mtd->jit_count_down == 0 && param->return_type != Return) {
 				//DBG_PL(\"Start JIT Compile\");
 				GPerlJITCompiler jit_compiler;
-				prms[i]->func = jit_compiler.compile(prms[i]);
-				size_t calls_num = prms[i]->calls_num;
+				param->func = jit_compiler.compile(param);
+				size_t calls_num = param->calls_num;
+				GPerlVirtualMachineCode *mtd = param->mtd;
 				for (size_t j = 0; j < calls_num; j++) {
-					switch ((prms->mtd + prms->offset[j])->op) {
+					int offset = param->offsets[j];
+					switch ((mtd + offset)->op) {
 					case CALL: case FASTCALL0: case FASTCALL1: case FASTCALL2: case FASTCALL3:
-						(prms[i]->mtd + prms[i]->offsets[j])->opnext = jmp_tbl[JIT_CALL];
+						(mtd + offset)->opnext = jmp_tbl[JIT_CALL];
 						break;
-					case SELFCALL: case SELF_FASTCALL0: case SELF_FASTCALL1: case SELF_FASTCALL2:
-						(prms[i]->mtd + prms[i]->offsets[j])->opnext = jmp_tbl[JIT_SELF_CALL];
+					case SELFCALL:
+						(mtd + offset)->opnext = jmp_tbl[JIT_SELFCALL];
+						break;
+					case SELF_FASTCALL0:
+						(mtd + offset)->opnext = jmp_tbl[JIT_SELF_FASTCALL0];
+						break;
+					case SELF_FASTCALL1:
+						(mtd + offset)->opnext = jmp_tbl[JIT_SELF_FASTCALL1];
+						break;
+					case SELF_FASTCALL2:
+						(mtd + offset)->opnext = jmp_tbl[JIT_SELF_FASTCALL2];
+						break;
+					case SELF_FASTCALL3:
+						(mtd + offset)->opnext = jmp_tbl[JIT_SELF_FASTCALL3];
 						break;
 					default:
 						break;
@@ -333,9 +349,9 @@ GPerlValue GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes, JITParams *p
 	root.global_vmemory = global_vmemory;
 #include \"gen_label.cpp\"
 #ifdef ENABLE_JIT_COMPILE
+	GPerlJITCompiler jit_compiler;
 	if (params && params->params_num > 0) {
 		this->params = params;
-		GPerlJITCompiler jit_compiler;
 		pthread_t th;
 		params->jmp_table = jmp_table;
 		pthread_create(&th, NULL, jitTimingCheck, (void *)params);

@@ -397,9 +397,12 @@ typedef struct _GPerlVirtualMachineCode {
 } GPerlVirtualMachineCode;
 
 #define MAX_CODE_NUM 32
+#define MAX_JMP_STACK_SIZE 128
+
 #ifdef USING_JIT
 #define ENABLE_JIT_COMPILE
 #include <jit/jit.h>
+#endif
 
 class JITParam {
 public:
@@ -409,7 +412,11 @@ public:
 	GPerlT return_type;
 	GPerlT arg_types[MAX_ARGSTACK_SIZE];
 	size_t argc;
+#ifdef USING_JIT
 	jit_function_t func;
+#else
+	void *func;
+#endif
 };
 
 class JITParams {
@@ -423,7 +430,11 @@ public:
 
 class GPerlJmpInfo {
 public:
+#ifdef USING_JIT
 	jit_label_t label;
+#else
+	void *label;
+#endif
 	int jmp_count;
 	GPerlJmpInfo(int jmp_count);
 };
@@ -439,7 +450,7 @@ public:
 	bool isJmp(void);
 };
 
-#define MAX_JMP_STACK_SIZE 128
+#ifdef USING_JIT
 
 typedef jit_function_t GPerlJITCode;
 class GPerlJITCompiler {
@@ -451,6 +462,13 @@ public:
 	jit_value_t compileVMOV(GPerlVirtualMachineCode *pc, jit_function_t *func);
 };
 
+#else
+class GPerlJITCompiler {
+public:
+	GPerlJITCompiler(void);
+	void *compile(JITParam *param);
+	GPerlValue run(void *func, GPerlValue *args, JITParam *param);
+};
 #endif
 class GPerlPackage;
 class GPerlCompiler {
@@ -623,8 +641,8 @@ typedef struct _GPerlTraceRoot {
 #define PTR_SIZE sizeof(void*)
 #define OBJECT_SIZE (PTR_SIZE * 8)
 #define PAGE_SIZE 4096
-#define MEMORY_POOL_SIZE OBJECT_SIZE * 4096
-//#define MEMORY_POOL_SIZE OBJECT_SIZE * 4096 * 16
+//#define MEMORY_POOL_SIZE OBJECT_SIZE * 4096
+#define MEMORY_POOL_SIZE OBJECT_SIZE * 4096 * 16
 #define NAME_RESOLUTION_PREFIX "*"
 #define MAX_GLOBAL_MEMORY_SIZE 128
 #define MAX_MACHINE_STACK_SIZE 8 * KB

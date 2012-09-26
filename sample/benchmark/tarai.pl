@@ -1,4 +1,4 @@
-#@static_typing
+#@jit_safe
 sub tarai{
     if ($_[0] <= $_[1]) {
         return $_[1];

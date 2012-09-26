@@ -56,10 +56,10 @@ jit_function_t GPerlJITCompiler::compile(JITParam *param)
 	for (int i = 0; i < argc; i++) {
 		switch (param->arg_types[i]) {
 		case Int:
-			_params[i] = jit_type_nfloat;
+			_params[i] = jit_type_int;
 			break;
 		case Double:
-			_params[i] = jit_type_int;
+			_params[i] = jit_type_nfloat;
 			break;
 		case String:
 			break;
@@ -158,20 +158,20 @@ jit_function_t GPerlJITCompiler::compile(JITParam *param)
 			break;
 		}
 		case SELF_FASTCALL0: {
-			DBG_PL("COMPILE FASTCALL0");
+			DBG_PL("COMPILE SELF_FASTCALL0");
 			argstack[0] = _v[pc->arg0];
 			_v[pc->dst] = jit_insn_call(func, "", func, NULL, argstack, 1, 0);//JIT_CALL_TAIL);
 			break;
 		}
 		case SELF_FASTCALL1: {
-			DBG_PL("COMPILE FASTCALL1");
+			DBG_PL("COMPILE SELF_FASTCALL1");
 			argstack[0] = _v[pc->arg0];
 			argstack[1] = _v[pc->arg1];
 			_v[pc->dst] = jit_insn_call(func, "", func, NULL, argstack, 2, 0);//JIT_CALL_TAIL);
 			break;
 		}
 		case SELF_FASTCALL2: {
-			DBG_PL("COMPILE FASTCALL2");
+			DBG_PL("COMPILE SELF_FASTCALL2");
 			argstack[0] = _v[pc->arg0];
 			argstack[1] = _v[pc->arg1];
 			argstack[2] = _v[pc->arg2];
@@ -179,7 +179,7 @@ jit_function_t GPerlJITCompiler::compile(JITParam *param)
 			break;
 		}
 		case SELF_FASTCALL3: {
-			DBG_PL("COMPILE FASTCALL3");
+			DBG_PL("COMPILE SELF_FASTCALL3");
 			argstack[0] = _v[pc->arg0];
 			argstack[1] = _v[pc->arg1];
 			argstack[2] = _v[pc->arg2];
@@ -187,7 +187,7 @@ jit_function_t GPerlJITCompiler::compile(JITParam *param)
 			_v[pc->dst] = jit_insn_call(func, "", func, NULL, argstack, 4, 0);//JIT_CALL_TAIL);
 			break;
 		}
-		case RET:// case JIT_COUNTDOWN_RET:
+		case RET: case JIT_COUNTDOWN_RET:
 			DBG_PL("COMPILE RET");
 			_v[0] = _v[pc->src];
 			jit_insn_return(func, _v[0]);
@@ -207,7 +207,6 @@ GPerlValue GPerlJITCompiler::run(jit_function_t func, GPerlValue *args, JITParam
 	GPerlValue ret;
 	int argc = param->argc;
 	void *jit_args[argc];
-	asm("int3");
 	for (int i = 0; i < argc; i++) {
 		switch (param->arg_types[i]) {
 		case Int:
@@ -268,4 +267,12 @@ jit_value_t GPerlJITCompiler::compileMOV(GPerlVirtualMachineCode *pc, jit_functi
 	return ret;
 }
 
+#else
+
+GPerlJITCompiler::GPerlJITCompiler(void) {}
+GPerlValue GPerlJITCompiler::run(void *, GPerlValue *, JITParam *)
+{
+	GPerlValue ret;
+	return ret;
+}
 #endif
