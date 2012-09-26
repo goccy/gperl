@@ -7,4 +7,4 @@ sub fib {
     }
 }
 
-print(fib(35), "\n");
+print(fib(9), "\n");

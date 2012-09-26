@@ -1,3 +1,4 @@
+#@static_typing
 sub bottomup_tree {
     my $value = $_[0];
     my $depth = $_[1];
@@ -10,6 +11,7 @@ sub bottomup_tree {
     }
 }
 
+#@static_typing
 sub check_tree {
     my $ref_arg = shift;
     my @deref_arg = @{$ref_arg};

@@ -14,9 +14,8 @@ static void *jitTimingCheck(void *args)
 	while (!isRunFinished) {
 		for (size_t i = 0; i < params_num; i++) {
 			JITParam *param = prms[i];
-			if (param->mtd->jit_count_down == 0 && param->return_type != Return) {
+			if (!param->func && param->mtd->jit_count_down == 0 && param->return_type != Return) {
 				//DBG_PL("Start JIT Compile");
-				asm("int3");
 				GPerlJITCompiler jit_compiler;
 				param->func = jit_compiler.compile(param);
 				size_t calls_num = param->calls_num;

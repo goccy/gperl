@@ -61,11 +61,11 @@ void Array_mark(GPerlObject* o)
 	}
 }
 
-#define MemoryManager_pushObject(o, list) { \
-	memset(o, '\0', OBJECT_SIZE);           \
-	o->h.next = list;                       \
-	list = o;                               \
-}
+#define MemoryManager_pushObject(o, list) {		\
+		memset(o, 0, OBJECT_SIZE);				\
+		o->h.next = list;						\
+		list = o;								\
+	}
 
 void Array_free(GPerlObject *o)
 {

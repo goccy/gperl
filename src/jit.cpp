@@ -71,8 +71,8 @@ jit_function_t GPerlJITCompiler::compile(JITParam *param)
 	}
 	jit_value_t curstack[32] = {0};
 	jit_value_t argstack[MAX_ARGSTACK_SIZE] = {0};
-	jit_type_t _signature = jit_type_create_signature(jit_abi_fastcall, jit_type_uint, _params, argc, 0);
-	jit_function_t func = jit_function_create(ctx, _signature);
+	jit_type_t signature = jit_type_create_signature(jit_abi_fastcall, jit_type_uint, _params, argc, 0);
+	jit_function_t func = jit_function_create(ctx, signature);
 	jit_value_t _v[MAX_REG_SIZE] = {0};
 	GPerlJmpStack *jmp_stack = new GPerlJmpStack();
 	argc = 0;
@@ -83,25 +83,31 @@ jit_function_t GPerlJITCompiler::compile(JITParam *param)
 		}
 		switch (pc->op) {
 		case LET:
+			DBG_PL("COMPILE LET");
 			curstack[pc->dst] = _v[pc->src];
 			break;
 		case MOV:
+			DBG_PL("COMPILE MOV");
 			_v[pc->dst] = compileMOV(pc, &func);
 			break;
 		case vMOV:
+			DBG_PL("COMPILE vMOV");
 			_v[pc->dst] = curstack[pc->src];
 			break;
 		case gMOV:
 			break;
 		case ARGMOV:
+			DBG_PL("COMPILE ARGMOV");
 			_v[pc->dst] = jit_value_get_param(func, pc->src);
 			break;
 		case ADD:
+			DBG_PL("COMPILE ADD");
 			_v[pc->dst] = jit_insn_add(func, _v[pc->dst], _v[pc->src]);
 			break;
 		case iADDC:
 			break;
 		case iJLC: {
+			DBG_PL("COMPILE iJLC");
 			jit_value_t c = jit_value_create_nint_constant(func, jit_type_int, pc->v.ivalue);
 			jit_value_t tmp = jit_insn_lt(func, _v[pc->dst], c);
 			GPerlJmpInfo *inf = new GPerlJmpInfo(pc->jmp);
@@ -110,6 +116,7 @@ jit_function_t GPerlJITCompiler::compile(JITParam *param)
 			break;
 		}
 		case iJLEC: {
+			DBG_PL("COMPILE iJLEC");
 			jit_value_t c = jit_value_create_nint_constant(func, jit_type_int, pc->v.ivalue);
 			jit_value_t tmp = jit_insn_le(func, _v[pc->dst], c);
 			GPerlJmpInfo *inf = new GPerlJmpInfo(pc->jmp);
@@ -118,6 +125,7 @@ jit_function_t GPerlJITCompiler::compile(JITParam *param)
 			break;
 		}
 		case JE: {
+			DBG_PL("COMPILE JE");
 			jit_value_t tmp = jit_insn_eq(func, _v[pc->dst], _v[pc->src]);
 			GPerlJmpInfo *inf = new GPerlJmpInfo(pc->jmp);
 			jmp_stack->push(inf);
@@ -125,6 +133,7 @@ jit_function_t GPerlJITCompiler::compile(JITParam *param)
 			break;
 		}
 		case JLE: {
+			DBG_PL("COMPILE JLE");
 			jit_value_t tmp = jit_insn_le(func, _v[pc->dst], _v[pc->src]);
 			GPerlJmpInfo *inf = new GPerlJmpInfo(pc->jmp);
 			jmp_stack->push(inf);
@@ -132,24 +141,59 @@ jit_function_t GPerlJITCompiler::compile(JITParam *param)
 			break;
 		}
 		case iSUBC: {
+			DBG_PL("COMPILE iSUBC");
 			jit_value_t c = jit_value_create_nint_constant(func, jit_type_int, pc->v.ivalue);
 			_v[pc->dst] = jit_insn_sub(func, _v[pc->dst], c);
 			break;
 		}
 		case PUSH:
+			DBG_PL("COMPILE PUSH");
 			argstack[pc->src] = _v[pc->dst];
 			argc++;
 			break;
 		case SELFCALL: {
+			DBG_PL("COMPILE SELFCALL");
 			_v[pc->dst] = jit_insn_call(func, "", func, NULL, argstack, argc, 0);//JIT_CALL_TAIL);
 			argc = 0;
 			break;
 		}
-		case RET:
+		case SELF_FASTCALL0: {
+			DBG_PL("COMPILE FASTCALL0");
+			argstack[0] = _v[pc->arg0];
+			_v[pc->dst] = jit_insn_call(func, "", func, NULL, argstack, 1, 0);//JIT_CALL_TAIL);
+			break;
+		}
+		case SELF_FASTCALL1: {
+			DBG_PL("COMPILE FASTCALL1");
+			argstack[0] = _v[pc->arg0];
+			argstack[1] = _v[pc->arg1];
+			_v[pc->dst] = jit_insn_call(func, "", func, NULL, argstack, 2, 0);//JIT_CALL_TAIL);
+			break;
+		}
+		case SELF_FASTCALL2: {
+			DBG_PL("COMPILE FASTCALL2");
+			argstack[0] = _v[pc->arg0];
+			argstack[1] = _v[pc->arg1];
+			argstack[2] = _v[pc->arg2];
+			_v[pc->dst] = jit_insn_call(func, "", func, NULL, argstack, 3, 0);//JIT_CALL_TAIL);
+			break;
+		}
+		case SELF_FASTCALL3: {
+			DBG_PL("COMPILE FASTCALL3");
+			argstack[0] = _v[pc->arg0];
+			argstack[1] = _v[pc->arg1];
+			argstack[2] = _v[pc->arg2];
+			argstack[3] = _v[pc->arg3];
+			_v[pc->dst] = jit_insn_call(func, "", func, NULL, argstack, 4, 0);//JIT_CALL_TAIL);
+			break;
+		}
+		case RET:// case JIT_COUNTDOWN_RET:
+			DBG_PL("COMPILE RET");
 			_v[0] = _v[pc->src];
 			jit_insn_return(func, _v[0]);
 			break;
 		default:
+			DBG_PL("COMPILE DEFALUT");
 			break;
 		}
 	}
@@ -163,6 +207,7 @@ GPerlValue GPerlJITCompiler::run(jit_function_t func, GPerlValue *args, JITParam
 	GPerlValue ret;
 	int argc = param->argc;
 	void *jit_args[argc];
+	asm("int3");
 	for (int i = 0; i < argc; i++) {
 		switch (param->arg_types[i]) {
 		case Int:

@@ -13,16 +13,16 @@ double gettimeofday_sec(void)
 }
 
 sigjmp_buf expand_mem;
-#define MemoryManager_popObject(o, list) {  \
-	o = list;                               \
-	list = list->h.next;                    \
-}
+#define MemoryManager_popObject(o, list) {		\
+		o = list;								\
+		list = list->h.next;					\
+	}
 
-#define MemoryManager_pushObject(o, list) { \
-	memset(o, '\0', OBJECT_SIZE);           \
-	o->h.next = list;                       \
-	list = o;                               \
-}
+#define MemoryManager_pushObject(o, list) {		\
+		memset(o, 0, OBJECT_SIZE);				\
+		o->h.next = list;						\
+		list = o;								\
+	}
 
 GPerlValue global_vmemory[MAX_GLOBAL_MEMORY_SIZE];
 GPerlValue init_values[MAX_INIT_VALUES_SIZE];
@@ -238,15 +238,7 @@ void GPerlMemoryManager::sweep(void) {
 		GPerlObject* tail = p->tail;
 		while (o < tail) {
 			if (!IS_Marked(o) && o->h.free) {
-				//DBG_PL("FREE!!");
-				if (o->h.type == Array) {
-					o->h.free(o);
-					MemoryManager_pushObject(o, freeList);
-				}
-				else if (o->h.type == ArrayRef) {
-					// TODO why ArrayRef should not be free?
-				}
-				else {
+				if (o->h.type != ArrayRef) {
 					o->h.free(o);
 					MemoryManager_pushObject(o, freeList);
 				}
