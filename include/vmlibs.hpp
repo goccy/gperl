@@ -791,29 +791,29 @@ static inline GPerlArray *GPERL_VALUES(GPerlValue arg)
 		STRING_init(reg[pc->dst], (GPerlString *)pc->_new(pc->v, NULL)); \
 	} while (0)
 #define GPERL_ARRAY_PUSH(argstack) pc->push(argstack);
-#define GPERL_ARRAY_AT(dst, src, idx) do {					\
-	  GPerlArray *a = (GPerlArray *)getObject(stack[src]);	\
-	  if (a->size > I(idx)) {						\
-		  reg[dst] = a->list[I(idx)];						\
-	  } else {												\
-		  root.callstack_top = callstack;					\
-		  root.stack_top_idx = pc->cur_stack_top;			\
-		  callstack->cur_pc = pc;							\
-		  OBJECT_init(reg[dst], undef);						\
-	  }														\
-  } while (0);
+#define GPERL_ARRAY_AT(dst, src, idx) do {						\
+		GPerlArray *a = (GPerlArray *)getObject(stack[src]);	\
+		if (a->size > I(idx)) {									\
+			reg[dst] = a->list[I(idx)];							\
+		} else {												\
+			root.callstack_top = callstack;						\
+			root.stack_top_idx = pc->cur_stack_top;				\
+			callstack->cur_pc = pc;								\
+			OBJECT_init(reg[dst], undef);						\
+		}														\
+	} while (0);
 
-#define GPERL_ARRAY_ATC(dst, src, idx) do {					\
-	  GPerlArray *a = (GPerlArray *)getObject(stack[src]);	\
-	  if (a->size > idx) {									\
-		  reg[dst] = a->list[idx];							\
-	  } else {												\
-		  root.callstack_top = callstack;					\
-		  root.stack_top_idx = pc->cur_stack_top;			\
-		  callstack->cur_pc = pc;							\
-		  OBJECT_init(reg[dst], undef);						\
-	  }														\
-  } while (0);
+#define GPERL_ARRAY_ATC(dst, src, idx) do {						\
+		GPerlArray *a = (GPerlArray *)getObject(stack[src]);	\
+		if (a->size > idx) {									\
+			reg[dst] = a->list[idx];							\
+		} else {												\
+			root.callstack_top = callstack;						\
+			root.stack_top_idx = pc->cur_stack_top;				\
+			callstack->cur_pc = pc;								\
+			OBJECT_init(reg[dst], undef);						\
+		}														\
+	} while (0);
 
 #define GPERL_ARRAY_gAT(dst, src, idx) do {								\
 		GPerlArray *a = (GPerlArray *)getObject(global_vmemory[src]);	\

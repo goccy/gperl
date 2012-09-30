@@ -218,7 +218,7 @@ void GPerlCompiler::staticTypingCompile(vector<GPerlVirtualMachineCode *> *f)
 		case JG: case JL: case JGE: case JLE: case JE: case JNE:
 		case ISNOT: case StringADD:
 		case INC: case gINC: case DEC: case gDEC:
-		case WRITE: case SHIFT:
+		case WRITE: case SHIFT: case IS:
 			c->op = decl_codes[c->op + 1].code;
 			break;
 		default:
@@ -635,12 +635,24 @@ void GPerlCompiler::finalCompile(vector<GPerlVirtualMachineCode *> *code)
 		case iSUB:
 			OPCREATE_TYPE1(iSUB);
 			break;
+		case MUL:
+			OPCREATE_TYPE1(MUL);
+			break;
+		case STATIC_MUL:
+			OPCREATE_TYPE1(STATIC_MUL);
+			break;
+		case iMUL:
+			OPCREATE_TYPE1(iMUL);
+			break;
 		/*========= TYPE2 =========*/
 		case iADDC:
 			OPCREATE_TYPE2(iADDC);
 			break;
 		case iSUBC:
 			OPCREATE_TYPE2(iSUBC);
+			break;
+		case iMULC:
+			OPCREATE_TYPE2(iMULC);
 			break;
 		case JL:
 			OPCREATE_TYPE2(JL);
@@ -1371,6 +1383,8 @@ void GPerlCompiler::setOpAssign(GPerlVirtualMachineCode *_code, GPerlCell *c)
 	setVMOV(vmov, c->left);
 	addVMCode(vmov);
 	dumpVMCode(vmov);
+	int op_dst = dst - 1;
+	//DBG_PL("op_dst = [%d]", op_dst);
 	DBG_PL("COMPIEL RIGHT CELL");
 	compile_(c->right);
 	DBG_PL("COMPILE OP");
@@ -1392,9 +1406,11 @@ void GPerlCompiler::setOpAssign(GPerlVirtualMachineCode *_code, GPerlCell *c)
 	default:
 		break;
 	}
+	code->dst = op_dst;
 	addVMCode(code);
 	dumpVMCode(code);
 	setLET(_code, c);
+	_code->src = op_dst;
 }
 
 void GPerlCompiler::setLET(GPerlVirtualMachineCode *code, GPerlCell *c)

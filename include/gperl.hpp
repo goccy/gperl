@@ -179,6 +179,24 @@ public:
 #endif
 };
 
+class GPerlFlags {
+public:
+	bool isVarDeclFlag;
+	bool isCallDeclFlag;
+	bool ifStmtFlag;
+	bool unlessStmtFlag;
+	bool elseStmtFlag;
+	bool elsifStmtFlag;
+	bool funcFlag;
+	bool whileStmtFlag;
+	bool forStmtFlag;
+	bool foreachStmtFlag;
+	bool condIndentFlag;
+	bool packageFlag;
+	bool annotateFlag;
+	GPerlFlags(void);
+};
+
 class GPerlParser {
 public:
 	int iterate_count;
@@ -195,6 +213,34 @@ public:
 
 	GPerlParser(std::vector<GPerlToken *> *tokens, int argc = 0, char **argv = NULL);
 	GPerlAST *parse(void);
+	void parseLocalVar(GPerlToken *t, GPerlNodes *nodes, GPerlFlags *flags);
+	void parseGlobalVar(GPerlToken *t, GPerlNodes *nodes, GPerlFlags *flags);
+	void parseSingleTermOperator(GPerlToken *t, GPerlNodes *nodes);
+	void parseDoubleTermOperator(GPerlToken *t, GPerlNodes *nodes);
+	GPerlCell *parseAssign(GPerlToken *t, GPerlNodes *nodes);
+	void parseFunc(GPerlToken *t, GPerlNodes *blocks, GPerlFlags *flags, GPerlCell *root, GPerlAST *ast);
+	void parseIfStmt(GPerlToken *t, GPerlNodes *blocks, GPerlFlags *flags, GPerlCell *root);
+	void parseElseIfStmt(GPerlToken *t, GPerlNodes *blocks, GPerlFlags *flags, GPerlCell *root);
+	void parseElseStmt(GPerlToken *t, GPerlNodes *blocks, GPerlFlags *flags, GPerlCell *root);
+	void parseWhileStmt(GPerlToken *t, GPerlNodes *blocks, GPerlFlags *flags, GPerlCell *root);
+	void parseForStmt(GPerlToken *t, GPerlNodes *blocks, GPerlFlags *flags, GPerlCell *root);
+	void parseForeachStmt(GPerlToken *t, GPerlNodes *blocks, GPerlFlags *flags, GPerlCell *root);
+	void parseBlock(GPerlToken *t, GPerlNodes *blocks, GPerlFlags *flags, GPerlCell *root, GPerlAST *ast);
+	void parseLeftBrace(GPerlToken *t, GPerlNodes *nodes, GPerlFlags *flags, GPerlCell *root, GPerlAST *ast);
+	void parseRightBrace(GPerlToken *t, GPerlNodes *nodes, GPerlFlags *flags, GPerlCell *root, GPerlAST *ast);
+	void parseLeftParenthesis(GPerlToken *t, GPerlNodes *nodes, GPerlFlags *flags, GPerlT prev_type);
+	void parseRightParenthesis(GPerlToken *t, GPerlNodes *nodes, GPerlFlags *flags, GPerlCell *root, GPerlAST *ast);
+	void parseLeftBracket(GPerlToken *t, GPerlNodes *nodes, GPerlFlags *flags);
+	void parseDereference(GPerlToken *t, GPerlNodes *blocks, GPerlFlags *);
+	void parseShift(GPerlToken *t, GPerlNodes *blocks, GPerlFlags *);
+	void parseTerm(GPerlToken *t, GPerlNodes *nodes, GPerlFlags *flags, GPerlCell *root, GPerlAST *ast);
+	void parseLeftTerm(GPerlToken *t, GPerlNodes *blocks, GPerlScope *scope);
+	void parseRightTerm(GPerlToken *t, GPerlNodes *blocks, GPerlScope *scope);
+	void parseSingleTerm(GPerlToken *t, GPerlNodes *blocks, GPerlScope *scope);
+	void parseSemiColon(GPerlToken *t, GPerlNodes *nodes, GPerlFlags *flags, GPerlCell *root, GPerlAST *ast);
+	void parseArgument(GPerlToken *t, GPerlNodes *blocks, GPerlFlags *flags);
+	void parseComma(GPerlToken *t, GPerlNodes *blocks, GPerlFlags *flags, GPerlCell *root);
+	void parseFunctionCall(GPerlToken *t, GPerlNodes *blocks, GPerlScope *scope);
 	void parseValue(GPerlToken *t, GPerlNodes *nodes, GPerlScope *scope);
 };
 

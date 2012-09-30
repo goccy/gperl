@@ -1,13 +1,12 @@
 #@static_typing
 sub bottomup_tree {
-    my $value = $_[0];
     my $depth = $_[1];
     if (!$depth) {
-        return $value;
+        return $_[0];
     } else {
-        my $value2 = $value * 2;
+        my $value2 = $_[0] * 2;
         $depth--;
-        return [bottomup_tree($value - 1, $depth), bottomup_tree($value2, $depth), $value];
+        return [bottomup_tree($value2 - 1, $depth), bottomup_tree($value2, $depth), $_[0]];
     }
 }
 
@@ -43,7 +42,7 @@ my $longlived_tree = bottomup_tree(0, $max_depth);
 for (my $depth = $min_depth; $depth <= $max_depth; $depth += 2) {
     my $iterations = 2 << ($max_depth - $depth + $min_depth - 1);
     $check = 0;
-    for (my $i = 1; $i < $iterations; $i++) {
+    for (my $i = 1; $i <= $iterations; $i++) {
         $check += check_tree(bottomup_tree(0, $depth));
         $check += check_tree(bottomup_tree(0, $depth));
     }

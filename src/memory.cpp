@@ -186,15 +186,14 @@ void GPerlMemoryManager::dummyGC(void) {
 }
 
 void GPerlMemoryManager::msgc(void) {
-	DBG_PL("GC_START");
+	//DBG_PL("GC_START");
 	traceRoot();
 	sweep();
-	DBG_PL("GC_END");
+	//DBG_PL("GC_END");
 }
 
 void GPerlMemoryManager::traceRoot(void)
 {
-	DBG_PL("traceRoot");
 	GPerlEnv *callstack_bottom = root.callstack_bottom;
 	GPerlEnv *callstack_trace_ptr = callstack_bottom;
 	GPerlEnv *callstack_top = root.callstack_top;
@@ -241,6 +240,9 @@ void GPerlMemoryManager::sweep(void) {
 				if (o->h.type != ArrayRef) {
 					o->h.free(o);
 					MemoryManager_pushObject(o, freeList);
+				} else {
+					o->h.free(o);
+					MemoryManager_pushObject(o, freeList);
 				}
 #ifdef DEBUG_MODE
 				dead_count++;
@@ -251,6 +253,6 @@ void GPerlMemoryManager::sweep(void) {
 			o++;
 		}
 	}
-	DBG_PL("maxcount: %lu", MEMORY_POOL_SIZE / sizeof(GPerlObject) * pool_size);
-	DBG_PL("deadcount: %lu", dead_count);
+	//DBG_PL("maxcount: %lu", MEMORY_POOL_SIZE / sizeof(GPerlObject) * pool_size);
+	//DBG_PL("deadcount: %lu", dead_count);
 }
