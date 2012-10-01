@@ -85,7 +85,8 @@ void Array_free(GPerlObject *o)
 		}
 		case 3: {
 			GPerlObject *o = (GPerlObject *)getObject(v);
-			if (!o->h.mark_flag) {
+			if (!o->h.mark_flag && o->h.free) {
+				o->h.free(o);
 				MemoryManager_pushObject(o, mm->freeList);
 			}
 			break;

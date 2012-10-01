@@ -126,6 +126,10 @@ void GPerlMemoryManager::expandMemPool(void)
 	DBG_PL("Expanded Heap size: %lu, max_size: %lu (%lu)kb", pool_size, max_pool_size, pool_size * MEMORY_POOL_SIZE / 1024);
 }
 
+#define MARK_SET(o) o->h.mark_flag = 1
+#define MARK_RESET(o) o->h.mark_flag = 0
+#define IS_Marked(o) o->h.mark_flag
+
 GPerlObject* GPerlMemoryManager::gmalloc(void) {
 	GPerlObject *ret = freeList;
 	//MemoryManager_popObject(ret, freeList);
@@ -139,12 +143,9 @@ GPerlObject* GPerlMemoryManager::gmalloc(void) {
 		freeList = freeList->h.next;
 	}
 	//DBG_PL("malloc");
+	MARK_RESET(ret);
 	return ret;
 }
-
-#define MARK_SET(o) o->h.mark_flag = 1
-#define MARK_RESET(o) o->h.mark_flag = 0
-#define IS_Marked(o) o->h.mark_flag
 
 void GPerlMemoryManager::mark(GPerlValue v) {
 	switch (TYPE_CHECK(v)) {
@@ -237,18 +238,11 @@ void GPerlMemoryManager::sweep(void) {
 		GPerlObject* tail = p->tail;
 		while (o < tail) {
 			if (!IS_Marked(o) && o->h.free) {
-				if (o->h.type != ArrayRef) {
-					o->h.free(o);
-					MemoryManager_pushObject(o, freeList);
-				} else {
-					o->h.free(o);
-					MemoryManager_pushObject(o, freeList);
-				}
+				o->h.free(o);
+				MemoryManager_pushObject(o, freeList);
 #ifdef DEBUG_MODE
 				dead_count++;
 #endif
-			} else {
-				MARK_RESET(o);
 			}
 			o++;
 		}
