@@ -793,13 +793,10 @@ static inline GPerlArray *GPERL_VALUES(GPerlValue arg)
 #define GPERL_ARRAY_PUSH(argstack) pc->push(argstack);
 
 #define GPERL_ARRAY_ARGAT(dst, src, idx) do {					\
-		GPerlArray *a = (GPerlArray *)getObject(reg[src]);		\
+		GPerlArray *a = (GPerlArray *)getObject(argstack[src]);	\
 		if (a->size > idx) {									\
 			reg[dst] = a->list[idx];							\
 		} else {												\
-			root.callstack_top = callstack;						\
-			root.stack_top_idx = pc->cur_stack_top;				\
-			callstack->cur_pc = pc;								\
 			OBJECT_init(reg[dst], undef);						\
 		}														\
 	} while (0);

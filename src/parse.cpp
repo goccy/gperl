@@ -322,14 +322,20 @@ void GPerlParser::parseSingleTermOperator(GPerlToken *t, GPerlNodes *blocks)
 void GPerlParser::parseDoubleTermOperator(GPerlToken *t, GPerlNodes *blocks)
 {
 	DBG_PL("[%s]:LAST BLOCK->PARENT", cstr(t->data));
-	if (t->info.type == Pointer) {
-		asm("int3");
-	}
 	GPerlCell *block = blocks->lastNode();
-	GPerlCell *b = new GPerlCell(t->info.type, t->data);
-	block->parent = b;
-	b->left = block;
-	blocks->swapLastNode(b);
+	if (blocks->block_num > 2 && block->parent == blocks->at(blocks->block_num-2)) {
+		blocks->popNode();
+		block = blocks->lastNode();
+		GPerlCell *b = new GPerlCell(t->info.type, t->data);
+		block->parent = b;
+		b->left = block;
+		blocks->swapLastNode(b);
+	} else {
+		GPerlCell *b = new GPerlCell(t->info.type, t->data);
+		block->parent = b;
+		b->left = block;
+		blocks->swapLastNode(b);
+	}
 }
 
 GPerlCell *GPerlParser::parseAssign(GPerlToken *t, GPerlNodes *blocks)

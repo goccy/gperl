@@ -1,7 +1,7 @@
 CC = g++
 READLINE_DIR = lib/greadline
-#CFLAGS = -O2 -g -Wall -W -I./include/ -I$(READLINE_DIR)/include -DUSING_JIT #-DDEBUG_MODE
-CFLAGS = -O0 -g3 -Wall -W -I./include/ -I$(READLINE_DIR)/include -I/opt/local/include/ -DDEBUG_MODE -DUSING_GRAPH_DEBUG
+CFLAGS = -O2 -g -Wall -W -I./include/ -I$(READLINE_DIR)/include -DUSING_JIT #-DDEBUG_MODE
+#CFLAGS = -O0 -g3 -Wall -W -I./include/ -I$(READLINE_DIR)/include -I/opt/local/include/ -DUSING_JIT -DDEBUG_MODE -DUSING_GRAPH_DEBUG
 READLINE_CFLAGS= -O2 -Wall -W -I$(READLINE_DIR)/include/
 LDLIBS = -L/usr/local/lib/x86_64 -ljit -lpthread `pkg-config libgvc --libs`
 target = gperl

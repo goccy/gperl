@@ -188,8 +188,8 @@ void GPerlMemoryManager::dummyGC(void) {
 
 void GPerlMemoryManager::msgc(void) {
 	//DBG_PL("GC_START");
-	//traceRoot();
-	//sweep();
+	traceRoot();
+	sweep();
 	//DBG_PL("GC_END");
 }
 

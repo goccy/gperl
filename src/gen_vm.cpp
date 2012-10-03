@@ -6,7 +6,6 @@ using namespace std;
 bool isRunFinished = false;
 static void *jitTimingCheck(void *args)
 {
-#ifdef ENABLE_JIT_COMPILE
 	DBG_PL("jitTimingCheck");
 	JITParams *params = (JITParams *)args;
 	void **jmp_tbl = params->jmp_table;
@@ -49,9 +48,6 @@ static void *jitTimingCheck(void *args)
 			}
 		}
 	}
-#else
-	(void)args;
-#endif
     return NULL;
 }
 
@@ -73,6 +69,7 @@ GPerlValue GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes, JITParams *p
 	root.callstack_bottom = callstack_bottom;
 	root.global_vmemory = global_vmemory;
 #include "gen_label.cpp"
+#ifdef ENABLE_JIT_COMPILE
 	GPerlJITCompiler jit_compiler;
 	if (params && params->params_num > 0) {
 		this->params = params;
@@ -80,6 +77,7 @@ GPerlValue GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes, JITParams *p
 		params->jmp_table = jmp_table;
 		pthread_create(&th, NULL, jitTimingCheck, (void *)params);
 	}
+#endif
     DISPATCH_START();
 
 	CASE(UNDEF, {
@@ -865,9 +863,7 @@ GPerlValue GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes, JITParams *p
 		BREAK();
 	});
 	CASE(REF, {
-		//INT_init(reg[0], GPERL_REF((callstack+1)->argstack[0]));
-		GPerlValue arg = (callstack+1)->argstack[0];
-		GPERL_REF(arg);
+		GPERL_REF((callstack+1)->argstack[0]);
 		pc++;
 		BREAK();
 	});
@@ -1124,6 +1120,11 @@ GPerlValue GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes, JITParams *p
 	});
 	CASE(ARRAY_AT, {
 		GPERL_ARRAY_AT(pc->dst, pc->src, pc->idx);
+		pc++;
+		BREAK();
+	});
+	CASE(ARRAY_ARGAT, {
+		GPERL_ARRAY_ARGAT(pc->dst, pc->src, pc->idx);
 		pc++;
 		BREAK();
 	});

@@ -25,7 +25,7 @@ sub get_inst_data {
         my $const_flag = $_->{const};
         my $fast_type = $_->{fast_type};
         my @args = $_->{args};
-
+        my $type = $_->{op_type};
         my @fast_prefix;
         if ($fast_type == 1) {
             @fast_prefix = qw{AB AC AD BC BD CD};
@@ -93,7 +93,8 @@ sub get_inst_data {
             orig => $inst_name,
             inst_names => \@inst_names,
             fast_inst_names => \@fast_inst_names,
-            args => \@args
+            args => \@args,
+            op_type => $type
             );
         push(@g_inst, @inst_names);
         push(@g_final_inst, @fast_inst_names);
@@ -102,9 +103,30 @@ sub get_inst_data {
     return @ret;
 }
 
+sub get_type_data {
+    my $ref = shift;
+    my @array = @{$ref};
+    my $map = {};
+    foreach $hash (@array) {
+        $map->{$hash->{op_type}}++;
+    }
+    return $map;
+}
+
+sub get_map_data {
+    my $ref = shift;
+    my @array = @{$ref};
+    my $map = {};
+    foreach $hash (@array) {
+        $map->{$hash->{orig}} = $hash->{op_type};
+    }
+    return $map;
+}
+
+
 sub gen_enum_code {
     my $ret = "typedef enum {\n";
-    my $ref = shift;
+    my $ref = $_[0];
     my @insts = @{$ref};
     my @fast_inst_names = ();
     foreach my $inst (@insts) {
@@ -120,10 +142,18 @@ sub gen_enum_code {
     }
     $ret .= "} GPerlOpCode;\n";
     $ret .= "\n";
-    $ret .=
-"typedef struct _GPerlCodeInfo {
+	my @types = keys(%{$_[1]});
+	$ret .= "typedef enum {\n";
+	foreach my $type (@types) {
+		$ret .= "\t$type,\n";
+	}
+    $ret .= "} GPerlOpCodeType;\n";
+    $ret .= "\n";
+    $ret .= "
+typedef struct _GPerlCodeInfo {
 	GPerlOpCode code;
 	const char *name;
+	GPerlOpCodeType type;
 } GPerlCodeInfo;\n\n";
     return $ret;
 }
@@ -131,19 +161,28 @@ sub gen_enum_code {
 sub gen_info_code {
     my $ret = "";
     $ret .= "GPerlCodeInfo decl_codes[] = {\n";
-    my $ref = shift;
+    my $ref = $_[0];
     my @insts = @{$ref};
+    my $map = get_map_data(\@insts);
     my @fast_inst_names = ();
     foreach my $inst (@insts) {
         my @inst_names = @{$inst->{inst_names}};
+        foreach (@inst_names) {
+            $map->{$_} = $map->{$inst->{orig}};
+        }
         my @_fast_inst_names = @{$inst->{fast_inst_names}};
+        foreach (@_fast_inst_names) {
+            $map->{$_} = $map->{$inst->{orig}};
+        }
         push(@fast_inst_names, @_fast_inst_names);
         foreach (@inst_names) {
-            $ret .= "\t{$_, \"${_}\"},\n";
+            my $type = $map->{$_};
+            $ret .= "\t{$_, \"${_}\", ${type}},\n";
         }
     }
     foreach (@fast_inst_names) {
-        $ret .= "\t{$_, \"${_}\"},\n";
+        my $type = $map->{$_};
+        $ret .= "\t{$_, \"${_}\", ${type}},\n";
     }
     $ret .= "};\n";
     return $ret;
@@ -644,10 +683,11 @@ sub gen_fast_vm_code {
 }
 
 my @array = read_code_data("gen/code.json");
-my @insts = get_inst_data(\@array);
 
+my @insts = get_inst_data(\@array);
+my $type_map = get_type_data(\@array);
 open(ous, ">include/gen_vmcode.hpp");
-my $enum_code = gen_enum_code(\@insts);
+my $enum_code = gen_enum_code(\@insts, $type_map);
 print ous $enum_code;
 
 open(ous, ">src/gen_decl_code.cpp");
