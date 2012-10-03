@@ -4,685 +4,781 @@
 	 "type" : 0,
 	 "const" : 0,
 	 "fast_type" : 0,
-     "args" : []
+	 "args" : [],
+	 "op_type" : "TYPE_UNDEF"
  },
  {
 	 "code" : "MOV",
 	 "type" : 0,
 	 "const" : 0,
 	 "fast_type" : 2,
-     "args" : [{"dst" : "pc->dst"}, {"src" : "pc->v"}]
+	 "args" : [{"dst" : "pc->dst"}, {"src" : "pc->v"}],
+	 "op_type" : "TYPE_MOV"
  },
  {
 	 "code" : "vMOV",
 	 "type" : 0,
 	 "const" : 0,
 	 "fast_type" : 2,
-     "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}]
+	 "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}],
+	 "op_type" : "TYPE_vMOV"
  },
  {
 	 "code" : "gMOV",
 	 "type" : 0,
 	 "const" : 0,
 	 "fast_type" : 2,
-     "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}]
+	 "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}],
+	 "op_type" : "TYPE_gMOV"
  },
  {
 	 "code" : "ARGMOV",
 	 "type" : 0,
 	 "const" : 0,
 	 "fast_type" : 2,
-     "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}]
+	 "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}],
+	 "op_type" : "TYPE_ARGMOV"
  },
  {
 	 "code" : "ArrayARGMOV",
 	 "type" : 0,
 	 "const" : 0,
 	 "fast_type" : 2,
-     "args" : [{"dst" : "pc->dst"}]
+	 "args" : [{"dst" : "pc->dst"}],
+	 "op_type" : "TYPE_ArrayARGMOV"
  },
  {
 	 "code" : "ADD",
 	 "type" : 1,
 	 "const" : 1,
 	 "fast_type" : 1,
-     "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}]
+	 "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}],
+	 "op_type" : "TYPE_OPERATOR"
  },
  {
 	 "code" : "SUB",
 	 "type" : 1,
 	 "const" : 1,
 	 "fast_type" : 1,
-     "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}]
+	 "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}],
+	 "op_type" : "TYPE_OPERATOR"
  },
  {
 	 "code" : "MUL",
 	 "type" : 1,
 	 "const" : 1,
 	 "fast_type" : 1,
-     "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}]
+	 "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}],
+	 "op_type" : "TYPE_OPERATOR"
  },
  {
 	 "code" : "DIV",
 	 "type" : 1,
 	 "const" : 1,
 	 "fast_type" : 1,
-     "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}]
+	 "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}],
+	 "op_type" : "TYPE_OPERATOR"
  },
  {
 	 "code" : "LSHIFT",
 	 "type" : 1,
 	 "const" : 1,
 	 "fast_type" : 1,
-     "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}]
+	 "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}],
+	 "op_type" : "TYPE_OPERATOR"
  },
  {
 	 "code" : "RSHIFT",
 	 "type" : 1,
 	 "const" : 1,
 	 "fast_type" : 1,
-     "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}]
+	 "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}],
+	 "op_type" : "TYPE_OPERATOR"
  },
  {
 	 "code" : "JG",
 	 "type" : 1,
 	 "const" : 1,
 	 "fast_type" : 2,
-     "args" : [{"op" : ">"}, {"dst" : "pc->dst"}, {"src" : "pc->src"}]
+	 "args" : [{"op" : ">"}, {"dst" : "pc->dst"}, {"src" : "pc->src"}],
+	 "op_type" : "TYPE_OPERATOR"
  },
  {
 	 "code" : "JL",
 	 "type" : 1,
 	 "const" : 1,
 	 "fast_type" : 2,
-     "args" : [{"op" : "<"}, {"dst" : "pc->dst"}, {"src" : "pc->src"}]
+	 "args" : [{"op" : "<"}, {"dst" : "pc->dst"}, {"src" : "pc->src"}],
+	 "op_type" : "TYPE_OPERATOR"
  },
  {
 	 "code" : "JGE",
 	 "type" : 1,
 	 "const" : 1,
 	 "fast_type" : 2,
-     "args" : [{"op" : ">="}, {"dst" : "pc->dst"}, {"src" : "pc->src"}]
+	 "args" : [{"op" : ">="}, {"dst" : "pc->dst"}, {"src" : "pc->src"}],
+	 "op_type" : "TYPE_OPERATOR"
  },
  {
 	 "code" : "JLE",
 	 "type" : 1,
 	 "const" : 1,
 	 "fast_type" : 2,
-     "args" : [{"op" : "<="}, {"dst" : "pc->dst"}, {"src" : "pc->src"}]
+	 "args" : [{"op" : "<="}, {"dst" : "pc->dst"}, {"src" : "pc->src"}],
+	 "op_type" : "TYPE_OPERATOR"
  },
  {
 	 "code" : "JE",
 	 "type" : 1,
 	 "const" : 1,
 	 "fast_type" : 2,
-     "args" : [{"op" : "=="}, {"dst" : "pc->dst"}, {"src" : "pc->src"}]
+	 "args" : [{"op" : "=="}, {"dst" : "pc->dst"}, {"src" : "pc->src"}],
+	 "op_type" : "TYPE_OPERATOR"
  },
  {
 	 "code" : "JNE",
 	 "type" : 1,
 	 "const" : 1,
 	 "fast_type" : 2,
-     "args" : [{"op" : "!="}, {"dst" : "pc->dst"}, {"src" : "pc->src"}]
+	 "args" : [{"op" : "!="}, {"dst" : "pc->dst"}, {"src" : "pc->src"}],
+	 "op_type" : "TYPE_OPERATOR"
  },
  {
 	 "code" : "IS",
 	 "type" : 1,
 	 "const" : 1,
 	 "fast_type" : 0,
-	 "args" : [{"dst" : "pc->dst"}, {"v" : "pc->v"}]
+	 "args" : [{"dst" : "pc->dst"}, {"v" : "pc->v"}],
+	 "op_type" : "TYPE_OPERATOR"
  },
  {
 	 "code" : "ISNOT",
 	 "type" : 1,
 	 "const" : 1,
 	 "fast_type" : 0,
-	 "args" : [{"dst" : "pc->dst"}, {"v" : "pc->v"}]
+	 "args" : [{"dst" : "pc->dst"}, {"v" : "pc->v"}],
+	 "op_type" : "TYPE_OPERATOR"
  },
  {
 	 "code" : "StringADD",
 	 "type" : 1,
 	 "const" : 1,
 	 "fast_type" : 2,
-	 "args" : [{"dst" : "pc->dst"}, {"v" : "pc->v"}]
+	 "args" : [{"dst" : "pc->dst"}, {"v" : "pc->v"}],
+	 "op_type" : "TYPE_OPERATOR"
  },
  {
 	 "code" : "INC",
 	 "type" : 1,
 	 "const" : 0,
 	 "fast_type" : 0,
-     "args" : [{"dst" : "pc->dst"}]
+	 "args" : [{"dst" : "pc->dst"}],
+	 "op_type" : "TYPE_OPERATOR"
  },
  {
 	 "code" : "gINC",
 	 "type" : 1,
 	 "const" : 0,
 	 "fast_type" : 0,
-     "args" : [{"dst" : "pc->dst"}]
+	 "args" : [{"dst" : "pc->dst"}],
+	 "op_type" : "TYPE_OPERATOR"
  },
  {
 	 "code" : "DEC",
 	 "type" : 1,
 	 "const" : 0,
 	 "fast_type" : 0,
-     "args" : [{"dst" : "pc->dst"}]
+	 "args" : [{"dst" : "pc->dst"}],
+	 "op_type" : "TYPE_OPERATOR"
  },
  {
 	 "code" : "gDEC",
 	 "type" : 1,
 	 "const" : 0,
 	 "fast_type" : 0,
-     "args" : [{"dst" : "pc->dst"}]
+	 "args" : [{"dst" : "pc->dst"}],
+	 "op_type" : "TYPE_OPERATOR"
  },
  {
 	 "code" : "RET",
 	 "type" : 0,
 	 "const" : 0,
 	 "fast_type" : 2,
-     "args" : [{"src" : "pc->src"}]
+	 "args" : [{"src" : "pc->src"}],
+	 "op_type" : "TYPE_RET"
  },
  {
 	 "code" : "JIT_COUNTDOWN_RET",
 	 "type" : 0,
 	 "const" : 0,
 	 "fast_type" : 2,
-     "args" : [{"src" : "pc->src"}]
+	 "args" : [{"src" : "pc->src"}],
+	 "op_type" : "TYPE_RET"
  },
  {
 	 "code" : "THCODE",
 	 "type" : 0,
 	 "const" : 0,
 	 "fast_type" : 0,
-     "args" : []
+	 "args" : [],
+	 "op_type" : "TYPE_THCODE"
  },
  {
 	 "code" : "NOP",
 	 "type" : 0,
 	 "const" : 0,
 	 "fast_type" : 0,
-     "args" : []
+	 "args" : [],
+	 "op_type" : "TYPE_UNDEF"
  },
  {
 	 "code" : "WRITE",
 	 "type" : 1,
 	 "const" : 0,
 	 "fast_type" : 2,
-     "args" : [{"dst" : "pc->dst"}]
+	 "args" : [{"dst" : "pc->dst"}],
+	 "op_type" : "TYPE_WRITE"
  },
  {
 	 "code" : "FLUSH",
 	 "type" : 0,
 	 "const" : 0,
 	 "fast_type" : 0,
-     "args" : []
+	 "args" : [],
+	 "op_type" : "TYPE_BUILTIN_FUNC"
  },
  {
 	 "code" : "REF",
 	 "type" : 0,
 	 "const" : 0,
 	 "fast_type" : 0,
-     "args" : [{"argstack" : "(callstack+1)->argstack[0]"}]
+	 "args" : [{"argstack" : "(callstack+1)->argstack[0]"}],
+	 "op_type" : "TYPE_BUILTIN_FUNC"
  },
  {
 	 "code" : "KEYS",
 	 "type" : 0,
 	 "const" : 0,
 	 "fast_type" : 0,
-     "args" : [{"argstack" : "(callstack+1)->argstack[0]"}]
+	 "args" : [{"argstack" : "(callstack+1)->argstack[0]"}],
+	 "op_type" : "TYPE_BUILTIN_FUNC"
  },
  {
 	 "code" : "VALUES",
 	 "type" : 0,
 	 "const" : 0,
 	 "fast_type" : 0,
-     "args" : [{"argstack" : "(callstack+1)->argstack[0]"}]
+	 "args" : [{"argstack" : "(callstack+1)->argstack[0]"}],
+	 "op_type" : "TYPE_BUILTIN_FUNC"
  },
  {
 	 "code" : "BLESS",
 	 "type" : 0,
 	 "const" : 0,
 	 "fast_type" : 0,
-     "args" : [{"argstack" : "(callstack+1)->argstack"}]
+	 "args" : [{"argstack" : "(callstack+1)->argstack"}],
+	 "op_type" : "TYPE_BUILTIN_FUNC"
  },
  {
 	 "code" : "JMP",
 	 "type" : 0,
 	 "const" : 0,
 	 "fast_type" : 0,
-     "args" : []
+	 "args" : [],
+	 "op_type" : "TYPE_JMP"
  },
  {
 	 "code" : "LET",
 	 "type" : 0,
 	 "const" : 0,
 	 "fast_type" : 2,
-     "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}]
+	 "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}],
+	 "op_type" : "TYPE_LET"
  },
  {
 	 "code" : "gLET",
 	 "type" : 0,
 	 "const" : 0,
 	 "fast_type" : 0,
-     "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}]
+	 "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}],
+	 "op_type" : "TYPE_gLET"
  },
  {
 	 "code" : "MLET",
 	 "type" : 0,
 	 "const" : 0,
 	 "fast_type" : 2,
-     "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}, {"idx" : "pc->idx"}]
+	 "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}, {"idx" : "pc->idx"}],
+	 "op_type" : "TYPE_LET"
  },
  {
 	 "code" : "gMLET",
 	 "type" : 0,
 	 "const" : 0,
 	 "fast_type" : 0,
-     "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}, {"idx" : "pc->idx"}]
+	 "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}, {"idx" : "pc->idx"}],
+	 "op_type" : "TYPE_LET"
  },
  {
 	 "code" : "SETv",
 	 "type" : 0,
 	 "const" : 0,
 	 "fast_type" : 0,
-     "args" : [{"name" : "pc->name"}, {"dst" : "pc->dst"}]
+	 "args" : [{"name" : "pc->name"}, {"dst" : "pc->dst"}],
+	 "op_type" : "TYPE_SET"
  },
  {
 	 "code" : "FUNCSET",
 	 "type" : 0,
 	 "const" : 0,
 	 "fast_type" : 0,
-     "args" : [{"func" : "pc->func"}, {"dst" : "pc->dst"}]
+	 "args" : [{"func" : "pc->func"}, {"dst" : "pc->dst"}],
+	 "op_type" : "TYPE_SET"
  },
  {
 	 "code" : "CLOSURE",
 	 "type" : 0,
 	 "const" : 0,
 	 "fast_type" : 2,
-     "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}, {"NAME" : "callname"}]
+	 "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}, {"NAME" : "callname"}],
+	 "op_type" : "TYPE_CALL"
  },
  {
 	 "code" : "STATIC_CALL",
 	 "type" : 0,
 	 "const" : 0,
 	 "fast_type" : 2,
-     "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}, {"NAME" : "callname"}]
+	 "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}, {"NAME" : "callname"}],
+	 "op_type" : "TYPE_CALL"
  },
  {
 	 "code" : "DYNAMIC_CALL",
 	 "type" : 0,
 	 "const" : 0,
 	 "fast_type" : 2,
-     "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}, {"NAME" : "callname"}]
+	 "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}, {"NAME" : "callname"}],
+	 "op_type" : "TYPE_CALL"
  },
  {
 	 "code" : "CALL",
 	 "type" : 0,
 	 "const" : 0,
 	 "fast_type" : 2,
-     "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}, {"NAME" : "callname"}]
+	 "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}, {"NAME" : "callname"}],
+	 "op_type" : "TYPE_CALL"
  },
  {
 	 "code" : "JIT_CALL",
 	 "type" : 0,
 	 "const" : 0,
 	 "fast_type" : 2,
-     "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}, {"NAME" : "callname"}]
+	 "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}, {"NAME" : "callname"}],
+	 "op_type" : "TYPE_CALL"
  },
  {
 	 "code" : "JIT_COUNTDOWN_CALL",
 	 "type" : 0,
 	 "const" : 0,
 	 "fast_type" : 2,
-     "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}, {"NAME" : "callname"}]
+	 "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}, {"NAME" : "callname"}],
+	 "op_type" : "TYPE_CALL"
  },
  {
 	 "code" : "FASTCALL0",
 	 "type" : 0,
 	 "const" : 0,
 	 "fast_type" : 2,
-     "args" : [{"arg0" : "pc->arg0"}, {"dst" : "pc->dst"},
-			   {"src" : "pc->src"}, {"NAME" : "callname"}]
+	 "args" : [{"arg0" : "pc->arg0"}, {"dst" : "pc->dst"},
+			   {"src" : "pc->src"}, {"NAME" : "callname"}],
+	 "op_type" : "TYPE_CALL"
  },
  {
 	 "code" : "JIT_COUNTDOWN_FASTCALL0",
 	 "type" : 0,
 	 "const" : 0,
 	 "fast_type" : 2,
-     "args" : [{"arg0" : "pc->arg0"}, {"dst" : "pc->dst"},
-			   {"src" : "pc->src"}, {"NAME" : "callname"}]
+	 "args" : [{"arg0" : "pc->arg0"}, {"dst" : "pc->dst"},
+			   {"src" : "pc->src"}, {"NAME" : "callname"}],
+	 "op_type" : "TYPE_CALL"
  },
  {
 	 "code" : "FASTCALL1",
 	 "type" : 0,
 	 "const" : 0,
 	 "fast_type" : 2,
-     "args" : [{"arg0" : "pc->arg0"}, {"arg1" : "pc->arg1"},
-			   {"dst" : "pc->dst"}, {"src" : "pc->src"}, {"NAME" : "callname"}]
+	 "args" : [{"arg0" : "pc->arg0"}, {"arg1" : "pc->arg1"},
+			   {"dst" : "pc->dst"}, {"src" : "pc->src"}, {"NAME" : "callname"}],
+	 "op_type" : "TYPE_CALL"
  },
  {
 	 "code" : "JIT_COUNTDOWN_FASTCALL1",
 	 "type" : 0,
 	 "const" : 0,
 	 "fast_type" : 2,
-     "args" : [{"arg0" : "pc->arg0"}, {"arg1" : "pc->arg1"},
-			   {"dst" : "pc->dst"}, {"src" : "pc->src"}, {"NAME" : "callname"}]
+	 "args" : [{"arg0" : "pc->arg0"}, {"arg1" : "pc->arg1"},
+			   {"dst" : "pc->dst"}, {"src" : "pc->src"}, {"NAME" : "callname"}],
+	 "op_type" : "TYPE_CALL"
  },
  {
 	 "code" : "FASTCALL2",
 	 "type" : 0,
 	 "const" : 0,
 	 "fast_type" : 2,
-     "args" : [{"arg0" : "pc->arg0"}, {"arg1" : "pc->arg1"}, {"arg2" : "pc->arg2"},
-			   {"dst" : "pc->dst"}, {"src" : "pc->src"}, {"NAME" : "callname"}]
+	 "args" : [{"arg0" : "pc->arg0"}, {"arg1" : "pc->arg1"}, {"arg2" : "pc->arg2"},
+			   {"dst" : "pc->dst"}, {"src" : "pc->src"}, {"NAME" : "callname"}],
+	 "op_type" : "TYPE_CALL"
  },
  {
 	 "code" : "JIT_COUNTDOWN_FASTCALL2",
 	 "type" : 0,
 	 "const" : 0,
 	 "fast_type" : 2,
-     "args" : [{"arg0" : "pc->arg0"}, {"arg1" : "pc->arg1"}, {"arg2" : "pc->arg2"},
-			   {"dst" : "pc->dst"}, {"src" : "pc->src"}, {"NAME" : "callname"}]
+	 "args" : [{"arg0" : "pc->arg0"}, {"arg1" : "pc->arg1"}, {"arg2" : "pc->arg2"},
+			   {"dst" : "pc->dst"}, {"src" : "pc->src"}, {"NAME" : "callname"}],
+	 "op_type" : "TYPE_CALL"
  },
  {
 	 "code" : "FASTCALL3",
 	 "type" : 0,
 	 "const" : 0,
 	 "fast_type" : 2,
-     "args" : [{"arg0" : "pc->arg0"}, {"arg1" : "pc->arg1"}, {"arg2" : "pc->arg2"},
-			   {"arg3" : "pc->arg3"}, {"dst" : "pc->dst"}, {"src" : "pc->src"}, {"NAME" : "callname"}]
+	 "args" : [{"arg0" : "pc->arg0"}, {"arg1" : "pc->arg1"}, {"arg2" : "pc->arg2"},
+			   {"arg3" : "pc->arg3"}, {"dst" : "pc->dst"}, {"src" : "pc->src"}, {"NAME" : "callname"}],
+	 "op_type" : "TYPE_CALL"
  },
  {
 	 "code" : "JIT_COUNTDOWN_FASTCALL3",
 	 "type" : 0,
 	 "const" : 0,
 	 "fast_type" : 2,
-     "args" : [{"arg0" : "pc->arg0"}, {"arg1" : "pc->arg1"}, {"arg2" : "pc->arg2"},
-			   {"arg3" : "pc->arg3"}, {"dst" : "pc->dst"}, {"src" : "pc->src"}, {"NAME" : "callname"}]
+	 "args" : [{"arg0" : "pc->arg0"}, {"arg1" : "pc->arg1"}, {"arg2" : "pc->arg2"},
+			   {"arg3" : "pc->arg3"}, {"dst" : "pc->dst"}, {"src" : "pc->src"}, {"NAME" : "callname"}],
+	 "op_type" : "TYPE_CALL"
  },
  {
 	 "code" : "SELFCALL",
 	 "type" : 0,
 	 "const" : 0,
 	 "fast_type" : 2,
-     "args" : [{"dst" : "pc->dst"}, {"NAME" : "callname"}]
+	 "args" : [{"dst" : "pc->dst"}, {"NAME" : "callname"}],
+	 "op_type" : "TYPE_CALL"
  },
  {
 	 "code" : "JIT_SELFCALL",
 	 "type" : 0,
 	 "const" : 0,
 	 "fast_type" : 2,
-     "args" : [{"dst" : "pc->dst"}, {"NAME" : "callname"}]
+	 "args" : [{"dst" : "pc->dst"}, {"NAME" : "callname"}],
+	 "op_type" : "TYPE_CALL"
  },
  {
 	 "code" : "JIT_COUNTDOWN_SELFCALL",
 	 "type" : 0,
 	 "const" : 0,
 	 "fast_type" : 2,
-     "args" : [{"dst" : "pc->dst"}, {"NAME" : "callname"}]
+	 "args" : [{"dst" : "pc->dst"}, {"NAME" : "callname"}],
+	 "op_type" : "TYPE_CALL"
  },
  {
 	 "code" : "SELF_FASTCALL0",
 	 "type" : 0,
 	 "const" : 0,
 	 "fast_type" : 2,
-     "args" : [{"arg0" : "pc->arg0"}, {"dst" : "pc->dst"}, {"NAME" : "callname"}]
+	 "args" : [{"arg0" : "pc->arg0"}, {"dst" : "pc->dst"}, {"NAME" : "callname"}],
+	 "op_type" : "TYPE_CALL"
  },
  {
 	 "code" : "JIT_SELF_FASTCALL0",
 	 "type" : 0,
 	 "const" : 0,
 	 "fast_type" : 2,
-     "args" : [{"arg0" : "pc->arg0"}, {"dst" : "pc->dst"}, {"NAME" : "callname"}]
+	 "args" : [{"arg0" : "pc->arg0"}, {"dst" : "pc->dst"}, {"NAME" : "callname"}],
+	 "op_type" : "TYPE_CALL"
  },
  {
 	 "code" : "JIT_COUNTDOWN_SELF_FASTCALL0",
 	 "type" : 0,
 	 "const" : 0,
 	 "fast_type" : 2,
-     "args" : [{"arg0" : "pc->arg0"}, {"dst" : "pc->dst"}, {"NAME" : "callname"}]
+	 "args" : [{"arg0" : "pc->arg0"}, {"dst" : "pc->dst"}, {"NAME" : "callname"}],
+	 "op_type" : "TYPE_CALL"
  },
  {
 	 "code" : "SELF_FASTCALL1",
 	 "type" : 0,
 	 "const" : 0,
 	 "fast_type" : 2,
-     "args" : [{"arg0" : "pc->arg0"}, {"arg1" : "pc->arg1"}, {"dst" : "pc->dst"}, {"NAME" : "callname"}]
+	 "args" : [{"arg0" : "pc->arg0"}, {"arg1" : "pc->arg1"}, {"dst" : "pc->dst"}, {"NAME" : "callname"}],
+	 "op_type" : "TYPE_CALL"
  },
  {
 	 "code" : "JIT_SELF_FASTCALL1",
 	 "type" : 0,
 	 "const" : 0,
 	 "fast_type" : 2,
-     "args" : [{"arg0" : "pc->arg0"}, {"arg1" : "pc->arg1"}, {"dst" : "pc->dst"}, {"NAME" : "callname"}]
+	 "args" : [{"arg0" : "pc->arg0"}, {"arg1" : "pc->arg1"}, {"dst" : "pc->dst"}, {"NAME" : "callname"}],
+	 "op_type" : "TYPE_CALL"
  },
  {
 	 "code" : "JIT_COUNTDOWN_SELF_FASTCALL1",
 	 "type" : 0,
 	 "const" : 0,
 	 "fast_type" : 2,
-     "args" : [{"arg0" : "pc->arg0"}, {"arg1" : "pc->arg1"}, {"dst" : "pc->dst"}, {"NAME" : "callname"}]
+	 "args" : [{"arg0" : "pc->arg0"}, {"arg1" : "pc->arg1"}, {"dst" : "pc->dst"}, {"NAME" : "callname"}],
+	 "op_type" : "TYPE_CALL"
  },
  {
 	 "code" : "SELF_FASTCALL2",
 	 "type" : 0,
 	 "const" : 0,
 	 "fast_type" : 2,
-     "args" : [{"arg0" : "pc->arg0"}, {"arg1" : "pc->arg1"}, {"arg2" : "pc->arg2"},
-			   {"dst" : "pc->dst"}, {"NAME" : "callname"}]
+	 "args" : [{"arg0" : "pc->arg0"}, {"arg1" : "pc->arg1"}, {"arg2" : "pc->arg2"},
+			   {"dst" : "pc->dst"}, {"NAME" : "callname"}],
+	 "op_type" : "TYPE_CALL"
  },
  {
 	 "code" : "JIT_SELF_FASTCALL2",
 	 "type" : 0,
 	 "const" : 0,
 	 "fast_type" : 2,
-     "args" : [{"arg0" : "pc->arg0"}, {"arg1" : "pc->arg1"}, {"arg2" : "pc->arg2"},
-			   {"dst" : "pc->dst"}, {"NAME" : "callname"}]
+	 "args" : [{"arg0" : "pc->arg0"}, {"arg1" : "pc->arg1"}, {"arg2" : "pc->arg2"},
+			   {"dst" : "pc->dst"}, {"NAME" : "callname"}],
+	 "op_type" : "TYPE_CALL"
  },
  {
 	 "code" : "JIT_COUNTDOWN_SELF_FASTCALL2",
 	 "type" : 0,
 	 "const" : 0,
 	 "fast_type" : 2,
-     "args" : [{"arg0" : "pc->arg0"}, {"arg1" : "pc->arg1"}, {"arg2" : "pc->arg2"},
-			   {"dst" : "pc->dst"}, {"NAME" : "callname"}]
+	 "args" : [{"arg0" : "pc->arg0"}, {"arg1" : "pc->arg1"}, {"arg2" : "pc->arg2"},
+			   {"dst" : "pc->dst"}, {"NAME" : "callname"}],
+	 "op_type" : "TYPE_CALL"
  },
  {
 	 "code" : "SELF_FASTCALL3",
 	 "type" : 0,
 	 "const" : 0,
 	 "fast_type" : 2,
-     "args" : [{"arg0" : "pc->arg0"}, {"arg1" : "pc->arg1"}, {"arg2" : "pc->arg2"},
-			   {"arg3" : "pc->arg3"}, {"dst" : "pc->dst"}, {"NAME" : "callname"}]
+	 "args" : [{"arg0" : "pc->arg0"}, {"arg1" : "pc->arg1"}, {"arg2" : "pc->arg2"},
+			   {"arg3" : "pc->arg3"}, {"dst" : "pc->dst"}, {"NAME" : "callname"}],
+	 "op_type" : "TYPE_CALL"
  },
  {
 	 "code" : "JIT_SELF_FASTCALL3",
 	 "type" : 0,
 	 "const" : 0,
 	 "fast_type" : 2,
-     "args" : [{"arg0" : "pc->arg0"}, {"arg1" : "pc->arg1"}, {"arg2" : "pc->arg2"},
-			   {"arg3" : "pc->arg3"}, {"dst" : "pc->dst"}, {"NAME" : "callname"}]
+	 "args" : [{"arg0" : "pc->arg0"}, {"arg1" : "pc->arg1"}, {"arg2" : "pc->arg2"},
+			   {"arg3" : "pc->arg3"}, {"dst" : "pc->dst"}, {"NAME" : "callname"}],
+	 "op_type" : "TYPE_CALL"
  },
  {
 	 "code" : "JIT_COUNTDOWN_SELF_FASTCALL3",
 	 "type" : 0,
 	 "const" : 0,
 	 "fast_type" : 2,
-     "args" : [{"arg0" : "pc->arg0"}, {"arg1" : "pc->arg1"}, {"arg2" : "pc->arg2"},
-			   {"arg3" : "pc->arg3"}, {"dst" : "pc->dst"}, {"NAME" : "callname"}]
+	 "args" : [{"arg0" : "pc->arg0"}, {"arg1" : "pc->arg1"}, {"arg2" : "pc->arg2"},
+			   {"arg3" : "pc->arg3"}, {"dst" : "pc->dst"}, {"NAME" : "callname"}],
+	 "op_type" : "TYPE_CALL"
  },
  {
 	 "code" : "SHIFT",
 	 "type" : 1,
 	 "const" : 0,
 	 "fast_type" : 2,
-     "args" : [{"src" : "pc->src"}]
+	 "args" : [{"src" : "pc->src"}],
+	 "op_type" : "TYPE_BUILTIN_FUNC"
  },
  {
 	 "code" : "PUSH",
 	 "type" : 0,
 	 "const" : 0,
 	 "fast_type" : 2,
-     "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}]
+	 "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}],
+	 "op_type" : "TYPE_PUSH"
  },
  {
 	 "code" : "aPUSH",
 	 "type" : 0,
 	 "const" : 0,
 	 "fast_type" : 2,
-     "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}]
+	 "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}],
+	 "op_type" : "TYPE_PUSH"
  },
  {
 	 "code" : "NEW",
 	 "type" : 0,
 	 "const" : 0,
 	 "fast_type" : 0,
-     "args" : []
+	 "args" : [],
+	 "op_type" : "TYPE_NEW"
  },
  {
 	 "code" : "NEW_STRING",
 	 "type" : 0,
 	 "const" : 0,
 	 "fast_type" : 0,
-     "args" : []
+	 "args" : [],
+	 "op_type" : "TYPE_NEW_STRING"
  },
  {
 	 "code" : "ARRAY_PUSH",
 	 "type" : 0,
 	 "const" : 0,
 	 "fast_type" : 0,
-     "args" : [{"argstack" : "(callstack+1)->argstack"}]
+	 "args" : [{"argstack" : "(callstack+1)->argstack"}],
+	 "op_type" : "TYPE_BUILTIN_FUNC"
  },
  {
 	 "code" : "ARRAY_AT",
 	 "type" : 0,
 	 "const" : 0,
 	 "fast_type" : 0,
-     "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}, {"idx" : "pc->idx"}]
+	 "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}, {"idx" : "pc->idx"}],
+	 "op_type" : "TYPE_ARRAY_AT"
  },
  {
 	 "code" : "ARRAY_ATC",
 	 "type" : 0,
 	 "const" : 0,
 	 "fast_type" : 0,
-     "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}, {"idx" : "pc->idx"}]
+	 "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}, {"idx" : "pc->idx"}],
+	 "op_type" : "TYPE_ARRAY_AT"
  },
  {
 	 "code" : "ARRAY_gAT",
 	 "type" : 0,
 	 "const" : 0,
 	 "fast_type" : 0,
-     "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}, {"idx" : "pc->idx"}]
+	 "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}, {"idx" : "pc->idx"}],
+	 "op_type" : "TYPE_ARRAY_AT"
  },
  {
 	 "code" : "ARRAY_gATC",
 	 "type" : 0,
 	 "const" : 0,
 	 "fast_type" : 0,
-     "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}, {"idx" : "pc->idx"}]
+	 "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}, {"idx" : "pc->idx"}],
+	 "op_type" : "TYPE_ARRAY_AT"
  },
  {
 	 "code" : "ARRAY_SET",
 	 "type" : 0,
 	 "const" : 0,
 	 "fast_type" : 0,
-     "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}, {"idx" : "pc->idx"}]
+	 "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}, {"idx" : "pc->idx"}],
+	 "op_type" : "TYPE_ARRAY_SET"
  },
  {
 	 "code" : "ARRAY_gSET",
 	 "type" : 0,
 	 "const" : 0,
 	 "fast_type" : 0,
-     "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}, {"idx" : "pc->idx"}]
+	 "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}, {"idx" : "pc->idx"}],
+	 "op_type" : "TYPE_ARRAY_SET"
  },
  {
 	 "code" : "ARRAY_DREF",
 	 "type" : 0,
 	 "const" : 0,
 	 "fast_type" : 0,
-     "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}]
+	 "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}],
+	 "op_type" : "TYPE_ARRAY_DREF"
  },
  {
 	 "code" : "HASH_AT",
 	 "type" : 0,
 	 "const" : 0,
 	 "fast_type" : 0,
-     "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}, {"idx" : "pc->idx"}]
+	 "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}, {"idx" : "pc->idx"}],
+	 "op_type" : "TYPE_HASH_AT"
  },
  {
 	 "code" : "HASH_ATC",
 	 "type" : 0,
 	 "const" : 0,
 	 "fast_type" : 0,
-     "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}, {"idx" : "pc->hash"}]
+	 "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}, {"idx" : "pc->hash"}],
+	 "op_type" : "TYPE_HASH_AT"
  },
  {
 	 "code" : "HASH_gAT",
 	 "type" : 0,
 	 "const" : 0,
 	 "fast_type" : 0,
-     "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}, {"idx" : "pc->idx"}]
+	 "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}, {"idx" : "pc->idx"}],
+	 "op_type" : "TYPE_HASH_AT"
  },
  {
 	 "code" : "HASH_gATC",
 	 "type" : 0,
 	 "const" : 0,
 	 "fast_type" : 0,
-     "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}, {"idx" : "pc->hash"}]
+	 "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}, {"idx" : "pc->hash"}],
+	 "op_type" : "TYPE_HASH_AT"
  },
  {
 	 "code" : "HASH_SET",
 	 "type" : 0,
 	 "const" : 0,
 	 "fast_type" : 0,
-     "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}, {"idx" : "pc->idx"}]
+	 "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}, {"idx" : "pc->idx"}],
+	 "op_type" : "TYPE_HASH_SET"
  },
  {
 	 "code" : "HASH_gSET",
 	 "type" : 0,
 	 "const" : 0,
 	 "fast_type" : 0,
-     "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}, {"idx" : "pc->idx"}]
+	 "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}, {"idx" : "pc->idx"}],
+	 "op_type" : "TYPE_HASH_SET"
  },
  {
 	 "code" : "HASH_DREF",
 	 "type" : 0,
 	 "const" : 0,
 	 "fast_type" : 0,
-     "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}]
+	 "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}],
+	 "op_type" : "TYPE_HASH_DREF"
  },
  {
 	 "code" : "CODE_REF",
 	 "type" : 0,
 	 "const" : 0,
 	 "fast_type" : 0,
-     "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}]
+	 "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}],
+	 "op_type" : "TYPE_CODE_REF"
  },
  {
 	 "code" : "EACH_INIT",
 	 "type" : 0,
 	 "const" : 0,
 	 "fast_type" : 0,
-     "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}]
+	 "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}],
+	 "op_type" : "TYPE_EACH_INIT"
  },
  {
 	 "code" : "EACH_gINIT",
 	 "type" : 0,
 	 "const" : 0,
 	 "fast_type" : 0,
-     "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}]
+	 "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}],
+	 "op_type" : "TYPE_EACH_INIT"
  },
  {
 	 "code" : "EACH_LET",
 	 "type" : 0,
 	 "const" : 0,
 	 "fast_type" : 0,
-     "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}]
+	 "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}],
+	 "op_type" : "TYPE_EACH_LET"
  },
  {
 	 "code" : "EACH_STEP",
 	 "type" : 0,
 	 "const" : 0,
 	 "fast_type" : 0,
-     "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}]
+	 "args" : [{"dst" : "pc->dst"}, {"src" : "pc->src"}],
+	 "op_type" : "TYPE_EACH_STEP"
  }
 ]

@@ -6,7 +6,7 @@ GPerlPackage::GPerlPackage(void) : GPerlCompiler()
 }
 
 GPerlCompiler::GPerlCompiler(void) : dst(0), src(0), code_num(0),
-									 func_index(0),
+									 cur_stack_top(0), func_index(0),
 									 args_count(0), recv_args_count(0)
 {
 	declared_vname = NULL;
@@ -723,7 +723,9 @@ GPerlVirtualMachineCode *GPerlCompiler::getPureCodes(vector<GPerlVirtualMachineC
 	//GPerlVirtualMachineCode pure_codes_[code_n + 1];//for O2 option
 	memset(pure_codes_ + code_n + 1, 0, sizeof(GPerlVirtualMachineCode));
 	for (int i = 0; i < code_n; i++) {
-		pure_codes_[i] = *codes->at(i);
+		GPerlVirtualMachineCode pc = *codes->at(i);
+		pc.code_num = i;
+		pure_codes_[i] = pc;
 	}
 	volatile int code_size = code_n * sizeof(GPerlVirtualMachineCode);
 	GPerlVirtualMachineCode *pure_codes = (GPerlVirtualMachineCode *)safe_malloc(code_size);
@@ -1523,23 +1525,6 @@ void GPerlCompiler::setMultiSETv(GPerlVirtualMachineCode *code, GPerlCell *c)
 
 void GPerlCompiler::setEscapeStackNum(GPerlVirtualMachineCode *code, GPerlCell *)
 {
-	/*
-	int ebp_num = 0;
-	map<string, int>::iterator it = local_vmap.begin();
-	while (it != local_vmap.end()) {
-		string key = it->first;
-		string prefix = "";
-		DBG_PL("indent = [%d]", c->indent);
-		for (int i = 1; i < c->indent; i++) {
-			prefix += string(NAME_RESOLUTION_PREFIX);
-			if (!strncmp(cstr(prefix), cstr(key), i)) {
-				ebp_num++;
-			}
-		}
-		it++;
-	}
-	*/
-	//code->ebp = cur_stack_top;//ebp_num;
 	code->cur_stack_top = cur_stack_top;//ebp_num;
 	code->cur_reg_top = dst;
 }
@@ -1811,10 +1796,109 @@ GPerlVirtualMachineCode *GPerlCompiler::createJMP(int jmp_num)
 
 void GPerlCompiler::dumpVMCode(GPerlVirtualMachineCode *code)
 {
-	(void)code;
-	DBG_PL("L[%d] : %s [dst:%d], [src:%d], [jmp:%d], [name:%s], [ivalue: %d], [cur_stack_top: %d], [cur_reg_top: %d], [argc: %d], [arg0 : %d], [arg1: %d], [arg2: %d]",
-		   code->code_num, decl_codes[code->op].name, code->dst, code->src,
-		   code->jmp, code->name, code->v.ivalue, code->cur_stack_top, code->cur_reg_top, code->argc, code->arg0, code->arg1, code->arg2);
+	DBG_P("L[%3d] : %-12s ", code->code_num, decl_codes[code->op].name);
+	switch (decl_codes[code->op].type) {
+	case TYPE_UNDEF:
+		DBG_PL(" ");
+		break;
+	case TYPE_MOV:
+		switch (TYPE_CHECK(code->v)) {
+		case 0:
+			DBG_PL("r%d <= %lf", code->dst, code->v.dvalue);
+			break;
+		case 1:
+			DBG_PL("r%d <= %d", code->dst, code->v.ivalue);
+			break;
+		case 2:
+			DBG_PL("r%d <= %s", code->dst, getRawString(code->v));
+			break;
+		case 3:
+			DBG_PL("r%d <= Object(%p)", code->dst, (GPerlObject *)getObject(code->v));
+			break;
+		}
+		break;
+	case TYPE_vMOV:
+		DBG_PL("r%d <= ebp+%d", code->dst, code->src);
+		break;
+	case TYPE_gMOV:
+		DBG_PL("r%d <= global[%d]", code->dst, code->src);
+		break;
+	case TYPE_ARGMOV:
+		DBG_PL("r%d <= argstack[%d]", code->dst, code->src);
+		break;
+	case TYPE_OPERATOR:
+		DBG_PL("r%d op r%d", code->dst, code->src);
+		break;
+	case TYPE_PUSH:
+		DBG_PL("r%d => argstack[%d]", code->dst, code->src);
+		break;
+	case TYPE_CALL:
+		DBG_PL("%s, ebp += %d", code->name, code->cur_stack_top);
+		break;
+	case TYPE_BUILTIN_FUNC:
+		DBG_PL(" ");
+		break;
+	case TYPE_RET:
+		DBG_PL("r%d", code->src);
+		break;
+	case TYPE_JMP:
+		DBG_PL("L%d", code->code_num + code->jmp);
+		break;
+	case TYPE_LET:
+		DBG_PL("ebp+%d <= r%d", code->dst, code->src);
+		break;
+	case TYPE_gLET:
+		DBG_PL("global[%d] <= r%d", code->dst, code->src);
+		break;
+	case TYPE_EACH_INIT:
+		DBG_PL("ebp+%d <= new Array(ebp+%d)", code->dst, code->src);
+		break;
+	case TYPE_EACH_LET:
+		DBG_PL("ebp+%d <= (ebp+%d)[0] or goto L%d", code->dst, code->src, code->code_num + code->jmp);
+		break;
+	case TYPE_EACH_STEP:
+		DBG_PL("(ebp+%d)++ and goto L%d", code->src, code->code_num + code->jmp);
+		break;
+	case TYPE_ARRAY_DREF:
+		DBG_PL("r%d <= @{r%d}", code->dst, code->src);
+		break;
+	case TYPE_HASH_DREF:
+		DBG_PL("r%d <= %%{r%d}", code->dst, code->src);
+		break;
+	case TYPE_CODE_REF:
+		DBG_PL("r%d <= %s", code->dst, code->name);
+		break;
+	case TYPE_SET:
+		DBG_PL(" ");
+		break;
+	case TYPE_ARRAY_SET:
+		DBG_PL("(ebp+%d)[%d] <= r%d", code->dst, code->idx, code->src);
+		break;
+	case TYPE_HASH_SET:
+        DBG_PL("(ebp+%d)[%d] <= r%d", code->dst, code->idx, code->src);
+		break;
+	case TYPE_HASH_AT:
+		DBG_PL("r%d <= (ebp+%d)[%d]", code->dst, code->src, code->idx);
+		break;
+	case TYPE_ARRAY_AT:
+		DBG_PL("r%d <= (ebp+%d)[%d]", code->dst, code->src, code->idx);
+		break;
+	case TYPE_NEW:
+		DBG_PL("r%d <= new Object", code->dst);
+		break;
+	case TYPE_NEW_STRING:
+		DBG_PL("r%d <= [%s]", code->dst, getRawString(code->v));
+		break;
+	case TYPE_WRITE:
+		DBG_PL("r%d => shared_buf", code->dst);
+		break;
+	case TYPE_THCODE:
+		DBG_PL(" ");
+		break;
+	default:
+		DBG_P("\n");
+		break;
+	}
 }
 
 void GPerlCompiler::dumpPureVMCode(GPerlVirtualMachineCode *c)

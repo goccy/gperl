@@ -1042,8 +1042,42 @@ typedef enum {
 	D_aPUSH,
 } GPerlOpCode;
 
+typedef enum {
+	TYPE_LET,
+	TYPE_HASH_SET,
+	TYPE_vMOV,
+	TYPE_OPERATOR,
+	TYPE_gLET,
+	TYPE_BUILTIN_FUNC,
+	TYPE_UNDEF,
+	TYPE_HASH_DREF,
+	TYPE_ARGMOV,
+	TYPE_EACH_INIT,
+	TYPE_PUSH,
+	TYPE_ARRAY_DREF,
+	TYPE_NEW_STRING,
+	TYPE_ARRAY_SET,
+	TYPE_NEW,
+	TYPE_JMP,
+	TYPE_EACH_STEP,
+	TYPE_MOV,
+	TYPE_gMOV,
+	TYPE_RET,
+	TYPE_HASH_AT,
+	TYPE_WRITE,
+	TYPE_THCODE,
+	TYPE_CALL,
+	TYPE_EACH_LET,
+	TYPE_ArrayARGMOV,
+	TYPE_CODE_REF,
+	TYPE_ARRAY_AT,
+	TYPE_SET,
+} GPerlOpCodeType;
+
+
 typedef struct _GPerlCodeInfo {
 	GPerlOpCode code;
 	const char *name;
+	GPerlOpCodeType type;
 } GPerlCodeInfo;
 
