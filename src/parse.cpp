@@ -322,6 +322,9 @@ void GPerlParser::parseSingleTermOperator(GPerlToken *t, GPerlNodes *blocks)
 void GPerlParser::parseDoubleTermOperator(GPerlToken *t, GPerlNodes *blocks)
 {
 	DBG_PL("[%s]:LAST BLOCK->PARENT", cstr(t->data));
+	if (t->info.type == Pointer) {
+		asm("int3");
+	}
 	GPerlCell *block = blocks->lastNode();
 	GPerlCell *b = new GPerlCell(t->info.type, t->data);
 	block->parent = b;

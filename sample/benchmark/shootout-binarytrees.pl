@@ -12,18 +12,12 @@ sub bottomup_tree {
 
 #@static_typing
 sub check_tree {
-    my $ref_arg = shift;
-    my @deref_arg = @{$ref_arg};
-    my $left = $deref_arg[0];
-    my $right = $deref_arg[1];
-    my $value = $deref_arg[2];
     my $value2;
-    if (ref($left)) {
-        $value2 = check_tree($left) - check_tree($right);
+    if (ref($_[0]->[0])) {
+        return check_tree($_[0]->[0]) - check_tree($_[0]->[1]) + ($_[0]->[2]);
     } else {
-        $value2 = $left - $right;
+        return ($_[0]->[0]) - ($_[0]->[1]) + ($_[0]->[2]);
     }
-    return $value + $value2;
 }
 
 my $max_depth = 15;

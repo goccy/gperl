@@ -753,3 +753,4 @@ extern unsigned long hash(char *key, size_t len);
 #define getLength(o) ((GPerlString *)(o.bytes ^ (NaN | StringTag)))->len
 #define getObject(o) (o.bytes ^ (NaN | ObjectTag))
 #define TYPE_CHECK(T) ((T.bytes & NaN) == NaN) * ((T.bytes & TYPE) >> 48 )
+extern GPerlObject *O(GPerlValue v);

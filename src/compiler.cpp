@@ -1135,33 +1135,58 @@ void GPerlCompiler::setArrayAt(GPerlVirtualMachineCode *code, GPerlCell *c_)
 		c_->type = ArraySet;
 		return;
 	}
-	GPerlCell *c = c_->left;
-	c->vname.replace(0, 1, "@");
-	c->fname.replace(0, 1, "@");
-	c->rawstr.replace(0, 1, "@");
 	int idx = 0;
-	if (reg_type[dst - 1] == Int) {
-		idx = codes->back()->v.ivalue;
-		dst--;
-		popVMCode();//remove MOV
-		if (c->vname.find("$_") != string::npos || c->vname.find("@_") != string::npos) {
-			//ARGMOV
-			code->op = ARGMOV;
-			code->dst = dst;
-			code->src = idx;
-			reg_type[dst] = Object;
-			dst++;
-			return;
+	if (c_->left->type == Pointer) {
+		//ArrayRefAt
+		GPerlCell *c = c_->left->left;
+		if (reg_type[dst - 1] == Int) {
+			idx = codes->back()->v.ivalue;
+			dst--;
+			popVMCode();//remove MOV
+			code->idx = c_->right->data.idata;
+			if (c->type == ArrayAt) {
+				code->op = ARRAY_AT;
+				code->dst = dst;
+				code->src = dst-1;
+				code->idx = idx;
+				reg_type[dst] = Object;
+				dst++;
+				return;
+			} else {
+				setInstByVMap(code, c, ARRAY_ATC, ARRAY_gATC, &idx);
+			}
+		} else {
+			setInstByVMap(code, c, ARRAY_AT, ARRAY_gAT, &idx);
+			code->idx = dst-1;
 		}
-		code->idx = idx;
-		setInstByVMap(code, c, ARRAY_ATC, ARRAY_gATC, &idx);
 	} else {
-		setInstByVMap(code, c, ARRAY_AT, ARRAY_gAT, &idx);
-		code->idx = dst-1;
+		GPerlCell *c = c_->left;
+		c->vname.replace(0, 1, "@");
+		c->fname.replace(0, 1, "@");
+		c->rawstr.replace(0, 1, "@");
+		if (reg_type[dst - 1] == Int) {
+			idx = codes->back()->v.ivalue;
+			dst--;
+			popVMCode();//remove MOV
+			if (c->vname.find("$_") != string::npos || c->vname.find("@_") != string::npos) {
+				//ARGMOV
+				code->op = ARGMOV;
+				code->dst = dst;
+				code->src = idx;
+				reg_type[dst] = Object;
+				dst++;
+				return;
+			}
+			code->idx = idx;
+			setInstByVMap(code, c, ARRAY_ATC, ARRAY_gATC, &idx);
+		} else {
+			setInstByVMap(code, c, ARRAY_AT, ARRAY_gAT, &idx);
+			code->idx = dst-1;
+		}
+		c->vname.replace(0, 1, "$");
+		c->fname.replace(0, 1, "$");
+		c->rawstr.replace(0, 1, "$");
 	}
-	c->vname.replace(0, 1, "$");
-	c->fname.replace(0, 1, "$");
-	c->rawstr.replace(0, 1, "$");
 	code->src = idx;
 	code->dst = dst;
 	reg_type[dst] = Object;
@@ -1240,7 +1265,8 @@ GPerlClass *GPerlCompiler::getClassByName(string name)
 void GPerlCompiler::setPointer(GPerlVirtualMachineCode *code, GPerlCell *c)
 {
 	DBG_PL("Pointer");
-	if (c->parent && c->parent->type == HashAt) {
+	if (c->parent && c->parent->type == HashAt ||
+		c->parent && c->parent->type == ArrayAt) {
 		code->op = NOP;
 		return;
 	}
@@ -1337,7 +1363,7 @@ void GPerlCompiler::setVMOV(GPerlVirtualMachineCode *code, GPerlCell *c)
 	GPerlCell *parent = c->parent;
 	if (parent && parent->left == c &&
         (parent->type == Assign || parent->type == Inc || parent->type == Dec ||
-		 parent->type == ArrayAt ||
+		 parent->type == ArrayAt || parent->type == HashAt ||
 		 parent->type == AddEqual || parent->type == SubEqual ||
 		 parent->type == MulEqual || parent->type == DivEqual)) {
 		code->op = NOP;

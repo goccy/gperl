@@ -339,17 +339,17 @@
 		fprintf(stdout, "%s", cwb->buf);				\
 		clear_cwb();                                    \
 	}
-static inline int GPERL_REF(GPerlValue arg)
-{
-	int ret = 0;
-	if (TYPE_CHECK(arg) > 1) {
-		GPerlObject *o = (GPerlObject *)getObject(arg);
-		if (o->h.type == ArrayRef) {
-			ret = 1;
-		}
+
+#define GPERL_REF(v) {										\
+		int ret = 0;										\
+		if (TYPE_CHECK(v) > 1) {							\
+			GPerlObject *o = (GPerlObject *)getObject(v);	\
+			if (o->h.type == ArrayRef) {					\
+				ret = 1;									\
+			}												\
+		}													\
+		INT_init(reg[0], ret);								\
 	}
-	return ret;
-}
 
 static inline GPerlArray *GPERL_KEYS(GPerlValue arg)
 {
@@ -791,6 +791,19 @@ static inline GPerlArray *GPERL_VALUES(GPerlValue arg)
 		STRING_init(reg[pc->dst], (GPerlString *)pc->_new(pc->v, NULL)); \
 	} while (0)
 #define GPERL_ARRAY_PUSH(argstack) pc->push(argstack);
+
+#define GPERL_ARRAY_ARGAT(dst, src, idx) do {					\
+		GPerlArray *a = (GPerlArray *)getObject(reg[src]);		\
+		if (a->size > idx) {									\
+			reg[dst] = a->list[idx];							\
+		} else {												\
+			root.callstack_top = callstack;						\
+			root.stack_top_idx = pc->cur_stack_top;				\
+			callstack->cur_pc = pc;								\
+			OBJECT_init(reg[dst], undef);						\
+		}														\
+	} while (0);
+
 #define GPERL_ARRAY_AT(dst, src, idx) do {						\
 		GPerlArray *a = (GPerlArray *)getObject(stack[src]);	\
 		if (a->size > I(idx)) {									\
