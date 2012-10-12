@@ -1,0 +1,24 @@
+<TMPL_LOOP NAME=vm_codes>
+	CASE(<TMPL_VAR NAME=op>, {<TMPL_IF NAME=single_static_type_check_flag><TMPL_IF NAME=use_stack_flag>
+		int type = TYPE_CHECK(stack[pc->dst]);</TMPL_IF><TMPL_IF NAME=use_global_flag>
+		int type = TYPE_CHECK(global_vmemory[pc->dst]);</TMPL_IF><TMPL_IF NAME=use_register_flag>
+		int type = TYPE_CHECK(reg[pc->dst]);</TMPL_IF>
+		pc->opnext = jmp_table[pc->op + 1 + type];
+		BREAK();</TMPL_IF><TMPL_IF NAME=single_type_check_flag><TMPL_IF NAME=use_stack_flag>
+		int type = TYPE_CHECK(stack[pc->dst]);</TMPL_IF><TMPL_IF NAME=use_global_flag>
+		int type = TYPE_CHECK(global_vmemory[pc->dst]);</TMPL_IF><TMPL_IF NAME=use_register_flag>
+		int type = TYPE_CHECK(reg[pc->dst]);</TMPL_IF>
+		goto *jmp_table[pc->op + 2 + type];
+		BREAK();</TMPL_IF><TMPL_IF NAME=double_static_type_check_flag>
+		int dst_type = TYPE_CHECK(reg[pc->dst]);
+		int src_type = TYPE_CHECK(reg[pc->src]);
+		pc->opnext = jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
+		BREAK();</TMPL_IF><TMPL_IF NAME=double_type_check_flag>
+		int dst_type = TYPE_CHECK(reg[pc->dst]);
+		int src_type = TYPE_CHECK(reg[pc->src]);
+		goto *jmp_table[pc->op + 2 + ((dst_type + src_type) >> 1)];
+		BREAK();</TMPL_IF><TMPL_IF NAME=normal_flag>
+		GPERL_<TMPL_VAR NAME=func>(<TMPL_VAR NAME=args>);<TMPL_IF NAME=pc_increment_flag>
+		pc++;</TMPL_IF>
+		BREAK();</TMPL_IF>
+	});</TMPL_LOOP>

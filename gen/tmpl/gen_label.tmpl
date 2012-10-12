@@ -1,0 +1,6 @@
+	static void *jmp_table[] = {<TMPL_LOOP NAME=labels>
+	&&L(<TMPL_VAR NAME=inst1>),<TMPL_IF NAME=inst2> &&L(<TMPL_VAR NAME=inst2>),</TMPL_IF><TMPL_IF NAME=inst3> &&L(<TMPL_VAR NAME=inst3>),</TMPL_IF></TMPL_LOOP>
+	};
+	static InstBlock block_table[] = {<TMPL_LOOP NAME=labels>
+	B(<TMPL_VAR NAME=inst1>),<TMPL_IF NAME=inst2> B(<TMPL_VAR NAME=inst2>),</TMPL_IF><TMPL_IF NAME=inst3> B(<TMPL_VAR NAME=inst3>),</TMPL_IF></TMPL_LOOP>
+	};
