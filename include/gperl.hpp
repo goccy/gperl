@@ -501,8 +501,12 @@ public:
 typedef jit_function_t GPerlJITCode;
 class GPerlJITCompiler {
 public:
+	jit_type_t object_ptr_type;
+	jit_type_t value_type;
+
 	GPerlJITCompiler(void);
 	jit_function_t compile(JITParam *param);
+	jit_type_t getJitType(GPerlT type);
 	GPerlValue run(jit_function_t func, GPerlValue *args, JITParam *param);
 	jit_value_t compileMOV(GPerlVirtualMachineCode *pc, jit_function_t *func);
 	jit_value_t compileVMOV(GPerlVirtualMachineCode *pc, jit_function_t *func);

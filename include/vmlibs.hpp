@@ -12,7 +12,7 @@
 #define END(op) L_##op##_END:
 
 #define BREAK() GOTO_NEXTOP()
-#define _CASE(op) L(op) : {/* DBG_PL(#op);*/ }
+#define _CASE(op) L(op) : { /* DBG_PL(#op); */ }
 #define CASE(op, block) _CASE(op) { START(op); block; END(op); }
 #define RETURN() { goto *callstack->ret_addr; }
 

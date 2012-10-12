@@ -44,6 +44,54 @@ bool GPerlJmpStack::isJmp(void)
 
 GPerlJITCompiler::GPerlJITCompiler(void)
 {
+	size_t h_fields_num = 5;
+	jit_type_t h_fields[5];
+	h_fields[0] = jit_type_int;/* type */
+	h_fields[1] = jit_type_int;/* mark_flag */
+	h_fields[2] = jit_type_void_ptr;/* mark */
+	h_fields[3] = jit_type_void_ptr;/* free */
+	h_fields[4] = jit_type_void_ptr;/* next */
+	jit_type_t header = jit_type_create_struct(h_fields, h_fields_num, 0);
+	size_t fields_num = 5;
+	jit_type_t fields[5];
+	fields[0] = header;
+	fields[1] = jit_type_void_ptr;/* slot1 */
+	fields[2] = jit_type_void_ptr;/* slot2 */
+	fields[3] = jit_type_void_ptr;/* slot3 */
+	fields[4] = jit_type_void_ptr;/* slot4 */
+	jit_type_t object = jit_type_create_struct(fields, fields_num, 0);
+	object_ptr_type = jit_type_create_pointer(object, 0);
+	jit_type_t v_fields[6];
+	size_t v_fields_num = 6;
+	v_fields[0] = jit_type_sys_ulonglong; /* bytes */
+	v_fields[1] = jit_type_int;    /* ivalue */
+	v_fields[2] = jit_type_float64;/* dvalue */
+	v_fields[3] = jit_type_sys_bool;    /* bvalue */
+	v_fields[4] = jit_type_void_ptr;/* svalue */
+	v_fields[5] = jit_type_void_ptr;/* ovalue */
+	value_type = jit_type_create_union(v_fields, v_fields_num, 0);
+}
+
+jit_type_t GPerlJITCompiler::getJitType(GPerlT type)
+{
+	jit_type_t ret;
+	switch (type) {
+	case Int:
+		ret = jit_type_int;
+		break;
+	case Double:
+		ret = jit_type_nfloat;
+		break;
+	case String:
+		ret = jit_type_create_pointer(jit_type_sys_char, 0);
+		break;
+	case Object:
+		ret = object_ptr_type;
+		break;
+	default:
+		break;
+	}
+	return ret;
 }
 
 jit_function_t GPerlJITCompiler::compile(JITParam *param)
@@ -54,24 +102,12 @@ jit_function_t GPerlJITCompiler::compile(JITParam *param)
 	int argc = param->argc;
 	jit_type_t _params[argc];
 	for (int i = 0; i < argc; i++) {
-		switch (param->arg_types[i]) {
-		case Int:
-			_params[i] = jit_type_int;
-			break;
-		case Double:
-			_params[i] = jit_type_nfloat;
-			break;
-		case String:
-			break;
-		case Object:
-			break;
-		default:
-			break;
-		}
+		_params[i] = getJitType(param->arg_types[i]);
 	}
+	jit_type_t rtype = getJitType(param->return_type);
 	jit_value_t curstack[32] = {0};
 	jit_value_t argstack[MAX_ARGSTACK_SIZE] = {0};
-	jit_type_t signature = jit_type_create_signature(jit_abi_fastcall, jit_type_uint, _params, argc, 0);
+	jit_type_t signature = jit_type_create_signature(jit_abi_fastcall, rtype, _params, argc, 0);
 	jit_function_t func = jit_function_create(ctx, signature);
 	jit_value_t _v[MAX_REG_SIZE] = {0};
 	GPerlJmpStack *jmp_stack = new GPerlJmpStack();
@@ -90,6 +126,16 @@ jit_function_t GPerlJITCompiler::compile(JITParam *param)
 			DBG_PL("COMPILE MOV");
 			_v[pc->dst] = compileMOV(pc, &func);
 			break;
+		case ARRAY_ARGAT: {
+			DBG_PL("COMPILE ARGAT");
+			jit_value_t arg = jit_value_get_param(func, pc->src);
+			jit_nint offset = 48;
+			jit_value_t list = jit_insn_load_relative(func, arg, offset, object_ptr_type);
+			jit_value_t idx = jit_value_create_nint_constant(func, jit_type_int, pc->idx);
+			jit_value_t elem = jit_insn_load_elem(func, list, idx, value_type);
+			_v[pc->dst] = elem;
+			break;
+		}
 		case vMOV:
 			DBG_PL("COMPILE vMOV");
 			_v[pc->dst] = curstack[pc->src];
@@ -104,8 +150,31 @@ jit_function_t GPerlJITCompiler::compile(JITParam *param)
 			DBG_PL("COMPILE ADD");
 			_v[pc->dst] = jit_insn_add(func, _v[pc->dst], _v[pc->src]);
 			break;
-		case iADDC:
+		case SUB:
+			DBG_PL("COMPILE SUB");
+			_v[pc->dst] = jit_insn_sub(func, _v[pc->dst], _v[pc->src]);
 			break;
+		case iADDC: {
+			DBG_PL("COMPILE iADDC");
+			jit_value_t c = jit_value_create_nint_constant(func, jit_type_int, pc->v.ivalue);
+			_v[pc->dst] = jit_insn_add(func, _v[pc->dst], c);
+			break;
+		}
+		case iSUBC: {
+			DBG_PL("COMPILE iSUBC");
+			jit_value_t c = jit_value_create_nint_constant(func, jit_type_int, pc->v.ivalue);
+			_v[pc->dst] = jit_insn_sub(func, _v[pc->dst], c);
+			break;
+		}
+		case IS: {
+			DBG_PL("COMPILE IS");
+			jit_value_t c = jit_value_create_nint_constant(func, jit_type_int, 1);
+			jit_value_t tmp = jit_insn_eq(func, _v[pc->dst], c);
+			GPerlJmpInfo *inf = new GPerlJmpInfo(pc->jmp);
+			jmp_stack->push(inf);
+			jit_insn_branch_if_not(func, tmp, &inf->label);
+			break;
+		}
 		case iJLC: {
 			DBG_PL("COMPILE iJLC");
 			jit_value_t c = jit_value_create_nint_constant(func, jit_type_int, pc->v.ivalue);
@@ -138,12 +207,6 @@ jit_function_t GPerlJITCompiler::compile(JITParam *param)
 			GPerlJmpInfo *inf = new GPerlJmpInfo(pc->jmp);
 			jmp_stack->push(inf);
 			jit_insn_branch_if_not(func, tmp, &inf->label);
-			break;
-		}
-		case iSUBC: {
-			DBG_PL("COMPILE iSUBC");
-			jit_value_t c = jit_value_create_nint_constant(func, jit_type_int, pc->v.ivalue);
-			_v[pc->dst] = jit_insn_sub(func, _v[pc->dst], c);
 			break;
 		}
 		case PUSH:
@@ -185,6 +248,17 @@ jit_function_t GPerlJITCompiler::compile(JITParam *param)
 			argstack[2] = _v[pc->arg2];
 			argstack[3] = _v[pc->arg3];
 			_v[pc->dst] = jit_insn_call(func, "", func, NULL, argstack, 4, 0);//JIT_CALL_TAIL);
+			break;
+		}
+		case REF: {
+			//int ret = 0;
+			//if (TYPE_CHECK(v) > 1) {
+			//GPerlObject *o = (GPerlObject *)getObject(v);
+			//if (o->h.type == ArrayRef) {
+			//ret = 1;
+			//}
+			//}
+			//INT_init(reg[0], ret);
 			break;
 		}
 		case RET: case JIT_COUNTDOWN_RET:

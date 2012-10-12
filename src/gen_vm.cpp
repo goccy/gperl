@@ -595,11 +595,11 @@ GPerlValue GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes, JITParams *p
 		BREAK();
 	});
 	CASE(dISC, {
-		GPERL_dIS(pc->dst, pc->v);
+		GPERL_dISC(pc->dst, pc->v);
 		BREAK();
 	});
 	CASE(iISC, {
-		GPERL_iIS(pc->dst, pc->v);
+		GPERL_iISC(pc->dst, pc->v);
 		BREAK();
 	});
 	CASE(ISNOT, {
@@ -629,11 +629,11 @@ GPerlValue GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes, JITParams *p
 		BREAK();
 	});
 	CASE(dISNOTC, {
-		GPERL_dISNOT(pc->dst, pc->v);
+		GPERL_dISNOTC(pc->dst, pc->v);
 		BREAK();
 	});
 	CASE(iISNOTC, {
-		GPERL_iISNOT(pc->dst, pc->v);
+		GPERL_iISNOTC(pc->dst, pc->v);
 		BREAK();
 	});
 	CASE(StringADD, {
@@ -807,21 +807,6 @@ GPerlValue GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes, JITParams *p
 		pc++;
 		BREAK();
 	});
-	CASE(THCODE, {
-		createDirectThreadingCode(codes, jmp_table);
-		size_t pkgs_n = pkgs->size();
-		for (size_t i = 0; i < pkgs_n; i++) {
-			GPerlClass *gclass = (GPerlClass *)pkgs->at(i);
-			GPerlString **mtd_names = gclass->ext->mtd_names;
-			for (size_t j = 0; mtd_names[j] != NULL; j++) {
-				GPerlFunc *mtd = gclass->mtds[mtd_names[j]->hash];
-				createDirectThreadingCode(mtd->code, jmp_table);
-			}
-		}
-		(void)block_table;
-		//createSelectiveInliningCode(codes, jmp_table, block_table);
-		return reg[0];
-        	});
 	CASE(NOP, {
 		GPERL_NOP();
 		pc++;
@@ -867,18 +852,6 @@ GPerlValue GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes, JITParams *p
 		pc++;
 		BREAK();
 	});
-	CASE(KEYS, {
-		GPerlArray *a = GPERL_KEYS((callstack+1)->argstack[0]);
-		OBJECT_init(reg[pc->dst], a);
-		pc++;
-		BREAK();
-	});
-	CASE(VALUES, {
-		GPerlArray *a = GPERL_VALUES((callstack+1)->argstack[0]);
-		OBJECT_init(reg[pc->dst], a);
-		pc++;
-		BREAK();
-	});
 	CASE(BLESS, {
 		GPERL_BLESS((callstack+1)->argstack);
 		pc++;
@@ -886,6 +859,7 @@ GPerlValue GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes, JITParams *p
 	});
 	CASE(JMP, {
 		GPERL_JMP();
+		pc++;
 		BREAK();
 	});
 	CASE(LET, {
@@ -1208,6 +1182,33 @@ GPerlValue GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes, JITParams *p
 		pc++;
 		BREAK();
 	});
+	CASE(THCODE, {
+		createDirectThreadingCode(codes, jmp_table);
+		size_t pkgs_n = pkgs->size();
+		for (size_t i = 0; i < pkgs_n; i++) {
+			GPerlClass *gclass = (GPerlClass *)pkgs->at(i);
+			GPerlString **mtd_names = gclass->ext->mtd_names;
+			for (size_t j = 0; mtd_names[j] != NULL; j++) {
+				GPerlFunc *mtd = gclass->mtds[mtd_names[j]->hash];
+				createDirectThreadingCode(mtd->code, jmp_table);
+			}
+		}
+		(void)block_table;
+		//createSelectiveInliningCode(codes, jmp_table, block_table);
+		return reg[0];
+	});
+	CASE(KEYS, {
+		GPerlArray *a = GPERL_KEYS((callstack+1)->argstack[0]);
+		OBJECT_init(reg[pc->dst], a);
+		pc++;
+		BREAK();
+	});
+	CASE(VALUES, {
+		GPerlArray *a = GPERL_VALUES((callstack+1)->argstack[0]);
+		OBJECT_init(reg[pc->dst], a);
+		pc++;
+		BREAK();
+	});
 	CASE(EACH_LET, {
 		GPERL_EACH_LET(pc->dst, pc->src);
 		BREAK();
@@ -1216,6 +1217,7 @@ GPerlValue GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes, JITParams *p
 		GPERL_EACH_STEP(pc->dst, pc->src);
 		BREAK();
 	});
+
 #include "gen_fast_vmcode.cpp"
 
 	DISPATCH_END();

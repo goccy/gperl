@@ -2,7 +2,7 @@
 sub bottomup_tree {
     my $depth = $_[1];
     if (!$depth) {
-        return $_[0];
+        return [undef, undef, $_[0]];
     } else {
         my $value2 = $_[0] * 2;
         $depth--;
@@ -10,17 +10,16 @@ sub bottomup_tree {
     }
 }
 
-#@static_typing
+#@jit_safe
 sub check_tree {
-    my $value2;
-    if (ref($_[0]->[0])) {
-        return check_tree($_[0]->[0]) - check_tree($_[0]->[1]) + ($_[0]->[2]);
+    unless (defined($_[0]->[0])) {
+        return ($_[0]->[2]);
     } else {
-        return ($_[0]->[0]) - ($_[0]->[1]) + ($_[0]->[2]);
+        return check_tree($_[0]->[0]) - check_tree($_[0]->[1]) + ($_[0]->[2]);
     }
 }
 
-my $max_depth = 15;
+my $max_depth = 14;
 my $min_depth = 4;
 
 if ($min_depth + 2 > $max_depth) {

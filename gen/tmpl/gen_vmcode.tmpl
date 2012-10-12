@@ -2,12 +2,6 @@ typedef enum {<TMPL_LOOP NAME=opcodes>
 	<TMPL_VAR NAME=code>,</TMPL_LOOP>
 } GPerlOpCode;
 
-typedef struct _GPerlCodeInfo {
-	GPerlOpCode code;
-	const char *name;
-	GPerlOpCodeType type;
-} GPerlCodeInfo;
-
 typedef enum {<TMPL_LOOP NAME=types>
 	<TMPL_VAR NAME=type>,</TMPL_LOOP>
 } GPerlOpCodeType;
