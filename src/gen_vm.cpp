@@ -857,9 +857,13 @@ GPerlValue GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes, JITParams *p
 		pc++;
 		BREAK();
 	});
+	CASE(DEFINED, {
+		GPERL_DEFINED((callstack+1)->argstack[0]);
+		pc++;
+		BREAK();
+	});
 	CASE(JMP, {
 		GPERL_JMP();
-		pc++;
 		BREAK();
 	});
 	CASE(LET, {

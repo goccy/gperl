@@ -199,7 +199,7 @@ sub get_write_data {
     my @CONST_CHECK_LIST = qw{IS ISNOT JL JG JLE JGE JE JNE ADD SUB MUL DIV LSHIFT RSHIFT};
     my @CMP_JMP_LIST = qw{JL JG JLE JGE JE JNE};
     my @NO_USE_REGISTER_LIST = qw{INC DEC};
-    my @NO_PC_INCREMENT_LIST = ("IS", "ISNOT", @CMP_JMP_LIST);
+    my @NO_PC_INCREMENT_LIST = ("IS", "ISNOT", "JMP", @CMP_JMP_LIST);
     my $name = $inst->{name};
     my $prefix1 = $inst->{prefix1};
     my $prefix2 = $inst->{prefix2};

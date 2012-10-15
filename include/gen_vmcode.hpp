@@ -162,6 +162,7 @@ typedef enum {
 	KEYS,
 	VALUES,
 	BLESS,
+	DEFINED,
 	JMP,
 	LET,
 	gLET,

@@ -484,7 +484,8 @@ void GPerlTokenizer::annotateTokens(vector<GPerlToken *> *tokens)
 			data == "print" || data == "push"  ||
 			data == "ref"   || data == "undef" ||
 			data == "keys"  || data == "values" ||
-			data == "bless" || data == "package" ||
+			data == "bless" || data == "defined" ||
+			data == "scalar"|| data == "package" ||
 			data == "if"    || data == "else"  ||
 			data == "elsif" || data == "unless"||
 			data == "my"    || data == "sub"   ||
@@ -494,8 +495,10 @@ void GPerlTokenizer::annotateTokens(vector<GPerlToken *> *tokens)
 			data == "@_"    || data == "@ARGV" ||
 			data == "#@"    || data == "return") {
 			DBG_PL("TOKEN = [%s]", cstr(data));
-			t->info = getTokenInfo(NULL, cstr(data));
-			cur_type = t->info.type;
+			if (t->info.type != String) {
+				t->info = getTokenInfo(NULL, cstr(data));
+				cur_type = t->info.type;
+			}
 		} else if (cur_type == VarDecl && t->data.find("$") != string::npos) {
 			t->info = getTokenInfo("LocalVar", NULL);
 			vardecl_list.push_back(t->data);
@@ -580,4 +583,48 @@ bool GPerlTokenizer::search(vector<string> list, string target)
 		ret = true;
 	}
 	return ret;
+}
+
+void GPerlTokenizer::insertParenthesis(vector<GPerlToken *> *tokens)
+{
+	int pcount = 0;
+	vector<GPerlToken *>::iterator it = tokens->begin();
+	while (it != tokens->end()) {
+		GPerlToken *t = (GPerlToken *)*it;
+		switch (t->info.type) {
+		case Call: case CodeVar: case BuiltinFunc: {
+			GPerlToken *next_token = (GPerlToken *)*(it+1);
+			if (next_token->info.type != LeftParenthesis) {
+				GPerlToken *token = new GPerlToken("(");
+				token->info = getTokenInfo(NULL, "(");
+				tokens->insert(it+1, token);
+				pcount++;
+				if (next_token->info.type == Comma) {
+					token = new GPerlToken(")");
+					token->info = getTokenInfo(NULL, ")");
+					tokens->insert(it+2, token);
+					pcount--;
+					it++;
+				}
+			}
+			break;
+		}
+		case SemiColon:
+			for (; pcount > 0; pcount--) {
+				GPerlToken *token = new GPerlToken(")");
+				token->info = getTokenInfo(NULL, ")");
+				tokens->insert(it, token);
+			}
+			break;
+		default:
+			break;
+		}
+		it++;
+	}
+	vector<GPerlToken *>::iterator debug_it = tokens->begin();
+	while (debug_it != tokens->end()) {
+		GPerlToken *t = (GPerlToken *)*debug_it;
+		DBG_PL("(%s)", t->info.name);
+		debug_it++;
+	}
 }

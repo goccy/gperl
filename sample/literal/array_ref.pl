@@ -1,10 +1,12 @@
-$array = [1, 2, 3];
+$array = [1, 2, undef, 3];
 print($array->[0], "\n");
 print($array->[1], "\n");
 print($array->[2], "\n");
+print($array->[3], "\n");
 @dereferenced_array = @{$array};
 print($dereferenced_array[0], "\n");
 print($dereferenced_array[1], "\n");
 print($dereferenced_array[2], "\n");
+print($dereferenced_array[3], "\n");
 print($array, "\n");
 print(@dereferenced_array, "\n");

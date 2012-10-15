@@ -122,6 +122,7 @@ GPerlValue GPerl::eval(char *script, int argc, char **argv)
 	GPerlTokenizer t;
 	std::vector<GPerlToken *> *tokens = t.tokenize(script);
 	t.annotateTokens(tokens);
+	t.insertParenthesis(tokens);
 	DBG_PL("=============<TOKENIZE>============");
 	t.dump(tokens);
 	GPerlParser *p;
@@ -138,7 +139,7 @@ GPerlValue GPerl::eval(char *script, int argc, char **argv)
 		}
 	}
 #ifdef USING_GRAPH_DEBUG
-	//ast->show();//graph debug with graphviz
+	ast->show();//graph debug with graphviz
 #endif
 	GPerlCompiler compiler;
 	DBG_PL("=============<COMPILE>=============");

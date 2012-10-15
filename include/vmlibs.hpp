@@ -12,7 +12,7 @@
 #define END(op) L_##op##_END:
 
 #define BREAK() GOTO_NEXTOP()
-#define _CASE(op) L(op) : { /* DBG_PL(#op); */ }
+#define _CASE(op) L(op) : { /*DBG_PL(#op);*/ }
 #define CASE(op, block) _CASE(op) { START(op); block; END(op); }
 #define RETURN() { goto *callstack->ret_addr; }
 
@@ -401,6 +401,23 @@ static inline GPerlArray *GPERL_VALUES(GPerlValue arg)
 		GPerlClass *gclass = pkg_table[class_name->hash];	\
 		gclass->fields = self;								\
 		OBJECT_init(reg[pc->dst], gclass);					\
+	} while (0);
+
+#define GPERL_DEFINED(v) do {								\
+		switch (TYPE_CHECK(v)) {							\
+		case 3: {											\
+			GPerlObject *o = (GPerlObject *)getObject(v);	\
+			if (o->h.type == Undefined) {					\
+				INT_init(reg[pc->dst], 0);					\
+			} else {										\
+				INT_init(reg[pc->dst], 1);					\
+			}												\
+			break;											\
+		}													\
+		default:											\
+			INT_init(reg[pc->dst], 1);						\
+			break;											\
+		}													\
 	} while (0);
 
 #define GPERL_JMP() pc += pc->jmp

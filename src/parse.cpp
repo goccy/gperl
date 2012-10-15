@@ -373,12 +373,12 @@ void GPerlParser::parseIfStmt(GPerlToken *, GPerlNodes *blocks, GPerlFlags *flag
 	GPerlCell *cond = blocks->lastNode();
 	if (cond->type != IsNot &&
 		(cond->type == Var || cond->type == ArrayVar ||
-		 cond->type == HashVar ||
+		 cond->type == HashVar || cond->type == Default ||
 		 cond->type == ArgumentArray || cond->type == Int ||
 		 cond->type == Double || cond->type == String ||
 		 cond->type == Call || cond->type == BuiltinFunc || cond->type == CodeVar)) {
 		//isOperation
-		GPerlCell *is = new GPerlCell(Is, "defined");
+		GPerlCell *is = new GPerlCell(Is, "exists");
 		GPerlCell *tmp = cond;
 		tmp->parent = is;
 		cond = is;
@@ -399,12 +399,12 @@ void GPerlParser::parseElseIfStmt(GPerlToken *, GPerlNodes *blocks, GPerlFlags *
 	GPerlCell *cond = blocks->lastNode();
 	if (cond->type != IsNot &&
 		(cond->type == Var || cond->type == ArrayVar ||
-		 cond->type == HashVar ||
+		 cond->type == HashVar || cond->type == Default ||
 		 cond->type == ArgumentArray || cond->type == Int ||
 		 cond->type == Double || cond->type == String ||
 		 cond->type == Call || cond->type == BuiltinFunc || cond->type == CodeVar)) {
 		//isOperation
-		GPerlCell *is = new GPerlCell(Is, "defined");
+		GPerlCell *is = new GPerlCell(Is, "exists");
 		GPerlCell *tmp = cond;
 		tmp->parent = is;
 		cond = is;
@@ -632,8 +632,13 @@ void GPerlParser::parseRightParenthesis(GPerlToken *, GPerlNodes *blocks, GPerlF
 		GPerlCell *to = blocks->lastNode();
 		blocks->popNode();
 		GPerlCell *from = blocks->lastNode();
-		from->right = to;
-		to->parent = from;
+		if (from->type != IsNot) {
+			from->right = to;
+			to->parent = from;
+		} else {
+			from->left = to;
+			to->parent = from;
+		}
 	}
 	int size = blocks->size();
 	DBG_PL("BLOCKS SIZE = [%d]", size);
@@ -818,7 +823,7 @@ GPerlAST *GPerlParser::parse(void)
 			parseGlobalVar(t, &blocks, &flags);
 			break;
 		case Var: case ArrayVar: case HashVar: case ArgumentArray:
-		case SpecificValue: case Int: case Double: case String:
+		case SpecificValue: case Int: case Double: case String: case Default:
 		case Call: case BuiltinFunc:
 		case Key: case CodeVar: case Class:
 			parseTerm(t, &blocks, &flags, root, ast);

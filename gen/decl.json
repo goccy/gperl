@@ -141,11 +141,6 @@
  },
  {
 	 "type" : "BuiltinFunc",
-	 "data" : "undef",
-	 "parse_func" : ""
- },
- {
-	 "type" : "BuiltinFunc",
 	 "data" : "sqrt",
 	 "parse_func" : ""
  },
@@ -172,6 +167,11 @@
  {
 	 "type" : "BuiltinFunc",
 	 "data" : "bless",
+	 "parse_func" : ""
+ },
+ {
+	 "type" : "BuiltinFunc",
+	 "data" : "defined",
 	 "parse_func" : ""
  },
  {

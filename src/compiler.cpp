@@ -780,7 +780,7 @@ GPerlVirtualMachineCode *GPerlCompiler::createVMCode(GPerlCell *c)
 	GPerlVirtualMachineCode *code = new GPerlVirtualMachineCode();
 	code->code_num = code_num;
 	switch (c->type) {
-	case Int: case Double:
+	case Int: case Double: case Default:
 	case String: case List: case Key:
 	case ArrayRef: case HashRef: case CodeRef:
 		setMOV(code, c);
@@ -966,6 +966,10 @@ void GPerlCompiler::setMOV(GPerlVirtualMachineCode *code, GPerlCell *c)
 {
 	GPerlT type = c->type;
 	switch (type) {
+	case Default:
+		OBJECT_init(code->v, undef);
+		code->op = MOV;
+		break;
 	case Int:
 		INT_init(code->v, c->data.idata);
 		code->op = MOV;
@@ -1629,7 +1633,7 @@ void GPerlCompiler::setBFUNC(GPerlVirtualMachineCode *code, GPerlCell *c)
 	} else if (c->rawstr == "push") {
 		DBG_PL("Push");
 		if (reg_type[0] != Array) {
-			fprintf(stderr, "COMPILE ERROR : must be Array 1st argument\n");
+			fprintf(stderr, "COMPILE ERROR : 1st argument must be Array\n");
 		}
 		code->op = ARRAY_PUSH;//ARRAY_PUSH;
 		code->push = Array_push;
@@ -1648,6 +1652,11 @@ void GPerlCompiler::setBFUNC(GPerlVirtualMachineCode *code, GPerlCell *c)
 		DBG_PL("Bless");
 		code->op = BLESS;
 		code->dst = dst - 1;
+	} else if (c->rawstr == "defined") {
+		DBG_PL("Bless");
+		code->op = DEFINED;
+		code->dst = dst;
+		dst++;
 	}
 	args_count = 0;
 }
@@ -1865,7 +1874,7 @@ void GPerlCompiler::dumpVMCode(GPerlVirtualMachineCode *code)
 		DBG_PL("r%d <= %s, ebp += %d, (r%d, r%d, r%d, r%d)", code->dst, code->name, code->cur_stack_top, code->arg0, code->arg1, code->arg2, code->arg3);
 		break;
 	case TYPE_BUILTIN_FUNC:
-		DBG_PL(" ");
+		DBG_PL("r%d <= %s, ebp += %d, (r%d, r%d, r%d, r%d)", code->dst, code->name, code->cur_stack_top, code->arg0, code->arg1, code->arg2, code->arg3);
 		break;
 	case TYPE_RET:
 		DBG_PL("r%d", code->src);

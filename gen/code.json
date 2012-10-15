@@ -280,6 +280,14 @@
 	 "op_type" : "TYPE_BUILTIN_FUNC"
  },
  {
+	 "code" : "DEFINED",
+	 "type" : 0,
+	 "const" : 0,
+	 "fast_type" : 0,
+	 "args" : [{"argstack" : "(callstack+1)->argstack[0]"}],
+	 "op_type" : "TYPE_BUILTIN_FUNC"
+ },
+ {
 	 "code" : "JMP",
 	 "type" : 0,
 	 "const" : 0,

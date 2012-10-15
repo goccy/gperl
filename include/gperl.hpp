@@ -103,6 +103,7 @@ public:
 	void dump(std::vector<GPerlToken *> *tokens);
 	GPerlTokenInfo getTokenInfo(const char *name, const char *data);
 	bool search(std::vector<std::string> list, std::string str);
+	void insertParenthesis(std::vector<GPerlToken *> *tokens);
 };
 #define MAX_ARGSTACK_SIZE 16
 
