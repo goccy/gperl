@@ -273,42 +273,42 @@ void GPerlParser::parseRightTerm(GPerlToken *t, GPerlNodes *blocks, GPerlScope *
 	if (type == Call || type == BuiltinFunc || type == CodeVar) blocks->pushNode(b);
 }
 
-void GPerlParser::parseLocalVar(GPerlToken *t, GPerlNodes *blocks, GPerlFlags *flags)
+void GPerlParser::parseLocalVar(GPerlParseContext *pctx)
 {
-	if (flags->isVarDeclFlag) {
-		DBG_PL("[%s]:NEW BLOCK => BLOCKS", cstr(t->data));
+	if (pctx->flags->isVarDeclFlag) {
+		DBG_PL("[%s]:NEW BLOCK => BLOCKS", cstr(pctx->t->data));
 		DBG_PL("vidx = [%d]", vidx);
 		DBG_PL("indent = [%d]", indent);
 		if (indent > 0) {
-			GPerlCell *var = new GPerlCell(LocalVarDecl, t->data);
+			GPerlCell *var = new GPerlCell(LocalVarDecl, pctx->t->data);
 			var->indent = indent;
 			var->setVariableIdx(vidx);
-			blocks->pushNode(var);
-			flags->isVarDeclFlag = false;
+			pctx->nodes->pushNode(var);
+			pctx->flags->isVarDeclFlag = false;
 			vcount++;
 			vidx++;
 		} else {
 			DBG_PL("gidx = [%d]", gidx);
-			GPerlCell *gvar = new GPerlCell(GlobalVarDecl, t->data);
+			GPerlCell *gvar = new GPerlCell(GlobalVarDecl, pctx->t->data);
 			gvar->indent = indent;
 			gvar->setVariableIdx(gidx);
-			blocks->pushNode(gvar);
-			flags->isVarDeclFlag = false;
+			pctx->nodes->pushNode(gvar);
+			pctx->flags->isVarDeclFlag = false;
 			gidx++;
 		}
 	}
 }
 
-void GPerlParser::parseGlobalVar(GPerlToken *t, GPerlNodes *blocks, GPerlFlags *flags)
+void GPerlParser::parseGlobalVar(GPerlParseContext *pctx)
 {
-	DBG_PL("[%s]:NEW BLOCK => BLOCKS", cstr(t->data));
+	DBG_PL("[%s]:NEW BLOCK => BLOCKS", cstr(pctx->t->data));
 	DBG_PL("gidx = [%d]", gidx);
 	DBG_PL("INDENT = [%d]", indent);
-	GPerlCell *gvar = new GPerlCell(GlobalVarDecl, t->data);
+	GPerlCell *gvar = new GPerlCell(GlobalVarDecl, pctx->t->data);
 	gvar->indent = indent;
 	gvar->setVariableIdx(gidx);
-	blocks->pushNode(gvar);
-	flags->isVarDeclFlag = false;
+	pctx->nodes->pushNode(gvar);
+	pctx->flags->isVarDeclFlag = false;
 	gidx++;
 }
 
@@ -804,18 +804,22 @@ GPerlAST *GPerlParser::parse(void)
 	GPerlCell *root = new GPerlCell(Return);
 	GPerlNodes blocks;
 	GPerlFlags flags;
+	GPerlParseContext pctx;
+	pctx.nodes = &blocks;
+	pctx.flags = &flags;
 	GPerlT prev_type = Undefined;
 	while (it != end) {
 		GPerlToken *t = (GPerlToken *)*it;
+		pctx.t = t;
 		if (!t) break;
 		DBG_P("L[%d] : ", iterate_count);
 		DBG_PL("(%s)", t->info.name);
 		switch (t->info.type) {
 		case LocalVar: case LocalArrayVar: case LocalHashVar:
-			parseLocalVar(t, &blocks, &flags);
+			parseLocalVar(&pctx);
 			break;
 		case GlobalVar: case GlobalArrayVar: case GlobalHashVar:
-			parseGlobalVar(t, &blocks, &flags);
+			parseGlobalVar(&pctx);
 			break;
 		case Var: case ArrayVar: case HashVar: case ArgumentArray:
 		case SpecificValue: case Int: case Double: case String:
