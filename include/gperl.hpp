@@ -198,6 +198,13 @@ public:
 	GPerlFlags(void);
 };
 
+class GPerlParseContext {
+public:
+	GPerlToken *t;
+	GPerlNodes *nodes;
+	GPerlFlags *flags;
+};
+
 class GPerlParser {
 public:
 	int iterate_count;
@@ -214,8 +221,8 @@ public:
 
 	GPerlParser(std::vector<GPerlToken *> *tokens, int argc = 0, char **argv = NULL);
 	GPerlAST *parse(void);
-	void parseLocalVar(GPerlToken *t, GPerlNodes *nodes, GPerlFlags *flags);
-	void parseGlobalVar(GPerlToken *t, GPerlNodes *nodes, GPerlFlags *flags);
+	void parseLocalVar(GPerlParseContext *pctx);
+	void parseGlobalVar(GPerlParseContext *pctx);
 	void parseSingleTermOperator(GPerlToken *t, GPerlNodes *nodes);
 	void parseDoubleTermOperator(GPerlToken *t, GPerlNodes *nodes);
 	GPerlCell *parseAssign(GPerlToken *t, GPerlNodes *nodes);

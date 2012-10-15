@@ -1,171 +1,211 @@
 [
  {
 	 "type" : "Return",
+	 "kind" : "Return",
 	 "data" : "return",
 	 "parse_func" : ""
  },
  {
 	 "type" : "Add",
+	 "kind" : "Operator",
 	 "data" : "+",
 	 "parse_func" : ""
  },
  {
 	 "type" : "Sub",
+	 "kind" : "Operator",
 	 "data" : "-",
 	 "parse_func" : ""
  },
  {
 	 "type" : "Mul",
+	 "kind" : "Operator",
 	 "data" : "*",
 	 "parse_func" : ""
  },
  {
 	 "type" : "Div",
+	 "kind" : "Operator",
 	 "data" : "/",
 	 "parse_func" : ""
  },
  {
 	 "type" : "Greater",
+	 "kind" : "Operator",
 	 "data" : ">",
 	 "parse_func" : ""
  },
  {
 	 "type" : "Less",
+	 "kind" : "Operator",
 	 "data" : "<",
 	 "parse_func" : ""
  },
  {
  	 "type" : "AddEqual",
+	 "kind" : "Assign",
 	 "data" : "+=",
 	 "parse_func" : ""
  },
  {
  	 "type" : "SubEqual",
+	 "kind" : "Assign",
 	 "data" : "-=",
 	 "parse_func" : ""
  },
  {
  	 "type" : "MulEqual",
+	 "kind" : "Assign",
 	 "data" : "*=",
 	 "parse_func" : ""
  },
  {
  	 "type" : "DivEqual",
+	 "kind" : "Assign",
 	 "data" : "/=",
 	 "parse_func" : ""
  },
  {
  	 "type" : "StringAdd",
+	 "kind" : "Assign",
 	 "data" : ".=",
 	 "parse_func" : ""
  },
  {
 	 "type" : "GreaterEqual",
+	 "kind" : "Operator",
 	 "data" : ">=",
 	 "parse_func" : ""
  },
  {
 	 "type" : "LessEqual",
+	 "kind" : "Operator",
 	 "data" : "<=",
 	 "parse_func" : ""
  },
  {
 	 "type" : "EqualEqual",
+	 "kind" : "Operator",
 	 "data" : "==",
 	 "parse_func" : ""
  },
  {
 	 "type" : "NotEqual",
+	 "kind" : "Operator",
 	 "data" : "!=",
 	 "parse_func" : ""
  },
  {
  	 "type" : "Inc",
+	 "kind" : "Operator",
 	 "data" : "++",
 	 "parse_func" : ""
  },
  {
  	 "type" : "Dec",
+	 "kind" : "Operator",
 	 "data" : "--",
 	 "parse_func" : ""
  },
  {
  	 "type" : "LeftShift",
+	 "kind" : "Operator",
 	 "data" : "<<",
 	 "parse_func" : ""
  },
  {
  	 "type" : "RightShift",
+	 "kind" : "Operator",
 	 "data" : ">>",
 	 "parse_func" : ""
  },
  {
 	 "type" : "VarDecl",
+	 "kind" : "Decl",
 	 "data" : "my",
 	 "parse_func" : ""
  },
  {
 	 "type" : "FunctionDecl",
+	 "kind" : "Decl",
 	 "data" : "sub",
 	 "parse_func" : ""
  },
  {
 	 "type" : "Assign",
+	 "kind" : "Assign",
 	 "data" : "=",
 	 "parse_func" : ""
  },
  {
 	 "type" : "Is",
+	 "kind" : "SingleTerm",
 	 "data" : "",
 	 "parse_func" : ""
  },
  {
 	 "type" : "IsNot",
+	 "kind" : "SingleTerm",
 	 "data" : "!",
 	 "parse_func" : ""
  },
  {
 	 "type" : "BuiltinFunc",
+	 "kind" : "Function",
 	 "data" : "print",
 	 "parse_func" : ""
  },
  {
 	 "type" : "BuiltinFunc",
+	 "kind" : "Function",
 	 "data" : "push",
 	 "parse_func" : ""
  },
  {
 	 "type" : "BuiltinFunc",
+	 "kind" : "Function",
 	 "data" : "ref",
 	 "parse_func" : ""
  },
  {
 	 "type" : "BuiltinFunc",
+	 "kind" : "Function",
+	 "data" : "undef",
+	 "parse_func" : ""
+ },
+ {
+	 "type" : "BuiltinFunc",
+	 "kind" : "Function",
 	 "data" : "sqrt",
 	 "parse_func" : ""
  },
  {
 	 "type" : "BuiltinFunc",
+	 "kind" : "Function",
 	 "data" : "map",
 	 "parse_func" : ""
  },
  {
 	 "type" : "BuiltinFunc",
+	 "kind" : "Function",
 	 "data" : "grep",
 	 "parse_func" : ""
  },
  {
 	 "type" : "BuiltinFunc",
+	 "kind" : "Function",
 	 "data" : "keys",
 	 "parse_func" : ""
  },
  {
 	 "type" : "BuiltinFunc",
+	 "kind" : "Function",
 	 "data" : "values",
 	 "parse_func" : ""
  },
  {
 	 "type" : "BuiltinFunc",
+	 "kind" : "Function",
 	 "data" : "bless",
 	 "parse_func" : ""
  },
@@ -176,91 +216,109 @@
  },
  {
 	 "type" : "IfStmt",
+	 "kind" : "Stmt",
 	 "data" : "if",
 	 "parse_func" : ""
  },
  {
 	 "type" : "ElseStmt",
+	 "kind" : "Stmt",
 	 "data" : "else",
 	 "parse_func" : ""
  },
  {
  	 "type" : "ElsifStmt",
+	 "kind" : "Stmt",
 	 "data" : "elsif",
 	 "parse_func" : ""
  },
  {
  	 "type" : "UnlessStmt",
+	 "kind" : "Stmt",
 	 "data" : "unless",
 	 "parse_func" : ""
  },
  {
 	 "type" : "Comma",
+	 "kind" : "Comma",
 	 "data" : ",",
 	 "parse_func" : ""
  },
  {
 	 "type" : "SemiColon",
+	 "kind" : "StmtEnd",
 	 "data" : ";",
 	 "parse_func" : ""
  },
  {
 	 "type" : "LeftParenthesis",
+	 "kind" : "",
 	 "data" : "(",
 	 "parse_func" : ""
  },
  {
 	 "type" : "RightParenthesis",
+	 "kind" : "",
 	 "data" : ")",
 	 "parse_func" : ""
  },
  {
 	 "type" : "LeftBrace",
+	 "kind" : "",
 	 "data" : "{",
 	 "parse_func" : ""
  },
  {
 	 "type" : "RightBrace",
+	 "kind" : "",
 	 "data" : "}",
 	 "parse_func" : ""
  },
  {
 	 "type" : "LeftBracket",
+	 "kind" : "",
 	 "data" : "[",
 	 "parse_func" : ""
  },
  {
 	 "type" : "RightBracket",
+	 "kind" : "",
 	 "data" : "]",
 	 "parse_func" : ""
  },
  {
 	 "type" : "ArrayDereference",
+	 "kind" : "",
 	 "data" : "@{",
 	 "parse_func" : ""
  },
  {
 	 "type" : "HashDereference",
+	 "kind" : "",
 	 "data" : "%{",
 	 "parse_func" : ""
  },
  {
 	 "type" : "Key",
+	 "kind" : "Term",
 	 "data" : "",
 	 "parse_func" : ""
  },
  {
 	 "type" : "Arrow",
+	 "kind" : "Operator",
 	 "data" : "=>",
 	 "parse_func" : ""
  },
  {
 	 "type" : "Pointer",
+	 "kind" : "Operator",
 	 "data" : "->",
 	 "parse_func" : ""
  },
  {
 	 "type" : "Package",
+	 "kind" : "Stmt",
 	 "data" : "package",
 	 "parse_func" : ""
  },
@@ -271,36 +329,43 @@
  },
  {
 	 "type" : "Shift",
+	 "kind" : "Operator",
 	 "data" : "shift",
 	 "parse_func" : ""
  },
  {
 	 "type" : "CallDecl",
+	 "kind" : "Decl",
 	 "data" : "&",
 	 "parse_func" : ""
  },
  {
 	 "type" : "CodeRef",
+	 "kind" : "SingleTerm",
 	 "data" : "\\&",
 	 "parse_func" : ""
  },
  {
 	 "type" : "WhileStmt",
+	 "kind" : "Stmt",
 	 "data" : "while",
 	 "parse_func" : ""
  },
  {
 	 "type" : "ForStmt",
+	 "kind" : "Stmt",
 	 "data" : "for",
 	 "parse_func" : ""
  },
  {
 	 "type" : "ForeachStmt",
+	 "kind" : "Stmt",
 	 "data" : "foreach",
 	 "parse_func" : ""
  },
  {
 	 "type" : "Annotation",
+	 "kind" : "Annotation",
 	 "data" : "#@",
 	 "parse_func" : ""
  },
@@ -356,51 +421,61 @@
  },
  {
 	 "type" : "Var",
+	 "kind" : "Term",
 	 "data" : "",
 	 "parse_func" : ""
  },
  {
 	 "type" : "CodeVar",
+	 "kind" : "Term",
 	 "data" : "",
 	 "parse_func" : ""
  },
  {
 	 "type" : "ArrayVar",
+	 "kind" : "Term",
 	 "data" : "",
 	 "parse_func" : ""
  },
  {
 	 "type" : "HashVar",
+	 "kind" : "Term",
 	 "data" : "",
 	 "parse_func" : ""
  },
  {
 	 "type" : "Int",
+	 "kind" : "Term",
 	 "data" : "",
 	 "parse_func" : ""
  },
  {
 	 "type" : "Double",
+	 "kind" : "Term",
 	 "data" : "",
 	 "parse_func" : ""
  },
  {
 	 "type" : "String",
+	 "kind" : "Term",
 	 "data" : "",
 	 "parse_func" : ""
  },
  {
 	 "type" : "Object",
+	 "kind" : "Term",
 	 "data" : "",
 	 "parse_func" : ""
  },
  {
 	 "type" : "Array",
+	 "kind" : "Term",
 	 "data" : "",
 	 "parse_func" : ""
  },
  {
 	 "type" : "Hash",
+	 "kind" : "Term",
 	 "data" : "",
 	 "parse_func" : ""
  },
@@ -411,31 +486,37 @@
  },
  {
 	 "type" : "LocalVar",
+	 "kind" : "LocalValue",
 	 "data" : "",
 	 "parse_func" : ""
  },
  {
 	 "type" : "LocalArrayVar",
+	 "kind" : "LocalValue",
 	 "data" : "",
 	 "parse_func" : ""
  },
  {
 	 "type" : "LocalHashVar",
+	 "kind" : "LocalValue",
 	 "data" : "",
 	 "parse_func" : ""
  },
  {
 	 "type" : "GlobalVar",
+	 "kind" : "GlobalValue",
 	 "data" : "",
 	 "parse_func" : ""
  },
  {
 	 "type" : "GlobalArrayVar",
+	 "kind" : "GlobalValue",
 	 "data" : "",
 	 "parse_func" : ""
  },
  {
 	 "type" : "GlobalHashVar",
+	 "kind" : "GlobalValue",
 	 "data" : "",
 	 "parse_func" : ""
  },
@@ -476,6 +557,7 @@
  },
  {
 	 "type" : "Call",
+	 "kind" : "Function",
 	 "data" : "",
 	 "parse_func" : ""
  },
