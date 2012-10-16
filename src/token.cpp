@@ -623,8 +623,7 @@ void GPerlTokenizer::insertParenthesis(vector<GPerlToken *> *tokens)
 	}
 	vector<GPerlToken *>::iterator debug_it = tokens->begin();
 	while (debug_it != tokens->end()) {
-		GPerlToken *t = (GPerlToken *)*debug_it;
-		DBG_PL("(%s)", t->info.name);
+		DBG_PL("(%s)", ((GPerlToken *)*debug_it)->info.name);
 		debug_it++;
 	}
 }

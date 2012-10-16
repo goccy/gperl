@@ -244,7 +244,7 @@
 	 "type" : 0,
 	 "const" : 0,
 	 "fast_type" : 0,
-	 "args" : [],
+	 "args" : [{"argstack" : "(callstack+1)->argstack"}, {"argc" : "pc->argc"}],
 	 "op_type" : "TYPE_BUILTIN_FUNC"
  },
  {

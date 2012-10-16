@@ -335,10 +335,33 @@
 		o->write(reg[dst]);												\
 	}
 
-#define GPERL_FLUSH() {                                 \
-		fprintf(stdout, "%s", cwb->buf);				\
-		clear_cwb();                                    \
+inline void GPERL_FLUSH(GPerlValue *args, int argc)
+{
+	for (int i = 0; i < argc; i++) {
+		GPerlValue v = args[i];
+		char buf[32] = {0};
+		switch (TYPE_CHECK(v)) {
+		case 0:
+			sprintf(buf, "%f", v.dvalue);
+			write_cwb(buf);
+			break;
+		case 1:
+			sprintf(buf, "%d", v.ivalue);
+			write_cwb(buf);
+			break;
+		case 2:
+			write_cwb(getRawString(v));
+			break;
+		case 3:
+			((GPerlObject *)getObject(v))->write(v);
+			break;
+		default:
+			break;
+		}
 	}
+	fprintf(stdout, "%s", cwb->buf);
+	clear_cwb();
+}
 
 #define GPERL_REF(v) {										\
 		int ret = 0;										\

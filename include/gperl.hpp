@@ -144,6 +144,7 @@ public:
 	} data;
 	int vidx; /* local variable idx */
 	int indent;
+	int reg; /* register allocation num */
 	GPerlCell(GPerlT type_);
 	GPerlCell(GPerlT type_, std::string name);
 	void setVariableIdx(int idx);

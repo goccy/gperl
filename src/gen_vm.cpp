@@ -843,7 +843,7 @@ GPerlValue GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes, JITParams *p
 		BREAK();
 	});
 	CASE(FLUSH, {
-		GPERL_FLUSH();
+		GPERL_FLUSH((callstack+1)->argstack, pc->argc);
 		pc++;
 		BREAK();
 	});

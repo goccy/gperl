@@ -108,9 +108,9 @@ void GPerlCompiler::genFunctionCallCode(GPerlCell *p, int offset)
 	for (size_t i = 0; i < argsize; i++) {
 		compile_(p->vargs[i]);
 		dststack[i] = dst;
-		if (p->rawstr == "print") {
-			addWriteCode();
-		}
+		//if (p->rawstr == "print") {
+		//addWriteCode();
+		//}
 	}
 	for (size_t i = 0; i < argsize; i++) {
 		if (p->type == Call || p->type == BuiltinFunc || p->type == CodeVar) {
@@ -429,6 +429,7 @@ void GPerlCompiler::genForeachStmtCode(GPerlCell *path)
 		setInstByVMap(code, var, LET, gLET, &idx);
 		vidx = idx;
 		code->dst = idx;
+		path->reg = idx;
 		code->src = dst-1;
 		variable_types[idx] = reg_type[0];
 		declared_vname = NULL;
@@ -444,6 +445,7 @@ void GPerlCompiler::genForeachStmtCode(GPerlCell *path)
 			code->op = EACH_INIT;
 		}
 		code->dst  = array->vidx;//TODO
+		array->reg = code->dst;
 		code->src = idx;
 		variable_types[idx] = reg_type[0];
 		declared_vname = NULL;
@@ -771,7 +773,8 @@ GPerlVirtualMachineCode *GPerlCompiler::getPureCodes(vector<GPerlVirtualMachineC
 			code->op = T;							\
 			break;									\
 		}											\
-		code->dst = dst - 1;						\
+		code->dst = c->left->reg;					\
+		c->reg = c->left->reg;						\
 		code->jmp = 1;								\
 	}
 
@@ -894,7 +897,7 @@ GPerlVirtualMachineCode *GPerlCompiler::createVMCode(GPerlCell *c)
 	case Return:
 		code->op = RET;
 		code->dst = 0;
-		code->src = dst-1;
+		code->src = c->left->reg;//dst-1;
 		break;
 	case Package: {
 		GPerlPackage pkg;
@@ -1056,6 +1059,7 @@ void GPerlCompiler::setMOV(GPerlVirtualMachineCode *code, GPerlCell *c)
 		break;
 	}
 	code->dst = dst;
+	c->reg = dst;
 	reg_type[dst] = type;
 	dst++;
 }
@@ -1074,6 +1078,7 @@ void GPerlCompiler::setARGMOV(GPerlVirtualMachineCode *code, GPerlCell *c)
 	(void)c;
 	code->op = ARGMOV;
 	code->dst = dst;
+	c->reg = dst;
 	code->src = recv_args_count;
 	recv_args_count++;
 	reg_type[dst] = Object;
@@ -1179,6 +1184,8 @@ void GPerlCompiler::setArrayAt(GPerlVirtualMachineCode *code, GPerlCell *c_)
 			popVMCode();//remove MOV
 			if (c->vname.find("$_") != string::npos || c->vname.find("@_") != string::npos) {
 				//ARGMOV
+				c->reg = dst;
+				c->parent->reg = dst;
 				code->op = ARGMOV;
 				code->dst = dst;
 				code->src = idx;
@@ -1198,6 +1205,7 @@ void GPerlCompiler::setArrayAt(GPerlVirtualMachineCode *code, GPerlCell *c_)
 	}
 	code->src = idx;
 	code->dst = dst;
+	c_->reg = dst;
 	reg_type[dst] = Object;
 	dst++;
 }
@@ -1249,6 +1257,7 @@ void GPerlCompiler::setHashAt(GPerlVirtualMachineCode *code, GPerlCell *c_)
 	}
 	code->src = idx;
 	code->dst = dst;
+	c_->reg = dst;
 	reg_type[dst] = Object;
 	dst++;
 }
@@ -1356,6 +1365,7 @@ void GPerlCompiler::setINC(GPerlVirtualMachineCode *code, GPerlCell *c_)
 	int idx = 0;
 	setInstByVMap(code, c, INC, gINC, &idx);
 	code->dst = idx;
+	c->reg = idx;
 }
 
 void GPerlCompiler::setDEC(GPerlVirtualMachineCode *code, GPerlCell *c_)
@@ -1364,6 +1374,7 @@ void GPerlCompiler::setDEC(GPerlVirtualMachineCode *code, GPerlCell *c_)
 	int idx = 0;
 	setInstByVMap(code, c, DEC, gDEC, &idx);
 	code->dst = idx;
+	c->reg = idx;
 }
 
 void GPerlCompiler::setVMOV(GPerlVirtualMachineCode *code, GPerlCell *c)
@@ -1381,6 +1392,7 @@ void GPerlCompiler::setVMOV(GPerlVirtualMachineCode *code, GPerlCell *c)
 	setInstByVMap(code, c, vMOV, gMOV, &idx);
 	code->src = idx;
 	code->dst = dst;
+	c->reg = dst;
 	if (c->type == ArrayVar) {
 		reg_type[dst] = Array;
 	} else if (c->type == CodeVar) {
@@ -1442,6 +1454,7 @@ void GPerlCompiler::setOpAssign(GPerlVirtualMachineCode *_code, GPerlCell *c)
 		break;
 	}
 	code->dst = op_dst;
+	c->reg = op_dst;
 	addVMCode(code);
 	dumpVMCode(code);
 	setLET(_code, c);
@@ -1616,13 +1629,16 @@ void GPerlCompiler::setCALL(GPerlVirtualMachineCode *code, GPerlCell *c)
 	const char *name = cstr(c->fname);
 	int idx = getFuncIndex(name);
 	setEscapeStackNum(code, c);
-	code->dst = dst-1;
+	c->reg = dst;
+	code->dst = dst;
+	//code->dst = dst-1;
 	code->src = idx;
 	code->name = name;
 	code->argc = args_count;
 	code->cur_reg_top = dst-1;
 	reg_type[dst-1] = Object;
 	args_count = 0;
+	dst++;
 }
 
 void GPerlCompiler::setBFUNC(GPerlVirtualMachineCode *code, GPerlCell *c)
@@ -1648,16 +1664,20 @@ void GPerlCompiler::setBFUNC(GPerlVirtualMachineCode *code, GPerlCell *c)
 	} else if (c->rawstr == "values") {
 		DBG_PL("Values");
 		code->op = VALUES;
+		c->reg = dst;
 	} else if (c->rawstr == "bless") {
 		DBG_PL("Bless");
 		code->op = BLESS;
 		code->dst = dst - 1;
+		c->reg = dst - 1;
 	} else if (c->rawstr == "defined") {
-		DBG_PL("Bless");
+		DBG_PL("Defined");
 		code->op = DEFINED;
 		code->dst = dst;
+		c->reg = dst;
 		dst++;
 	}
+	code->argc = args_count;
 	args_count = 0;
 }
 
@@ -1864,6 +1884,9 @@ void GPerlCompiler::dumpVMCode(GPerlVirtualMachineCode *code)
 	case TYPE_ARGMOV:
 		DBG_PL("r%d <= argstack[%d]", code->dst, code->src);
 		break;
+	case TYPE_ArrayARGMOV:
+		DBG_PL("r%d <= argstack", code->dst);
+		break;
 	case TYPE_OPERATOR:
 		DBG_PL("r%d op r%d", code->dst, code->src);
 		break;
@@ -1874,7 +1897,7 @@ void GPerlCompiler::dumpVMCode(GPerlVirtualMachineCode *code)
 		DBG_PL("r%d <= %s, ebp += %d, (r%d, r%d, r%d, r%d)", code->dst, code->name, code->cur_stack_top, code->arg0, code->arg1, code->arg2, code->arg3);
 		break;
 	case TYPE_BUILTIN_FUNC:
-		DBG_PL("r%d <= %s, ebp += %d, (r%d, r%d, r%d, r%d)", code->dst, code->name, code->cur_stack_top, code->arg0, code->arg1, code->arg2, code->arg3);
+		DBG_PL("r%d <= %s, ebp += %d, (r%d, r%d, r%d, r%d) : argc = %d", code->dst, code->name, code->cur_stack_top, code->arg0, code->arg1, code->arg2, code->arg3, code->argc);
 		break;
 	case TYPE_RET:
 		DBG_PL("r%d", code->src);

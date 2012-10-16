@@ -17,7 +17,7 @@ GPerlCell::GPerlCell(GPerlT type_) : type(type_), vidx(0)
 	argsize = 0;
 }
 
-GPerlCell::GPerlCell(GPerlT type_, string name) : type(type_), vidx(0)
+GPerlCell::GPerlCell(GPerlT type_, string name) : type(type_), vidx(0), reg(0)
 {
 	data.pdata = NULL;
 	left = NULL;
