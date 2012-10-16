@@ -1,4 +1,4 @@
-CC = g++
+CC = g++-4.2
 READLINE_DIR = lib/greadline
 CFLAGS = -O2 -g -Wall -W -I./include/ -I$(READLINE_DIR)/include -DUSING_JIT #-DDEBUG_MODE
 #CFLAGS = -O0 -g3 -Wall -W -I./include/ -I$(READLINE_DIR)/include -I/opt/local/include/ -DUSING_JIT -DDEBUG_MODE #-DUSING_GRAPH_DEBUG

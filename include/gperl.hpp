@@ -130,6 +130,7 @@ public:
 	GPerlScope *pkg_stmt; /* for 'package PKGNAME;' */
 	GPerlCell *next;/* for next stmt */
 	GPerlCell *vargs[MAX_ARGSTACK_SIZE]; /* for print */
+
 	int argsize;
 	GPerlT type;
 	GPerlTokenInfo info;
@@ -210,8 +211,8 @@ class GPerlParser {
 public:
 	int iterate_count;
 	int func_iterate_count;
-	int vidx; /* local variable idx */
-	int gidx; /* global variable idx */
+	int vidx;   /* local variable idx */
+	int gidx;   /* global variable idx */
 	int vcount; /* variable count in scope block */
 	int indent;
 	int argc;
@@ -222,35 +223,36 @@ public:
 
 	GPerlParser(std::vector<GPerlToken *> *tokens, int argc = 0, char **argv = NULL);
 	GPerlAST *parse(void);
+private:
+	void parseValue(GPerlParseContext *pctx, GPerlScope *scope);
 	void parseLocalVar(GPerlParseContext *pctx);
 	void parseGlobalVar(GPerlParseContext *pctx);
-	void parseSingleTermOperator(GPerlToken *t, GPerlNodes *nodes);
-	void parseDoubleTermOperator(GPerlToken *t, GPerlNodes *nodes);
-	GPerlCell *parseAssign(GPerlToken *t, GPerlNodes *nodes);
-	void parseFunc(GPerlToken *t, GPerlNodes *blocks, GPerlFlags *flags, GPerlCell *root, GPerlAST *ast);
-	void parseIfStmt(GPerlToken *t, GPerlNodes *blocks, GPerlFlags *flags, GPerlCell *root);
-	void parseElseIfStmt(GPerlToken *t, GPerlNodes *blocks, GPerlFlags *flags, GPerlCell *root);
-	void parseElseStmt(GPerlToken *t, GPerlNodes *blocks, GPerlFlags *flags, GPerlCell *root);
-	void parseWhileStmt(GPerlToken *t, GPerlNodes *blocks, GPerlFlags *flags, GPerlCell *root);
-	void parseForStmt(GPerlToken *t, GPerlNodes *blocks, GPerlFlags *flags, GPerlCell *root);
-	void parseForeachStmt(GPerlToken *t, GPerlNodes *blocks, GPerlFlags *flags, GPerlCell *root);
-	void parseBlock(GPerlToken *t, GPerlNodes *blocks, GPerlFlags *flags, GPerlCell *root, GPerlAST *ast);
-	void parseLeftBrace(GPerlToken *t, GPerlNodes *nodes, GPerlFlags *flags, GPerlCell *root, GPerlAST *ast);
-	void parseRightBrace(GPerlToken *t, GPerlNodes *nodes, GPerlFlags *flags, GPerlCell *root, GPerlAST *ast);
-	void parseLeftParenthesis(GPerlToken *t, GPerlNodes *nodes, GPerlFlags *flags, GPerlT prev_type);
-	void parseRightParenthesis(GPerlToken *t, GPerlNodes *nodes, GPerlFlags *flags, GPerlCell *root, GPerlAST *ast);
-	void parseLeftBracket(GPerlToken *t, GPerlNodes *nodes, GPerlFlags *flags);
-	void parseDereference(GPerlToken *t, GPerlNodes *blocks, GPerlFlags *);
-	void parseShift(GPerlToken *t, GPerlNodes *blocks, GPerlFlags *);
-	void parseTerm(GPerlToken *t, GPerlNodes *nodes, GPerlFlags *flags, GPerlCell *root, GPerlAST *ast);
-	void parseLeftTerm(GPerlToken *t, GPerlNodes *blocks, GPerlScope *scope);
-	void parseRightTerm(GPerlToken *t, GPerlNodes *blocks, GPerlScope *scope);
-	void parseSingleTerm(GPerlToken *t, GPerlNodes *blocks, GPerlScope *scope);
-	void parseSemiColon(GPerlToken *t, GPerlNodes *nodes, GPerlFlags *flags, GPerlCell *root, GPerlAST *ast);
-	void parseArgument(GPerlToken *t, GPerlNodes *blocks, GPerlFlags *flags);
-	void parseComma(GPerlToken *t, GPerlNodes *blocks, GPerlFlags *flags, GPerlCell *root);
-	void parseFunctionCall(GPerlToken *t, GPerlNodes *blocks, GPerlScope *scope);
-	void parseValue(GPerlToken *t, GPerlNodes *nodes, GPerlScope *scope);
+	void parseTerm(GPerlParseContext *pctx, GPerlCell *root, GPerlAST *ast);
+	void parseSingleTermOperator(GPerlParseContext *pctx);
+	void parseDoubleTermOperator(GPerlParseContext *pctx);
+	void parseAssign(GPerlParseContext *pctx, GPerlCell *root);
+	void parseFunc(GPerlParseContext *pctx, GPerlCell *root, GPerlAST *ast);
+	void parseIfStmt(GPerlParseContext *pctx, GPerlCell *root);
+	void parseElseIfStmt(GPerlParseContext *pctx, GPerlCell *root);
+	void parseElseStmt(GPerlParseContext *pctx, GPerlCell *root);
+	void parseWhileStmt(GPerlParseContext *pctx, GPerlCell *root);
+	void parseForStmt(GPerlParseContext *pctx, GPerlCell *root);
+	void parseForeachStmt(GPerlParseContext *pctx, GPerlCell *root);
+	void parseBlock(GPerlParseContext *pctx, GPerlCell *root, GPerlAST *ast);
+	void parseLeftBrace(GPerlParseContext *pctx, GPerlCell *root, GPerlAST *ast);
+	void parseRightBrace(GPerlParseContext *pctx, GPerlCell *root, GPerlAST *ast);
+	void parseLeftParenthesis(GPerlParseContext *pctx, GPerlT prev_type);
+	void parseRightParenthesis(GPerlParseContext *pctx, GPerlCell *root, GPerlAST *ast);
+	void parseLeftBracket(GPerlParseContext *pctx);
+	void parseDereference(GPerlParseContext *pctx);
+	void parseShift(GPerlParseContext *pctx);
+	void parseLeftTerm(GPerlParseContext *pctx, GPerlScope *scope);
+	void parseRightTerm(GPerlParseContext *pctx,  GPerlScope *scope);
+	void parseSingleTerm(GPerlParseContext *pctx, GPerlScope *scope);
+	void parseSemiColon(GPerlParseContext *pctx, GPerlCell *root, GPerlAST *ast);
+	void parseArgument(GPerlParseContext *pctx);
+	void parseComma(GPerlParseContext *pctx, GPerlCell *root);
+	void parseFunctionCall(GPerlParseContext *pctx, GPerlScope *scope);
 };
 
 #ifdef USING_GRAPH_DEBUG

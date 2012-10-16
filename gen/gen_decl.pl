@@ -8,12 +8,16 @@ foreach (<ins>) {
 }
 my $data = decode_json($json_data);
 my @array = @{$data};
-#print Dumper(@array);
 my @token_enum = ();
-for (my $i = 0; $i < $#array + 1; $i++) {
-	my $type = $array[$i]->{type};
+my @kind_enum = ();
+foreach my $elem (@array) {
+	my $type = $elem->{type};
+	my $kind = $elem->{type};
 	unless (grep{$_ eq $type} @token_enum) {
 		push(@token_enum, $type);
+	}
+	unless (grep{$_ eq $kind} @kind_enum) {
+		push(@kind_enum, $kind);
 	}
 }
 
@@ -23,9 +27,18 @@ foreach (@token_enum) {
 }
 print ous "} GPerlT;\n";
 print ous "\n";
-print ous
-"typedef struct _GPerlTokenInfo {
+
+print ous "typedef enum {\n";
+foreach (@kind_enum) {
+	print ous "\t$_,\n";
+}
+print ous "} GPerlKind;\n";
+print ous "\n";
+
+print ous "
+typedef struct _GPerlTokenInfo {
 	GPerlT type;
+	GPerlKind kind;
 	const char *name;
 	const char *data;
 } GPerlTokenInfo;\n";

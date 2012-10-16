@@ -129,8 +129,9 @@ GPerlFlags::GPerlFlags(void): isVarDeclFlag(false), isCallDeclFlag(false),
 {
 }
 
-void GPerlParser::parseValue(GPerlToken *t, GPerlNodes *blocks, GPerlScope *scope)
+void GPerlParser::parseValue(GPerlParseContext *pctx, GPerlScope *scope)
 {
+	GPerlNodes *blocks = pctx->nodes;
 	GPerlCell *block = (blocks->block_num > 0) ? blocks->lastNode() : NULL;
 	if (block && block->type != Assign && block->type != Return &&
 		block->type != AddEqual && block->type != SubEqual &&
@@ -138,22 +139,24 @@ void GPerlParser::parseValue(GPerlToken *t, GPerlNodes *blocks, GPerlScope *scop
 		DBG_PL("%s", block->info.name);
 		if (block->type == Call || block->type == BuiltinFunc ||
 			block->type == CodeVar) {
-			parseFunctionCall(t, blocks, scope);
+			parseFunctionCall(pctx, scope);
 		} else if (block->left == NULL) {
-			parseLeftTerm(t, blocks, scope);
+			parseLeftTerm(pctx, scope);
 		} else if (block->right == NULL) {
-			parseRightTerm(t, blocks, scope);
+			parseRightTerm(pctx, scope);
 		} else {
 			fprintf(stderr, "ERROR:[parse error]!!\n");
 		}
 	} else {
-		parseSingleTerm(t, blocks, scope);
+		parseSingleTerm(pctx, scope);
 	}
 }
 
-void GPerlParser::parseFunctionCall(GPerlToken *t, GPerlNodes *blocks, GPerlScope *scope)
+void GPerlParser::parseFunctionCall(GPerlParseContext *pctx, GPerlScope *scope)
 {
 	DBG_PL("[%s]:NEW BLOCK->BLOCKS[%d]", cstr(t->data), __LINE__);
+	GPerlToken *t = pctx->t;
+	GPerlNodes *blocks = pctx->nodes;
 	GPerlT type = t->info.type;
 	GPerlCell *block = blocks->lastNode();
 	if (scope &&
@@ -196,8 +199,10 @@ void GPerlParser::parseFunctionCall(GPerlToken *t, GPerlNodes *blocks, GPerlScop
 	}
 }
 
-void GPerlParser::parseSingleTerm(GPerlToken *t, GPerlNodes *blocks, GPerlScope *scope)
+void GPerlParser::parseSingleTerm(GPerlParseContext *pctx, GPerlScope *scope)
 {
+	GPerlToken *t = pctx->t;
+	GPerlNodes *blocks = pctx->nodes;
 	GPerlT type = t->info.type;
 	if (scope && scope->root->argsize > 1 && type == LeftParenthesis) {
 		DBG_PL("List");
@@ -235,8 +240,10 @@ void GPerlParser::parseSingleTerm(GPerlToken *t, GPerlNodes *blocks, GPerlScope 
 	}
 }
 
-void GPerlParser::parseLeftTerm(GPerlToken *t, GPerlNodes *blocks, GPerlScope *scope)
+void GPerlParser::parseLeftTerm(GPerlParseContext *pctx, GPerlScope *scope)
 {
+	GPerlToken *t = pctx->t;
+	GPerlNodes *blocks = pctx->nodes;
 	DBG_PL("[%s]:LAST BLOCK->left", cstr(t->data));
 	GPerlT type = t->info.type;
 	GPerlCell *block = blocks->lastNode();
@@ -254,8 +261,10 @@ void GPerlParser::parseLeftTerm(GPerlToken *t, GPerlNodes *blocks, GPerlScope *s
 	if (type == Call || type == BuiltinFunc || type == CodeVar) blocks->pushNode(b);
 }
 
-void GPerlParser::parseRightTerm(GPerlToken *t, GPerlNodes *blocks, GPerlScope *scope)
+void GPerlParser::parseRightTerm(GPerlParseContext *pctx, GPerlScope *scope)
 {
+	GPerlToken *t = pctx->t;
+	GPerlNodes *blocks = pctx->nodes;
 	DBG_PL("[%s]:LAST BLOCK->right", cstr(t->data));
 	GPerlT type = t->info.type;
 	GPerlCell *block = blocks->lastNode();
@@ -275,25 +284,28 @@ void GPerlParser::parseRightTerm(GPerlToken *t, GPerlNodes *blocks, GPerlScope *
 
 void GPerlParser::parseLocalVar(GPerlParseContext *pctx)
 {
-	if (pctx->flags->isVarDeclFlag) {
-		DBG_PL("[%s]:NEW BLOCK => BLOCKS", cstr(pctx->t->data));
+	GPerlToken *t = pctx->t;
+	GPerlNodes *blocks = pctx->nodes;
+	GPerlFlags *flags = pctx->flags;
+	if (flags->isVarDeclFlag) {
+		DBG_PL("[%s]:NEW BLOCK => BLOCKS", cstr(t->data));
 		DBG_PL("vidx = [%d]", vidx);
 		DBG_PL("indent = [%d]", indent);
 		if (indent > 0) {
-			GPerlCell *var = new GPerlCell(LocalVarDecl, pctx->t->data);
+			GPerlCell *var = new GPerlCell(LocalVarDecl, t->data);
 			var->indent = indent;
 			var->setVariableIdx(vidx);
-			pctx->nodes->pushNode(var);
-			pctx->flags->isVarDeclFlag = false;
+			blocks->pushNode(var);
+			flags->isVarDeclFlag = false;
 			vcount++;
 			vidx++;
 		} else {
 			DBG_PL("gidx = [%d]", gidx);
-			GPerlCell *gvar = new GPerlCell(GlobalVarDecl, pctx->t->data);
+			GPerlCell *gvar = new GPerlCell(GlobalVarDecl, t->data);
 			gvar->indent = indent;
 			gvar->setVariableIdx(gidx);
-			pctx->nodes->pushNode(gvar);
-			pctx->flags->isVarDeclFlag = false;
+			blocks->pushNode(gvar);
+			flags->isVarDeclFlag = false;
 			gidx++;
 		}
 	}
@@ -301,26 +313,33 @@ void GPerlParser::parseLocalVar(GPerlParseContext *pctx)
 
 void GPerlParser::parseGlobalVar(GPerlParseContext *pctx)
 {
-	DBG_PL("[%s]:NEW BLOCK => BLOCKS", cstr(pctx->t->data));
+	GPerlToken *t = pctx->t;
+	GPerlNodes *blocks = pctx->nodes;
+	GPerlFlags *flags = pctx->flags;
+	DBG_PL("[%s]:NEW BLOCK => BLOCKS", cstr(t->data));
 	DBG_PL("gidx = [%d]", gidx);
 	DBG_PL("INDENT = [%d]", indent);
-	GPerlCell *gvar = new GPerlCell(GlobalVarDecl, pctx->t->data);
+	GPerlCell *gvar = new GPerlCell(GlobalVarDecl, t->data);
 	gvar->indent = indent;
 	gvar->setVariableIdx(gidx);
-	pctx->nodes->pushNode(gvar);
-	pctx->flags->isVarDeclFlag = false;
+	blocks->pushNode(gvar);
+	flags->isVarDeclFlag = false;
 	gidx++;
 }
 
-void GPerlParser::parseSingleTermOperator(GPerlToken *t, GPerlNodes *blocks)
+void GPerlParser::parseSingleTermOperator(GPerlParseContext *pctx)
 {
+	GPerlToken *t = pctx->t;
+	GPerlNodes *blocks = pctx->nodes;
 	DBG_PL("[%s]:LAST BLOCK->PARENT", cstr(t->data));
 	GPerlCell *b = new GPerlCell(t->info.type, t->data);
 	blocks->pushNode(b);
 }
 
-void GPerlParser::parseDoubleTermOperator(GPerlToken *t, GPerlNodes *blocks)
+void GPerlParser::parseDoubleTermOperator(GPerlParseContext *pctx)
 {
+	GPerlToken *t = pctx->t;
+	GPerlNodes *blocks = pctx->nodes;
 	DBG_PL("[%s]:LAST BLOCK->PARENT", cstr(t->data));
 	GPerlCell *block = blocks->lastNode();
 	if (blocks->block_num > 2 && block->parent == blocks->at(blocks->block_num-2)) {
@@ -338,8 +357,10 @@ void GPerlParser::parseDoubleTermOperator(GPerlToken *t, GPerlNodes *blocks)
 	}
 }
 
-GPerlCell *GPerlParser::parseAssign(GPerlToken *t, GPerlNodes *blocks)
+void GPerlParser::parseAssign(GPerlParseContext *pctx, GPerlCell *root)
 {
+	GPerlToken *t = pctx->t;
+	GPerlNodes *blocks = pctx->nodes;
 	DBG_PL("ASSIGN:LAST BLOCK->PARENT");
 	GPerlCell *block = NULL;
 	if (blocks->block_num > 0) {
@@ -354,11 +375,13 @@ GPerlCell *GPerlParser::parseAssign(GPerlToken *t, GPerlNodes *blocks)
 	block->parent = assign;
 	assign->left = block;
 	blocks->pushNode(assign);
-	return assign;
+	root = assign;
 }
 
-void GPerlParser::parseFunc(GPerlToken *, GPerlNodes *blocks, GPerlFlags *flags, GPerlCell *, GPerlAST *ast)
+void GPerlParser::parseFunc(GPerlParseContext *pctx, GPerlCell *, GPerlAST *ast)
 {
+	GPerlFlags *flags = pctx->flags;
+	GPerlNodes *blocks = pctx->nodes;
 	MOVE_NEXT_TOKEN();
 	GPerlScope *body = parse();
 	GPerlCell *func = blocks->lastNode();
@@ -368,8 +391,10 @@ void GPerlParser::parseFunc(GPerlToken *, GPerlNodes *blocks, GPerlFlags *flags,
 	flags->funcFlag = false;
 }
 
-void GPerlParser::parseIfStmt(GPerlToken *, GPerlNodes *blocks, GPerlFlags *flags, GPerlCell *root)
+void GPerlParser::parseIfStmt(GPerlParseContext *pctx, GPerlCell *root)
 {
+	GPerlFlags *flags = pctx->flags;
+	GPerlNodes *blocks = pctx->nodes;
 	GPerlCell *cond = blocks->lastNode();
 	if (cond->type != IsNot &&
 		(cond->type == Var || cond->type == ArrayVar ||
@@ -394,8 +419,10 @@ void GPerlParser::parseIfStmt(GPerlToken *, GPerlNodes *blocks, GPerlFlags *flag
 	flags->ifStmtFlag = false;
 }
 
-void GPerlParser::parseElseIfStmt(GPerlToken *, GPerlNodes *blocks, GPerlFlags *flags, GPerlCell *root)
+void GPerlParser::parseElseIfStmt(GPerlParseContext *pctx, GPerlCell *root)
 {
+	GPerlFlags *flags = pctx->flags;
+	GPerlNodes *blocks = pctx->nodes;
 	GPerlCell *cond = blocks->lastNode();
 	if (cond->type != IsNot &&
 		(cond->type == Var || cond->type == ArrayVar ||
@@ -420,17 +447,19 @@ void GPerlParser::parseElseIfStmt(GPerlToken *, GPerlNodes *blocks, GPerlFlags *
 	flags->elsifStmtFlag = false;
 }
 
-void GPerlParser::parseElseStmt(GPerlToken *, GPerlNodes *, GPerlFlags *flags, GPerlCell *root)
+void GPerlParser::parseElseStmt(GPerlParseContext *pctx, GPerlCell *root)
 {
 	MOVE_NEXT_TOKEN();
 	DBG_PL("-----------elsestmt------------");
 	GPerlScope *scope = parse();
 	root->false_stmt = scope;
-	flags->elseStmtFlag = false;
+	pctx->flags->elseStmtFlag = false;
 }
 
-void GPerlParser::parseWhileStmt(GPerlToken *, GPerlNodes *blocks, GPerlFlags *flags, GPerlCell *root)
+void GPerlParser::parseWhileStmt(GPerlParseContext *pctx, GPerlCell *root)
 {
+	GPerlFlags *flags = pctx->flags;
+	GPerlNodes *blocks = pctx->nodes;
 	GPerlCell *cond = blocks->lastNode();
 	blocks->popNode();
 	root->cond = cond;
@@ -442,13 +471,15 @@ void GPerlParser::parseWhileStmt(GPerlToken *, GPerlNodes *blocks, GPerlFlags *f
 	flags->whileStmtFlag = false;
 }
 
-void GPerlParser::parseForStmt(GPerlToken *t, GPerlNodes *blocks, GPerlFlags *flags, GPerlCell *root)
+void GPerlParser::parseForStmt(GPerlParseContext *pctx, GPerlCell *root)
 {
+	GPerlFlags *flags = pctx->flags;
+	GPerlNodes *blocks = pctx->nodes;
 	GPerlCell *cond = blocks->lastNode();
 	if (!cond->next) {
 		flags->forStmtFlag = false;
 		root->type = ForeachStmt;
-		parseForeachStmt(t, blocks, flags, root);
+		parseForeachStmt(pctx, root);
 		return;
 	}
 	blocks->popNode();
@@ -461,8 +492,10 @@ void GPerlParser::parseForStmt(GPerlToken *t, GPerlNodes *blocks, GPerlFlags *fl
 	flags->forStmtFlag = false;
 }
 
-void GPerlParser::parseForeachStmt(GPerlToken *, GPerlNodes *blocks, GPerlFlags *flags, GPerlCell *root)
+void GPerlParser::parseForeachStmt(GPerlParseContext *pctx, GPerlCell *root)
 {
+	GPerlFlags *flags = pctx->flags;
+	GPerlNodes *blocks = pctx->nodes;
 	GPerlCell *cond = blocks->lastNode();
 	cond->indent++;
 	cond->setVariableIdx(vidx);
@@ -493,8 +526,9 @@ void GPerlParser::parseForeachStmt(GPerlToken *, GPerlNodes *blocks, GPerlFlags 
 	flags->foreachStmtFlag = false;
 }
 
-void GPerlParser::parseBlock(GPerlToken *t, GPerlNodes *blocks, GPerlFlags *, GPerlCell *, GPerlAST *ast)
+void GPerlParser::parseBlock(GPerlParseContext *pctx, GPerlCell *, GPerlAST *ast)
 {
+	GPerlNodes *blocks = pctx->nodes;
 	MOVE_NEXT_TOKEN();
 	DBG_PL("-----------BlockScope------------");
 	GPerlScope *scope = parse();
@@ -524,10 +558,10 @@ void GPerlParser::parseBlock(GPerlToken *t, GPerlNodes *blocks, GPerlFlags *, GP
 		//blocks.swapLastNode(b);
 		GPerlScope *scope = new GPerlScope();
 		scope->add(b);
-		parseValue(t, blocks, scope);
+		parseValue(pctx, scope);
 	} else if (node->argsize > 0) {
 		//HashReference
-		parseValue(t, blocks, scope);
+		parseValue(pctx, scope);
 	} else {
 		for (; node; node = node->next) {
 			ast->add(node);
@@ -535,32 +569,34 @@ void GPerlParser::parseBlock(GPerlToken *t, GPerlNodes *blocks, GPerlFlags *, GP
 	}
 }
 
-void GPerlParser::parseLeftBrace(GPerlToken *t, GPerlNodes *blocks, GPerlFlags *flags, GPerlCell *root, GPerlAST *ast)
+void GPerlParser::parseLeftBrace(GPerlParseContext *pctx, GPerlCell *root, GPerlAST *ast)
 {
+	GPerlFlags *flags = pctx->flags;
 	DBG_PL("LEFT BRACE:");
 	vcount = 0;
 	indent++;
 	if (flags->funcFlag) {
-		parseFunc(t, blocks, flags, root, ast);
+		parseFunc(pctx, root, ast);
 	} else if (flags->ifStmtFlag) {
-		parseIfStmt(t, blocks, flags, root);
+		parseIfStmt(pctx, root);
 	} else if (flags->elsifStmtFlag) {
-		parseElseIfStmt(t, blocks, flags, root);
+		parseElseIfStmt(pctx, root);
 	} else if (flags->elseStmtFlag) {
-		parseElseStmt(t, blocks, flags, root);
+		parseElseStmt(pctx, root);
 	} else if (flags->whileStmtFlag) {
-		parseWhileStmt(t, blocks, flags, root);
+		parseWhileStmt(pctx, root);
 	} else if (flags->forStmtFlag) {
-		parseForStmt(t, blocks, flags, root);
+		parseForStmt(pctx, root);
 	} else if (flags->foreachStmtFlag) {
-		parseForeachStmt(t, blocks, flags, root);
+		parseForeachStmt(pctx, root);
 	} else {
-		parseBlock(t, blocks, flags, root, ast);
+		parseBlock(pctx, root, ast);
 	}
 }
 
-void GPerlParser::parseRightBrace(GPerlToken *, GPerlNodes *blocks, GPerlFlags *, GPerlCell *root, GPerlAST *ast)
+void GPerlParser::parseRightBrace(GPerlParseContext *pctx, GPerlCell *root, GPerlAST *ast)
 {
+	GPerlNodes *blocks = pctx->nodes;
 	DBG_PL("RIGHT BRACE:");
 	if (root->argsize > 0) {
 		//HashReference
@@ -579,8 +615,9 @@ void GPerlParser::parseRightBrace(GPerlToken *, GPerlNodes *blocks, GPerlFlags *
 	}
 }
 
-void GPerlParser::parseLeftParenthesis(GPerlToken *t, GPerlNodes *blocks, GPerlFlags *flags, GPerlT prev_type)
+void GPerlParser::parseLeftParenthesis(GPerlParseContext *pctx, GPerlT prev_type)
 {
+	GPerlFlags *flags = pctx->flags;
 	if (prev_type != BuiltinFunc && prev_type != Call &&
 		prev_type != CodeVar) {
 		flags->condIndentFlag = true;
@@ -594,7 +631,7 @@ void GPerlParser::parseLeftParenthesis(GPerlToken *t, GPerlNodes *blocks, GPerlF
 		indent--;
 		flags->condIndentFlag = false;
 	}
-	parseValue(t, blocks, scope);
+	parseValue(pctx, scope);
 	if (flags->isVarDeclFlag) {
 		DBG_PL("MultiVarDecl");
 		DBG_PL("vidx = [%d]", vidx);
@@ -625,8 +662,9 @@ void GPerlParser::parseLeftParenthesis(GPerlToken *t, GPerlNodes *blocks, GPerlF
 	}
 }
 
-void GPerlParser::parseRightParenthesis(GPerlToken *, GPerlNodes *blocks, GPerlFlags *, GPerlCell *root, GPerlAST *ast)
+void GPerlParser::parseRightParenthesis(GPerlParseContext *pctx, GPerlCell *root, GPerlAST *ast)
 {
+	GPerlNodes *blocks = pctx->nodes;
 	if (blocks->block_num > 1) {
 		DBG_PL("[)]:CONNECT BLOCK <=> BLOCK");
 		GPerlCell *to = blocks->lastNode();
@@ -655,8 +693,9 @@ void GPerlParser::parseRightParenthesis(GPerlToken *, GPerlNodes *blocks, GPerlF
 	ast->add(root);
 }
 
-void GPerlParser::parseLeftBracket(GPerlToken *t, GPerlNodes *blocks, GPerlFlags *)
+void GPerlParser::parseLeftBracket(GPerlParseContext *pctx)
 {
+	GPerlNodes *blocks = pctx->nodes;
 	MOVE_NEXT_TOKEN();
 	GPerlScope *scope = parse();
 	GPerlCell *block = blocks->lastNode();
@@ -685,15 +724,17 @@ void GPerlParser::parseLeftBracket(GPerlToken *t, GPerlNodes *blocks, GPerlFlags
 		//blocks.swapLastNode(b);
 		GPerlScope *scope = new GPerlScope();
 		scope->add(b);
-		parseValue(t, blocks, scope);
+		parseValue(pctx, scope);
 	} else {
 		//ArrayRef
-		parseValue(t, blocks, scope);
+		parseValue(pctx, scope);
 	}
 }
 
-void GPerlParser::parseDereference(GPerlToken *t, GPerlNodes *blocks, GPerlFlags *)
+void GPerlParser::parseDereference(GPerlParseContext *pctx)
 {
+	GPerlToken *t = pctx->t;
+	GPerlNodes *blocks = pctx->nodes;
 	MOVE_NEXT_TOKEN();
 	indent++;
 	DBG_PL("-----------(Array/Hash)Dereference------------");
@@ -707,9 +748,11 @@ void GPerlParser::parseDereference(GPerlToken *t, GPerlNodes *blocks, GPerlFlags
 	blocks->pushNode(b);
 }
 
-void GPerlParser::parseTerm(GPerlToken *t, GPerlNodes *blocks, GPerlFlags *flags, GPerlCell *root, GPerlAST *ast)
+void GPerlParser::parseTerm(GPerlParseContext *pctx, GPerlCell *root, GPerlAST *ast)
 {
 	GPerlScope *pkg = NULL;
+	GPerlToken *t = pctx->t;
+	GPerlFlags *flags = pctx->flags;
 	if (flags->isCallDeclFlag && t->info.type != Call && t->info.type != BuiltinFunc) {
 		t->info.type = CodeVar;
 		flags->isCallDeclFlag = false;
@@ -728,11 +771,12 @@ void GPerlParser::parseTerm(GPerlToken *t, GPerlNodes *blocks, GPerlFlags *flags
 		flags->annotateFlag = false;
 		return;
 	}
-	parseValue(t, blocks, NULL);
+	parseValue(pctx, NULL);
 }
 
-void GPerlParser::parseSemiColon(GPerlToken *, GPerlNodes *blocks, GPerlFlags *, GPerlCell *root, GPerlAST *ast)
+void GPerlParser::parseSemiColon(GPerlParseContext *pctx, GPerlCell *root, GPerlAST *ast)
 {
+	GPerlNodes *blocks = pctx->nodes;
 	int size = blocks->size();
 	DBG_PL("BLOCKS SIZE = [%d]", size);
 	if (size == 1) {
@@ -763,8 +807,10 @@ void GPerlParser::parseSemiColon(GPerlToken *, GPerlNodes *blocks, GPerlFlags *,
 	}
 }
 
-void GPerlParser::parseShift(GPerlToken *t, GPerlNodes *blocks, GPerlFlags *)
+void GPerlParser::parseShift(GPerlParseContext *pctx)
 {
+	GPerlToken *t = pctx->t;
+	GPerlNodes *blocks = pctx->nodes;
 	if (blocks->block_num > 0 && blocks->lastNode()->type == Assign) {
 		GPerlCell *assign = blocks->lastNode();
 		if (assign->right == NULL) {
@@ -779,8 +825,9 @@ void GPerlParser::parseShift(GPerlToken *t, GPerlNodes *blocks, GPerlFlags *)
 	}
 }
 
-void GPerlParser::parseArgument(GPerlToken *, GPerlNodes *blocks, GPerlFlags *)
+void GPerlParser::parseArgument(GPerlParseContext *pctx)
 {
+	GPerlNodes *blocks = pctx->nodes;
 	DBG_PL("ProgramArgument");
 	GPerlCell *args = new GPerlCell(List);
 	for (int i = 0; i < argc; i++) {
@@ -793,8 +840,9 @@ void GPerlParser::parseArgument(GPerlToken *, GPerlNodes *blocks, GPerlFlags *)
 	blocks->pushNode(args);
 }
 
-void GPerlParser::parseComma(GPerlToken *, GPerlNodes *blocks, GPerlFlags *, GPerlCell *root)
+void GPerlParser::parseComma(GPerlParseContext *pctx, GPerlCell *root)
 {
+	GPerlNodes *blocks = pctx->nodes;
 	DBG_PL("VARGS[] = STMT & CLEAR BLOCKS");
 	GPerlCell *stmt = blocks->at(0);
 	GPerlCell *v = root;
@@ -830,23 +878,23 @@ GPerlAST *GPerlParser::parse(void)
 		case SpecificValue: case Int: case Double: case String: case Default:
 		case Call: case BuiltinFunc:
 		case Key: case CodeVar: case Class:
-			parseTerm(t, &blocks, &flags, root, ast);
+			parseTerm(&pctx, root, ast);
 			break;
 		case Shift:
-			parseShift(t, &blocks, &flags);
+			parseShift(&pctx);
 			break;
 		case Add: case Sub: case Mul: case Div:
 		case Greater: case Less: case GreaterEqual: case LessEqual:
 		case EqualEqual: case NotEqual: case Inc: case Dec:
 		case LeftShift: case RightShift:
 		case StringAdd: case Arrow: case Pointer:
-			parseDoubleTermOperator(t, &blocks);
+			parseDoubleTermOperator(&pctx);
 			break;
 		case IsNot: case CodeRef:
-			parseSingleTermOperator(t, &blocks);
+			parseSingleTermOperator(&pctx);
 			break;
 		case Assign: case AddEqual: case SubEqual: case MulEqual: case DivEqual:
-			root = parseAssign(t, &blocks);
+			parseAssign(&pctx, root);
 			break;
 		case IfStmt:
 			root = new GPerlCell(IfStmt, t->data);
@@ -907,31 +955,31 @@ GPerlAST *GPerlParser::parse(void)
 			blocks.pushNode(new GPerlCell(Return, t->data));
 			break;
 		case LeftBrace:
-			parseLeftBrace(t, &blocks, &flags, root, ast);
+			parseLeftBrace(&pctx, root, ast);
 			break;
 		case ArrayDereference: case HashDereference:
-			parseDereference(t, &blocks, &flags);
+			parseDereference(&pctx);
 			break;
 		case RightBrace:
-			parseRightBrace(t, &blocks, &flags, root, ast);
+			parseRightBrace(&pctx, root, ast);
 			return ast;
 		case LeftParenthesis:
-			parseLeftParenthesis(t, &blocks, &flags, prev_type);
+			parseLeftParenthesis(&pctx, prev_type);
 			break;
 		case RightParenthesis: case RightBracket:
-			parseRightParenthesis(t, &blocks, &flags, root, ast);
+			parseRightParenthesis(&pctx, root, ast);
 			return ast;
 		case LeftBracket:
-			parseLeftBracket(t, &blocks, &flags);
+			parseLeftBracket(&pctx);
 			break;
 		case ProgramArgument:
-			parseArgument(t, &blocks, &flags);
+			parseArgument(&pctx);
 			break;
 		case Comma:
-			parseComma(t, &blocks, &flags, root);
+			parseComma(&pctx, root);
 			break;
 		case SemiColon:
-			parseSemiColon(t, &blocks, &flags, root, ast);
+			parseSemiColon(&pctx, root, ast);
 			break;
 		default:
 			break;
