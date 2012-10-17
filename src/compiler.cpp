@@ -718,7 +718,7 @@ void GPerlCompiler::finalCompile(vector<GPerlVirtualMachineCode *> *code)
 	}
 }
 
-static GPerlVirtualMachineCode pure_codes_[128];
+static GPerlVirtualMachineCode pure_codes_[256];
 GPerlVirtualMachineCode *GPerlCompiler::getPureCodes(vector<GPerlVirtualMachineCode *> *codes)
 {
 	int code_n = codes->size();

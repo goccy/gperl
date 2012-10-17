@@ -154,11 +154,11 @@ void GPerlParser::parseValue(GPerlParseContext *pctx, GPerlScope *scope)
 
 void GPerlParser::parseFunctionCall(GPerlParseContext *pctx, GPerlScope *scope)
 {
-	DBG_PL("[%s]:NEW BLOCK->BLOCKS[%d]", cstr(t->data), __LINE__);
 	GPerlToken *t = pctx->t;
 	GPerlNodes *blocks = pctx->nodes;
 	GPerlT type = t->info.type;
 	GPerlCell *block = blocks->lastNode();
+	DBG_PL("[%s]:NEW BLOCK->BLOCKS[%d]", cstr(t->data), __LINE__);
 	if (scope &&
 		scope->root->type == Call || scope->root->type == BuiltinFunc ||
 		scope->root->type == CodeVar) {

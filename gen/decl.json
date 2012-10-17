@@ -170,12 +170,6 @@
  {
 	 "type" : "BuiltinFunc",
 	 "kind" : "Function",
-	 "data" : "undef",
-	 "parse_func" : ""
- },
- {
-	 "type" : "BuiltinFunc",
-	 "kind" : "Function",
 	 "data" : "sqrt",
 	 "parse_func" : ""
  },
@@ -211,6 +205,7 @@
  },
  {
 	 "type" : "BuiltinFunc",
+	 "kind" : "Function",
 	 "data" : "defined",
 	 "parse_func" : ""
  },
@@ -252,49 +247,49 @@
  },
  {
 	 "type" : "LeftParenthesis",
-	 "kind" : "",
+	 "kind" : "Symbol",
 	 "data" : "(",
 	 "parse_func" : ""
  },
  {
 	 "type" : "RightParenthesis",
-	 "kind" : "",
+	 "kind" : "Symbol",
 	 "data" : ")",
 	 "parse_func" : ""
  },
  {
 	 "type" : "LeftBrace",
-	 "kind" : "",
+	 "kind" : "Symbol",
 	 "data" : "{",
 	 "parse_func" : ""
  },
  {
 	 "type" : "RightBrace",
-	 "kind" : "",
+	 "kind" : "Symbol",
 	 "data" : "}",
 	 "parse_func" : ""
  },
  {
 	 "type" : "LeftBracket",
-	 "kind" : "",
+	 "kind" : "Symbol",
 	 "data" : "[",
 	 "parse_func" : ""
  },
  {
 	 "type" : "RightBracket",
-	 "kind" : "",
+	 "kind" : "Symbol",
 	 "data" : "]",
 	 "parse_func" : ""
  },
  {
 	 "type" : "ArrayDereference",
-	 "kind" : "",
+	 "kind" : "Modifier",
 	 "data" : "@{",
 	 "parse_func" : ""
  },
  {
 	 "type" : "HashDereference",
-	 "kind" : "",
+	 "kind" : "Modifier",
 	 "data" : "%{",
 	 "parse_func" : ""
  },
@@ -324,6 +319,7 @@
  },
  {
 	 "type" : "Class",
+	 "kind" : "Stmt",
 	 "data" : "",
 	 "parse_func" : ""
  },
@@ -371,51 +367,61 @@
  },
  {
      "type" : "ArgumentArray",
+	 "kind" : "Term",
      "data" : "@_",
      "parse_func" : ""
  },
  {
      "type" : "SpecificValue",
+	 "kind" : "Term",
      "data" : "$_",
      "parse_func" : ""
  },
  {
      "type" : "ProgramArgument",
+	 "kind" : "Term",
      "data" : "@ARGV",
      "parse_func" : ""
  },
  {
 	 "type" : "FieldDecl",
+	 "kind" : "Decl",
 	 "data" : "",
 	 "parse_func" : ""
  },
  {
 	 "type" : "TypeRef",
+	 "kind" : "Ref",
 	 "data" : "",
 	 "parse_func" : ""
  },
  {
 	 "type" : "LabelRef",
+	 "kind" : "Ref",
 	 "data" : "",
 	 "parse_func" : ""
  },
  {
 	 "type" : "LocalVarDecl",
+	 "kind" : "Decl",
 	 "data" : "",
 	 "parse_func" : ""
  },
  {
 	 "type" : "GlobalVarDecl",
+	 "kind" : "Decl",
 	 "data" : "",
 	 "parse_func" : ""
  },
  {
 	 "type" : "MultiLocalVarDecl",
+	 "kind" : "Decl",
 	 "data" : "",
 	 "parse_func" : ""
  },
  {
 	 "type" : "MultiGlobalVarDecl",
+	 "kind" : "Decl",
 	 "data" : "",
 	 "parse_func" : ""
  },
@@ -481,6 +487,7 @@
  },
  {
 	 "type" : "Operator",
+	 "kind" : "Operator",
 	 "data" : "",
 	 "parse_func" : ""
  },
@@ -522,36 +529,43 @@
  },
  {
 	 "type" : "ArrayRef",
+	 "kind" : "Ref",
 	 "data" : "",
 	 "parse_func" : ""
  },
  {
 	 "type" : "HashRef",
+	 "kind" : "Ref",
 	 "data" : "",
 	 "parse_func" : ""
  },
  {
 	 "type" : "ArrayAt",
+	 "kind" : "Get",
 	 "data" : "",
 	 "parse_func" : ""
  },
  {
 	 "type" : "HashAt",
+	 "kind" : "Get",
 	 "data" : "",
 	 "parse_func" : ""
  },
  {
 	 "type" : "ArraySet",
+	 "kind" : "Set",
 	 "data" : "",
 	 "parse_func" : ""
  },
  {
 	 "type" : "HashSet",
+	 "kind" : "Set",
 	 "data" : "",
 	 "parse_func" : ""
  },
  {
 	 "type" : "Function",
+	 "kind" : "Decl",
 	 "data" : "",
 	 "parse_func" : ""
  },
@@ -563,21 +577,25 @@
  },
  {
 	 "type" : "Argument",
+	 "kind" : "Term",
 	 "data" : "",
 	 "parse_func" : ""
  },
  {
 	 "type" : "List",
+	 "kind" : "Term",
 	 "data" : "",
 	 "parse_func" : ""
  },
  {
 	 "type" : "Default",
+	 "kind" : "Term",
 	 "data" : "undef",
 	 "parse_func" : ""
  },
  {
 	 "type" : "Undefined",
+	 "kind" : "Undefined",
 	 "data" : "",
 	 "parse_func" : ""
  }

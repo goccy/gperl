@@ -12,12 +12,12 @@ my @token_enum = ();
 my @kind_enum = ();
 foreach my $elem (@array) {
 	my $type = $elem->{type};
-	my $kind = $elem->{type};
+	my $kind = $elem->{kind};
 	unless (grep{$_ eq $type} @token_enum) {
 		push(@token_enum, $type);
 	}
 	unless (grep{$_ eq $kind} @kind_enum) {
-		push(@kind_enum, $kind);
+		push(@kind_enum, $kind) if ($kind);
 	}
 }
 
@@ -28,26 +28,29 @@ foreach (@token_enum) {
 print ous "} GPerlT;\n";
 print ous "\n";
 
+print ous "namespace GPerlKind {\n";
 print ous "typedef enum {\n";
 foreach (@kind_enum) {
 	print ous "\t$_,\n";
 }
-print ous "} GPerlKind;\n";
-print ous "\n";
+print ous "} Flag;\n";
+print ous "}\n";
 
 print ous "
 typedef struct _GPerlTokenInfo {
 	GPerlT type;
-	GPerlKind kind;
+	GPerlKind::Flag kind;
 	const char *name;
 	const char *data;
 } GPerlTokenInfo;\n";
 
 open(ous, ">src/gen_token_decl.cpp");
 print ous "GPerlTokenInfo decl_tokens[] = {\n";
-for (my $i = 0; $i < $#array + 1; $i++) {
-	my $type = $array[$i]->{type};
-	print ous "\t{$type, \"${type}\", \"$array[$i]->{data}\"},\n";
+foreach my $elem (@array) {
+	my $type = $elem->{type};
+    my $kind = $elem->{kind};
+    my $data = $elem->{data};
+	print ous "\t{$type, GPerlKind::$kind, \"${type}\", \"${data}\"},\n";
 }
 print ous "};\n";
 print ous "\n";

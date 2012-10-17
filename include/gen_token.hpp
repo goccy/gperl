@@ -92,8 +92,33 @@ typedef enum {
 	Undefined,
 } GPerlT;
 
+namespace GPerlKind {
+typedef enum {
+	Return,
+	Operator,
+	Assign,
+	Decl,
+	SingleTerm,
+	Function,
+	Stmt,
+	Comma,
+	StmtEnd,
+	Symbol,
+	Modifier,
+	Term,
+	Annotation,
+	Ref,
+	LocalValue,
+	GlobalValue,
+	Get,
+	Set,
+	Undefined,
+} Flag;
+}
+
 typedef struct _GPerlTokenInfo {
 	GPerlT type;
+	GPerlKind::Flag kind;
 	const char *name;
 	const char *data;
 } GPerlTokenInfo;
