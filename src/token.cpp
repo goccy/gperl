@@ -453,6 +453,16 @@ GPerlTokenInfo GPerlTokenizer::getTokenInfo(const char *name, const char *data)
 	return decl_tokens[i];
 }
 
+bool GPerlTokenizer::isReservedKeyword(std::string word)
+{
+	for (int i = 0; decl_tokens[i].type != Undefined; i++) {
+		if (word == decl_tokens[i].data) {
+			return true;
+		}
+	}
+	return false;
+}
+
 void GPerlTokenizer::annotateTokens(vector<GPerlToken *> *tokens)
 {
 	vector<GPerlToken *>::iterator it = tokens->begin();
@@ -463,42 +473,16 @@ void GPerlTokenizer::annotateTokens(vector<GPerlToken *> *tokens)
 	while (it != tokens->end()) {
 		GPerlToken *t = (GPerlToken *)*it;
 		string data = t->data;
-		if (data == "+"     || data == "-"     ||
-			data == "*"     || data == "/"     ||
-			data == "<"     || data == ">"     ||
-			data == "<="    || data == ">="    ||
-			data == "=="    || data == "!="    ||
-			data == "="     || data == "+="    ||
-			data == "-="    || data == "*="    ||
-			data == "/="    || data == ".="    ||
-			data == "++"    || data == "--"    ||
-			data == ";"     || data == ","     ||
-			data == "->"    || data == "=>"    ||
-			data == "&"     || data == "\\&"   ||
-			data == "("     || data == ")"     ||
-			data == "{"     || data == "}"     ||
-			data == "["     || data == "]"     ||
-			data == "@{"    || data == "%{"    ||
-			data == "!"     ||
-			data == "<<"    || data == ">>"    ||
-			data == "print" || data == "push"  ||
-			data == "ref"   || data == "undef" ||
-			data == "keys"  || data == "values" ||
-			data == "bless" || data == "defined" ||
-			data == "scalar"|| data == "package" ||
-			data == "if"    || data == "else"  ||
-			data == "elsif" || data == "unless"||
-			data == "my"    || data == "sub"   ||
-			data == "shift" || data == "while" ||
-			data == "for"   || data == "foreach" ||
-			data == "$_"    || data == "map"   ||
-			data == "@_"    || data == "@ARGV" ||
-			data == "#@"    || data == "return") {
+		if (t->info.type == String) {
+			cur_type = 0;
+			it++;
+			continue;
+		}
+		DBG_PL("TOKEN = [%s]", cstr(data));
+		if (isReservedKeyword(data)) {
 			DBG_PL("TOKEN = [%s]", cstr(data));
-			if (t->info.type != String) {
-				t->info = getTokenInfo(NULL, cstr(data));
-				cur_type = t->info.type;
-			}
+			t->info = getTokenInfo(NULL, cstr(data));
+			cur_type = t->info.type;
 		} else if (cur_type == VarDecl && t->data.find("$") != string::npos) {
 			t->info = getTokenInfo("LocalVar", NULL);
 			vardecl_list.push_back(t->data);
@@ -563,13 +547,8 @@ void GPerlTokenizer::annotateTokens(vector<GPerlToken *> *tokens)
 		} else if (search(pkgdecl_list, t->data)) {
 			t->info = getTokenInfo("Class", NULL);
 		} else {
-			//string
-			if (t->info.type != String) {
-				t->info = getTokenInfo("Key", NULL);
-				cur_type = Key;
-			} else {
-				cur_type = 0;
-			}
+			t->info = getTokenInfo("Key", NULL);
+			cur_type = Key;
 		}
 		it++;
 	}

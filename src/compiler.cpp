@@ -1643,36 +1643,95 @@ void GPerlCompiler::setCALL(GPerlVirtualMachineCode *code, GPerlCell *c)
 
 void GPerlCompiler::setBFUNC(GPerlVirtualMachineCode *code, GPerlCell *c)
 {
-	if (c->rawstr == "print") {
-		DBG_PL("Print");
+	string fname = c->rawstr;
+	if (fname == "print") {
 		code->op = FLUSH;
-	} else if (c->rawstr == "push") {
-		DBG_PL("Push");
+		c->reg = dst;
+	} else if (fname == "push") {
 		if (reg_type[0] != Array) {
 			fprintf(stderr, "COMPILE ERROR : 1st argument must be Array\n");
 		}
-		code->op = ARRAY_PUSH;//ARRAY_PUSH;
+		code->op = ARRAY_PUSH;
 		code->push = Array_push;
-	} else if (c->rawstr == "ref") {
-		DBG_PL("Ref");
+		c->reg = dst;
+	} else if (fname == "ref") {
 		code->op = REF;
-	} else if (c->rawstr == "map") {
+		c->reg = dst;
+	} else if (fname == "map") {
 		DBG_PL("Map");
-	} else if (c->rawstr == "keys") {
-		DBG_PL("Keys");
+		c->reg = dst;
+	} else if (fname == "keys") {
 		code->op = KEYS;
-	} else if (c->rawstr == "values") {
-		DBG_PL("Values");
+		c->reg = dst;
+	} else if (fname == "values") {
 		code->op = VALUES;
 		c->reg = dst;
-	} else if (c->rawstr == "bless") {
-		DBG_PL("Bless");
+	} else if (fname == "bless") {
 		code->op = BLESS;
 		code->dst = dst - 1;
 		c->reg = dst - 1;
-	} else if (c->rawstr == "defined") {
-		DBG_PL("Defined");
+	} else if (fname == "defined") {
 		code->op = DEFINED;
+		code->dst = dst;
+		c->reg = dst;
+		dst++;
+	} else if (fname == "abs") {
+		code->op = ABS;
+		code->dst = dst;
+		c->reg = dst;
+		dst++;
+	} else if (fname == "atan2") {
+		code->op = ATAN2;
+		code->dst = dst;
+		c->reg = dst;
+		dst++;
+	} else if (fname == "cos") {
+		code->op = COS;
+		code->dst = dst;
+		c->reg = dst;
+		dst++;
+	} else if (fname == "exp") {
+		code->op = EXP;
+		code->dst = dst;
+		c->reg = dst;
+		dst++;
+	} else if (fname == "hex") {
+		code->op = HEX;
+		code->dst = dst;
+		c->reg = dst;
+		dst++;
+	} else if (fname == "int") {
+		code->op = INT;
+		code->dst = dst;
+		c->reg = dst;
+		dst++;
+	} else if (fname == "log") {
+		code->op = LOG;
+		code->dst = dst;
+		c->reg = dst;
+		dst++;
+	} else if (fname == "oct") {
+		code->op = OCT;
+		code->dst = dst;
+		c->reg = dst;
+		dst++;
+	} else if (fname == "rand") {
+		code->op = RAND;
+		code->dst = dst;
+		c->reg = dst;
+		dst++;
+	} else if (fname == "sin") {
+		code->op = SIN;
+		code->dst = dst;
+		c->reg = dst;
+		dst++;
+	} else if (fname == "sqrt") {
+		code->op = SQRT;
+		code->dst = dst;
+		c->reg = dst;
+		dst++;
+	} else if (fname == "srand") {
+		code->op = SRAND;
 		code->dst = dst;
 		c->reg = dst;
 		dst++;
@@ -1887,9 +1946,34 @@ void GPerlCompiler::dumpVMCode(GPerlVirtualMachineCode *code)
 	case TYPE_ArrayARGMOV:
 		DBG_PL("r%d <= argstack", code->dst);
 		break;
-	case TYPE_OPERATOR:
-		DBG_PL("r%d op r%d", code->dst, code->src);
+	case TYPE_OPERATOR: {
+		const char *name = decl_codes[code->op].name;
+		if (name[strlen(name) - 1] == 'C') {
+			if (isnan(code->v.dvalue)) {
+				if (code->jmp != 1) {
+					int jmp = code->code_num + code->jmp;
+					DBG_PL("r%d op %d, false => L%d", code->dst, code->v.ivalue, jmp);
+				} else {
+					DBG_PL("r%d op %d", code->dst, code->v.ivalue);
+				}
+			} else {
+				if (code->jmp != 1) {
+					int jmp = code->code_num + code->jmp;
+					DBG_PL("r%d op %f, false => L%d", code->dst, code->v.dvalue, jmp);
+				} else {
+					DBG_PL("r%d op %f", code->dst, code->v.dvalue);
+				}
+			}
+		} else {
+			if (code->jmp != 1) {
+				int jmp = code->code_num + code->jmp;
+				DBG_PL("r%d op r%d, false => L%d", code->dst, code->src, jmp);
+			} else {
+				DBG_PL("r%d op r%d", code->dst, code->src);
+			}
+		}
 		break;
+	}
 	case TYPE_PUSH:
 		DBG_PL("r%d => argstack[%d]", code->dst, code->src);
 		break;

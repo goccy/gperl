@@ -210,6 +210,78 @@
 	 "parse_func" : ""
  },
  {
+	 "type" : "BuiltinFunc",
+	 "kind" : "Function",
+	 "data" : "abs",
+	 "parse_func" : ""
+ },
+ {
+	 "type" : "BuiltinFunc",
+	 "kind" : "Function",
+	 "data" : "atan2",
+	 "parse_func" : ""
+ },
+ {
+	 "type" : "BuiltinFunc",
+	 "kind" : "Function",
+	 "data" : "cos",
+	 "parse_func" : ""
+ },
+ {
+	 "type" : "BuiltinFunc",
+	 "kind" : "Function",
+	 "data" : "exp",
+	 "parse_func" : ""
+ },
+ {
+	 "type" : "BuiltinFunc",
+	 "kind" : "Function",
+	 "data" : "hex",
+	 "parse_func" : ""
+ },
+ {
+	 "type" : "BuiltinFunc",
+	 "kind" : "Function",
+	 "data" : "int",
+	 "parse_func" : ""
+ },
+ {
+	 "type" : "BuiltinFunc",
+	 "kind" : "Function",
+	 "data" : "log",
+	 "parse_func" : ""
+ },
+ {
+	 "type" : "BuiltinFunc",
+	 "kind" : "Function",
+	 "data" : "oct",
+	 "parse_func" : ""
+ },
+ {
+	 "type" : "BuiltinFunc",
+	 "kind" : "Function",
+	 "data" : "rand",
+	 "parse_func" : ""
+ },
+ {
+	 "type" : "BuiltinFunc",
+	 "kind" : "Function",
+	 "data" : "sin",
+	 "parse_func" : ""
+ },
+ {
+	 "type" : "BuiltinFunc",
+	 "kind" : "Function",
+	 "data" : "sqrt",
+	 "parse_func" : ""
+ },
+ {
+	 "type" : "BuiltinFunc",
+	 "kind" : "Function",
+	 "data" : "srand",
+	 "parse_func" : ""
+ },
+ {
 	 "type" : "IfStmt",
 	 "kind" : "Stmt",
 	 "data" : "if",

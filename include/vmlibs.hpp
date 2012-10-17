@@ -21,6 +21,11 @@
 #define S(idx) reg[idx].svalue
 #define O(idx) reg[idx].ovalue
 
+GPerlObject *DEBUG_O(GPerlValue v)
+{
+	return (GPerlObject *)getObject(v);
+}
+
 #define GPERL_UNDEF()
 #define GPERL_LET(dst, src) stack[dst] = reg[src];
 #define GPERL_gLET(dst, src) global_vmemory[dst] = reg[src]
@@ -1038,3 +1043,5 @@ static inline GPerlArray *GPERL_VALUES(GPerlValue arg)
 		a->size--;												\
 		pc += pc->jmp;											\
 	} while (0);
+
+#include "math_libs.hpp"

@@ -862,6 +862,66 @@ GPerlValue GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes, JITParams *p
 		pc++;
 		BREAK();
 	});
+	CASE(ABS, {
+		GPERL_ABS((callstack+1)->argstack[0]);
+		pc++;
+		BREAK();
+	});
+	CASE(ATAN2, {
+		GPERL_ATAN2((callstack+1)->argstack[0], (callstack+1)->argstack[1]);
+		pc++;
+		BREAK();
+	});
+	CASE(COS, {
+		GPERL_COS((callstack+1)->argstack[0]);
+		pc++;
+		BREAK();
+	});
+	CASE(EXP, {
+		GPERL_EXP((callstack+1)->argstack[0]);
+		pc++;
+		BREAK();
+	});
+	CASE(HEX, {
+		GPERL_HEX((callstack+1)->argstack[0]);
+		pc++;
+		BREAK();
+	});
+	CASE(INT, {
+		GPERL_INT((callstack+1)->argstack[0]);
+		pc++;
+		BREAK();
+	});
+	CASE(LOG, {
+		GPERL_LOG((callstack+1)->argstack[0]);
+		pc++;
+		BREAK();
+	});
+	CASE(OCT, {
+		GPERL_OCT((callstack+1)->argstack[0]);
+		pc++;
+		BREAK();
+	});
+	CASE(RAND, {
+		GPERL_RAND((callstack+1)->argstack[0]);
+		pc++;
+		BREAK();
+	});
+	CASE(SIN, {
+		GPERL_SIN((callstack+1)->argstack[0]);
+		pc++;
+		BREAK();
+	});
+	CASE(SQRT, {
+		GPERL_SQRT((callstack+1)->argstack[0]);
+		pc++;
+		BREAK();
+	});
+	CASE(SRAND, {
+		GPERL_SRAND((callstack+1)->argstack[0]);
+		pc++;
+		BREAK();
+	});
 	CASE(JMP, {
 		GPERL_JMP();
 		BREAK();

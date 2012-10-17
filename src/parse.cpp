@@ -32,7 +32,7 @@ GPerlCell::GPerlCell(GPerlT type_, string name) : type(type_), vidx(0), reg(0)
 	}
 	for (i = 0; i < Undefined; i++) {
 		if (type_ == decl_tokens[i].type) {
-			if (name == "BuiltinFunc") {
+			if (type_ == BuiltinFunc) {
 				for (int j = 0; j < Undefined; j++) {
 					if (name == decl_tokens[j].data) {
 						info = decl_tokens[j];

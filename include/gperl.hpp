@@ -13,6 +13,7 @@
 #include <signal.h>
 #include <sys/mman.h>
 #include <setjmp.h>
+#include <math.h>
 
 #ifdef __APPLE__
 #define USING_MACOSX
@@ -104,6 +105,7 @@ public:
 	GPerlTokenInfo getTokenInfo(const char *name, const char *data);
 	bool search(std::vector<std::string> list, std::string str);
 	void insertParenthesis(std::vector<GPerlToken *> *tokens);
+	bool isReservedKeyword(std::string word);
 };
 #define MAX_ARGSTACK_SIZE 16
 
@@ -768,4 +770,4 @@ extern unsigned long hash(char *key, size_t len);
 #define getLength(o) ((GPerlString *)(o.bytes ^ (NaN | StringTag)))->len
 #define getObject(o) (o.bytes ^ (NaN | ObjectTag))
 #define TYPE_CHECK(T) ((T.bytes & NaN) == NaN) * ((T.bytes & TYPE) >> 48 )
-extern GPerlObject *O(GPerlValue v);
+extern GPerlObject *DEBUG_O(GPerlValue v);

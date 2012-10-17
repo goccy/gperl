@@ -288,6 +288,102 @@
 	 "op_type" : "TYPE_BUILTIN_FUNC"
  },
  {
+	 "code" : "ABS",
+	 "type" : 0,
+	 "const" : 0,
+	 "fast_type" : 0,
+	 "args" : [{"arg0" : "(callstack+1)->argstack[0]"}],
+	 "op_type" : "TYPE_BUILTIN_FUNC"
+ },
+ {
+	 "code" : "ATAN2",
+	 "type" : 0,
+	 "const" : 0,
+	 "fast_type" : 0,
+	 "args" : [{"arg0" : "(callstack+1)->argstack[0]"}, {"arg1" : "(callstack+1)->argstack[1]"}],
+	 "op_type" : "TYPE_BUILTIN_FUNC"
+ },
+ {
+	 "code" : "COS",
+	 "type" : 0,
+	 "const" : 0,
+	 "fast_type" : 0,
+	 "args" : [{"arg0" : "(callstack+1)->argstack[0]"}],
+	 "op_type" : "TYPE_BUILTIN_FUNC"
+ },
+ {
+	 "code" : "EXP",
+	 "type" : 0,
+	 "const" : 0,
+	 "fast_type" : 0,
+	 "args" : [{"arg0" : "(callstack+1)->argstack[0]"}],
+	 "op_type" : "TYPE_BUILTIN_FUNC"
+ },
+ {
+	 "code" : "HEX",
+	 "type" : 0,
+	 "const" : 0,
+	 "fast_type" : 0,
+	 "args" : [{"arg0" : "(callstack+1)->argstack[0]"}],
+	 "op_type" : "TYPE_BUILTIN_FUNC"
+ },
+ {
+	 "code" : "INT",
+	 "type" : 0,
+	 "const" : 0,
+	 "fast_type" : 0,
+	 "args" : [{"arg0" : "(callstack+1)->argstack[0]"}],
+	 "op_type" : "TYPE_BUILTIN_FUNC"
+ },
+ {
+	 "code" : "LOG",
+	 "type" : 0,
+	 "const" : 0,
+	 "fast_type" : 0,
+	 "args" : [{"arg0" : "(callstack+1)->argstack[0]"}],
+	 "op_type" : "TYPE_BUILTIN_FUNC"
+ },
+ {
+	 "code" : "OCT",
+	 "type" : 0,
+	 "const" : 0,
+	 "fast_type" : 0,
+	 "args" : [{"arg0" : "(callstack+1)->argstack[0]"}],
+	 "op_type" : "TYPE_BUILTIN_FUNC"
+ },
+ {
+	 "code" : "RAND",
+	 "type" : 0,
+	 "const" : 0,
+	 "fast_type" : 0,
+	 "args" : [{"arg0" : "(callstack+1)->argstack[0]"}],
+	 "op_type" : "TYPE_BUILTIN_FUNC"
+ },
+ {
+	 "code" : "SIN",
+	 "type" : 0,
+	 "const" : 0,
+	 "fast_type" : 0,
+	 "args" : [{"arg0" : "(callstack+1)->argstack[0]"}],
+	 "op_type" : "TYPE_BUILTIN_FUNC"
+ },
+ {
+	 "code" : "SQRT",
+	 "type" : 0,
+	 "const" : 0,
+	 "fast_type" : 0,
+	 "args" : [{"arg0" : "(callstack+1)->argstack[0]"}],
+	 "op_type" : "TYPE_BUILTIN_FUNC"
+ },
+ {
+	 "code" : "SRAND",
+	 "type" : 0,
+	 "const" : 0,
+	 "fast_type" : 0,
+	 "args" : [{"arg0" : "(callstack+1)->argstack[0]"}],
+	 "op_type" : "TYPE_BUILTIN_FUNC"
+ },
+ {
 	 "code" : "JMP",
 	 "type" : 0,
 	 "const" : 0,
