@@ -394,9 +394,12 @@ GPerlTokens *GPerlTokenizer::tokenize(char *script)
 				token_idx++;
 				break;
 			}
-			if (token_idx == 0) {
+			if (token_idx == 0 || (token_idx == 1 && token[0] == '-')) {
 				GPerlToken *tk = parseNumber(this, script, i);
+				if (token[0] == '-') tk->data = "-" + tk->data;
 				tokens->push_back(tk);
+				memset(token, 0, max_token_size);
+				token_idx = 0;
 				escapeFlag = false;
 				continue;
 			}
@@ -483,7 +486,6 @@ void GPerlTokenizer::annotateTokens(vector<GPerlToken *> *tokens)
 		}
 		DBG_PL("TOKEN = [%s]", cstr(data));
 		if (isReservedKeyword(data)) {
-			DBG_PL("TOKEN = [%s]", cstr(data));
 			t->info = getTokenInfo(NULL, cstr(data));
 			cur_type = t->info.type;
 		} else if (cur_type == VarDecl && t->data.find("$") != string::npos) {
@@ -573,6 +575,7 @@ void GPerlTokenizer::insertParenthesis(vector<GPerlToken *> *tokens)
 	vector<GPerlToken *>::iterator it = tokens->begin();
 	while (it != tokens->end()) {
 		GPerlToken *t = (GPerlToken *)*it;
+		DBG_PL("=====(%s)=====", ((GPerlToken *)*it)->info.name);
 		switch (t->info.type) {
 		case Call: case CodeVar: case BuiltinFunc: {
 			GPerlToken *next_token = (GPerlToken *)*(it+1);
@@ -580,11 +583,13 @@ void GPerlTokenizer::insertParenthesis(vector<GPerlToken *> *tokens)
 				GPerlToken *token = new GPerlToken("(");
 				token->info = getTokenInfo(NULL, "(");
 				tokens->insert(it+1, token);
+				it++;
 				pcount++;
 				if (next_token->info.type == Comma) {
 					token = new GPerlToken(")");
 					token->info = getTokenInfo(NULL, ")");
-					tokens->insert(it+2, token);
+					DBG_PL("*****(%s)******", ((GPerlToken *)*it+2)->info.name);
+					tokens->insert(it+1, token);
 					pcount--;
 					it++;
 				}
@@ -595,13 +600,22 @@ void GPerlTokenizer::insertParenthesis(vector<GPerlToken *> *tokens)
 			for (; pcount > 0; pcount--) {
 				GPerlToken *token = new GPerlToken(")");
 				token->info = getTokenInfo(NULL, ")");
+				DBG_PL("******(%s)******", ((GPerlToken *)*it)->info.name);
 				tokens->insert(it, token);
+				it++;
 			}
 			break;
 		default:
 			break;
 		}
 		it++;
+	}
+	{
+		vector<GPerlToken *>::iterator debug_it = tokens->begin();
+		while (debug_it != tokens->end()) {
+			DBG_PL("(%s)", ((GPerlToken *)*debug_it)->info.name);
+			debug_it++;
+		}
 	}
 	pcount = 0;
 	it = tokens->begin();

@@ -349,7 +349,7 @@ inline void GPERL_FLUSH(GPerlValue *args, int argc)
 		char buf[32] = {0};
 		switch (TYPE_CHECK(v)) {
 		case 0:
-			sprintf(buf, "%f", v.dvalue);
+			sprintf(buf, "%.15f", v.dvalue);
 			write_cwb(buf);
 			break;
 		case 1:
