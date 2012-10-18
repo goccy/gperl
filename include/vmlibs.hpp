@@ -151,8 +151,10 @@ GPerlObject *DEBUG_O(GPerlValue v)
 
 #define GPERL_iISNOT(dst, v) {					\
 		if (!I(dst)) {							\
+			I(dst) = 1;							\
 			pc++;								\
 		} else {								\
+			I(dst) = 0;							\
 			pc += pc->jmp;						\
 		}										\
 	}

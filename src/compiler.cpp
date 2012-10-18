@@ -824,6 +824,12 @@ GPerlVirtualMachineCode *GPerlCompiler::createVMCode(GPerlCell *c)
 	case NotEqual:
 		SET_OPCODE(JNE);
 		break;
+	case And:
+		SET_OPCODE(AND);
+		break;
+	case Or:
+		SET_OPCODE(OR);
+		break;
 	case IsNot:
 		setISNOT(code, c);
 		break;
@@ -1352,11 +1358,12 @@ void GPerlCompiler::setIS(GPerlVirtualMachineCode *code, GPerlCell *)
 	code->jmp = 1;
 }
 
-void GPerlCompiler::setISNOT(GPerlVirtualMachineCode *code, GPerlCell *)
+void GPerlCompiler::setISNOT(GPerlVirtualMachineCode *code, GPerlCell *c)
 {
 	code->op = ISNOT;
 	code->dst = dst - 1;
 	code->jmp = 1;
+	c->reg = dst - 1;
 }
 
 void GPerlCompiler::setINC(GPerlVirtualMachineCode *code, GPerlCell *c_)

@@ -19,6 +19,8 @@ GPerlTokenInfo decl_tokens[] = {
 	{Dec, GPerlKind::Operator, "Dec", "--"},
 	{LeftShift, GPerlKind::Operator, "LeftShift", "<<"},
 	{RightShift, GPerlKind::Operator, "RightShift", ">>"},
+	{And, GPerlKind::Operator, "And", "&&"},
+	{Or, GPerlKind::Operator, "Or", "||"},
 	{VarDecl, GPerlKind::Decl, "VarDecl", "my"},
 	{FunctionDecl, GPerlKind::Decl, "FunctionDecl", "sub"},
 	{Assign, GPerlKind::Assign, "Assign", "="},

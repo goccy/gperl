@@ -144,6 +144,22 @@
 	 "op_type" : "TYPE_OPERATOR"
  },
  {
+	 "code" : "AND",
+	 "type" : 1,
+	 "const" : 1,
+	 "fast_type" : 2,
+	 "args" : [{"op" : "&&"}, {"dst" : "pc->dst"}, {"src" : "pc->src"}],
+	 "op_type" : "TYPE_OPERATOR"
+ },
+ {
+	 "code" : "OR",
+	 "type" : 1,
+	 "const" : 1,
+	 "fast_type" : 2,
+	 "args" : [{"op" : "||"}, {"dst" : "pc->dst"}, {"src" : "pc->src"}],
+	 "op_type" : "TYPE_OPERATOR"
+ },
+ {
 	 "code" : "IS",
 	 "type" : 1,
 	 "const" : 1,

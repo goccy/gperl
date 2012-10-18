@@ -120,6 +120,18 @@
 	 "parse_func" : ""
  },
  {
+ 	 "type" : "And",
+	 "kind" : "Operator",
+	 "data" : "&&",
+	 "parse_func" : ""
+ },
+ {
+ 	 "type" : "Or",
+	 "kind" : "Operator",
+	 "data" : "||",
+	 "parse_func" : ""
+ },
+ {
 	 "type" : "VarDecl",
 	 "kind" : "Decl",
 	 "data" : "my",

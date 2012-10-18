@@ -1,4 +1,8 @@
 print("START\n");
+if (1 < 2) {
+	print(1 + 1 + 1, "\n");
+	print("true\n");
+}
 if (3 < 2) {
 	print(1 + 3 + 2, "\n");
 	print("true\n");

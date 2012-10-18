@@ -568,6 +568,78 @@ GPerlValue GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes, JITParams *p
 		GPERL_iCMP_JMPC(!=, pc->dst, pc->v);
 		BREAK();
 	});
+	CASE(AND, {
+		int dst_type = TYPE_CHECK(reg[pc->dst]);
+		int src_type = TYPE_CHECK(reg[pc->src]);
+		goto *jmp_table[pc->op + 2 + ((dst_type + src_type) >> 1)];
+		BREAK();
+	});
+	CASE(STATIC_AND, {
+		int dst_type = TYPE_CHECK(reg[pc->dst]);
+		int src_type = TYPE_CHECK(reg[pc->src]);
+		pc->opnext = jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
+		BREAK();
+	});
+	CASE(dAND, {
+		GPERL_dCMP_JMP(&&, pc->dst, pc->src);
+		BREAK();
+	});
+	CASE(iAND, {
+		GPERL_iCMP_JMP(&&, pc->dst, pc->src);
+		BREAK();
+	});
+	CASE(sAND, {
+		GPERL_sCMP_JMP(&&, pc->dst, pc->src);
+		BREAK();
+	});
+	CASE(oAND, {
+		GPERL_oCMP_JMP(&&, pc->dst, pc->src);
+		BREAK();
+	});
+	CASE(dANDC, {
+		GPERL_dCMP_JMPC(&&, pc->dst, pc->v);
+		BREAK();
+	});
+	CASE(iANDC, {
+		GPERL_iCMP_JMPC(&&, pc->dst, pc->v);
+		BREAK();
+	});
+	CASE(OR, {
+		int dst_type = TYPE_CHECK(reg[pc->dst]);
+		int src_type = TYPE_CHECK(reg[pc->src]);
+		goto *jmp_table[pc->op + 2 + ((dst_type + src_type) >> 1)];
+		BREAK();
+	});
+	CASE(STATIC_OR, {
+		int dst_type = TYPE_CHECK(reg[pc->dst]);
+		int src_type = TYPE_CHECK(reg[pc->src]);
+		pc->opnext = jmp_table[pc->op + 1 + ((dst_type + src_type) >> 1)];
+		BREAK();
+	});
+	CASE(dOR, {
+		GPERL_dCMP_JMP(||, pc->dst, pc->src);
+		BREAK();
+	});
+	CASE(iOR, {
+		GPERL_iCMP_JMP(||, pc->dst, pc->src);
+		BREAK();
+	});
+	CASE(sOR, {
+		GPERL_sCMP_JMP(||, pc->dst, pc->src);
+		BREAK();
+	});
+	CASE(oOR, {
+		GPERL_oCMP_JMP(||, pc->dst, pc->src);
+		BREAK();
+	});
+	CASE(dORC, {
+		GPERL_dCMP_JMPC(||, pc->dst, pc->v);
+		BREAK();
+	});
+	CASE(iORC, {
+		GPERL_iCMP_JMPC(||, pc->dst, pc->v);
+		BREAK();
+	});
 	CASE(IS, {
 		int type = TYPE_CHECK(reg[pc->dst]);
 		goto *jmp_table[pc->op + 2 + type];
@@ -903,8 +975,9 @@ GPerlValue GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes, JITParams *p
 		BREAK();
 	});
 	CASE(RAND, {
-		GPERL_RAND((callstack+1)->argstack[0]);
-		pc++;
+		int dst_type = TYPE_CHECK(reg[pc->dst]);
+		int src_type = TYPE_CHECK(reg[pc->src]);
+		goto *jmp_table[pc->op + 2 + ((dst_type + src_type) >> 1)];
 		BREAK();
 	});
 	CASE(SIN, {
@@ -918,8 +991,9 @@ GPerlValue GPerlVirtualMachine::run(GPerlVirtualMachineCode *codes, JITParams *p
 		BREAK();
 	});
 	CASE(SRAND, {
-		GPERL_SRAND((callstack+1)->argstack[0]);
-		pc++;
+		int dst_type = TYPE_CHECK(reg[pc->dst]);
+		int src_type = TYPE_CHECK(reg[pc->src]);
+		goto *jmp_table[pc->op + 2 + ((dst_type + src_type) >> 1)];
 		BREAK();
 	});
 	CASE(JMP, {

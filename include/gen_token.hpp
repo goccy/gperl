@@ -19,6 +19,8 @@ typedef enum {
 	Dec,
 	LeftShift,
 	RightShift,
+	And,
+	Or,
 	VarDecl,
 	FunctionDecl,
 	Assign,

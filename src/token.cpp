@@ -174,7 +174,9 @@ int GPerlTokenizer::scanSymbol(GPerlTokens *tks, char symbol, char next_ch)
 			   (symbol == '+' && next_ch == '+') ||
 			   (symbol == '=' && next_ch == '>') ||
 			   (symbol == '-' && next_ch == '-') ||
-			   (symbol == '-' && next_ch == '>')) {
+			   (symbol == '-' && next_ch == '>') ||
+               (symbol == '&' && next_ch == '&') ||
+               (symbol == '|' && next_ch == '|')) {
 		tmp[0] = symbol;
 		tmp[1] = next_ch;
 		tks->push_back(new GPerlToken(string(tmp)));
@@ -363,7 +365,8 @@ GPerlTokens *GPerlTokenizer::tokenize(char *script)
 			}
 			//fall through
 		case ',': case ':': case ';': case '+':
-		case '<': case '>': case '&': case '.': case '!':
+		case '<': case '>': case '&': case '|':
+        case '.': case '!':
 		case '(': case ')': case '{': case '}':
 		case '[': case ']': {
 			if (isSKIP()) break;
@@ -588,13 +591,55 @@ void GPerlTokenizer::insertParenthesis(vector<GPerlToken *> *tokens)
 			}
 			break;
 		}
-		case SemiColon:
+		case SemiColon: case LeftBrace: /* TODO: map, grep */
 			for (; pcount > 0; pcount--) {
 				GPerlToken *token = new GPerlToken(")");
 				token->info = getTokenInfo(NULL, ")");
 				tokens->insert(it, token);
 			}
 			break;
+		default:
+			break;
+		}
+		it++;
+	}
+	pcount = 0;
+	it = tokens->begin();
+	bool insertFlag = false;
+	int func_pcount = 0;
+	while (it != tokens->end()) {
+		GPerlToken *t = (GPerlToken *)*it;
+		if (func_pcount > 0) {
+			if (t->info.type == LeftParenthesis) {
+				func_pcount++;
+			} else if (t->info.type == RightParenthesis) {
+				func_pcount--;
+				if (func_pcount == 0) {
+					GPerlToken *token = new GPerlToken(")");
+					token->info = getTokenInfo(NULL, ")");
+					tokens->insert(it+1, token);
+				}
+			}
+		}
+		switch (t->info.type) {
+		case IsNot: {
+			GPerlToken *next_token = (GPerlToken *)*(it+1);
+			if (next_token->info.type != LeftParenthesis) {
+				GPerlToken *token = new GPerlToken("(");
+				token->info = getTokenInfo(NULL, "(");
+				tokens->insert(it+1, token);
+				if (next_token->info.kind == GPerlKind::Function) {
+					func_pcount++;
+					it+=3;
+					insertFlag = true;
+				} else {
+					token = new GPerlToken(")");
+					token->info = getTokenInfo(NULL, ")");
+					tokens->insert(it+3, token);
+				}
+			}
+			break;
+		}
 		default:
 			break;
 		}

@@ -133,7 +133,15 @@ void GPerlParser::parseValue(GPerlParseContext *pctx, GPerlScope *scope)
 {
 	GPerlNodes *blocks = pctx->nodes;
 	GPerlCell *block = (blocks->block_num > 0) ? blocks->lastNode() : NULL;
-	if (block && block->type != Assign && block->type != Return &&
+	if (block && block->type == IsNot) {
+		GPerlCell *b = scope->root;
+		b->indent = indent;
+		block->left = b;
+		b->parent = block;
+		return;
+	}
+	if (block &&
+		block->type != Assign && block->type != Return &&
 		block->type != AddEqual && block->type != SubEqual &&
 		block->type != MulEqual && block->type != DivEqual) {
 		DBG_PL("%s", block->info.name);
@@ -160,8 +168,8 @@ void GPerlParser::parseFunctionCall(GPerlParseContext *pctx, GPerlScope *scope)
 	GPerlCell *block = blocks->lastNode();
 	DBG_PL("[%s]:NEW BLOCK->BLOCKS[%d]", cstr(t->data), __LINE__);
 	if (scope &&
-		scope->root->type == Call || scope->root->type == BuiltinFunc ||
-		scope->root->type == CodeVar) {
+		(scope->root->type == Call || scope->root->type == BuiltinFunc ||
+         scope->root->type == CodeVar)) {
 		block->vargs[0] = scope->root;
 		block->argsize = 1;
 	} else if (scope && scope->root->argsize > 0) {
@@ -331,7 +339,7 @@ void GPerlParser::parseSingleTermOperator(GPerlParseContext *pctx)
 {
 	GPerlToken *t = pctx->t;
 	GPerlNodes *blocks = pctx->nodes;
-	DBG_PL("[%s]:LAST BLOCK->PARENT", cstr(t->data));
+	DBG_PL("[%s]:NEW BLOCK => BLOCKS", cstr(t->data));
 	GPerlCell *b = new GPerlCell(t->info.type, t->data);
 	blocks->pushNode(b);
 }
@@ -343,6 +351,7 @@ void GPerlParser::parseDoubleTermOperator(GPerlParseContext *pctx)
 	DBG_PL("[%s]:LAST BLOCK->PARENT", cstr(t->data));
 	GPerlCell *block = blocks->lastNode();
 	if (blocks->block_num > 2 && block->parent == blocks->at(blocks->block_num-2)) {
+		/* e.g.) return, operator, func */
 		blocks->popNode();
 		block = blocks->lastNode();
 		GPerlCell *b = new GPerlCell(t->info.type, t->data);
@@ -670,6 +679,7 @@ void GPerlParser::parseRightParenthesis(GPerlParseContext *pctx, GPerlCell *root
 		GPerlCell *to = blocks->lastNode();
 		blocks->popNode();
 		GPerlCell *from = blocks->lastNode();
+		//TODO
 		if (from->type != IsNot) {
 			from->right = to;
 			to->parent = from;
@@ -886,7 +896,7 @@ GPerlAST *GPerlParser::parse(void)
 		case Add: case Sub: case Mul: case Div:
 		case Greater: case Less: case GreaterEqual: case LessEqual:
 		case EqualEqual: case NotEqual: case Inc: case Dec:
-		case LeftShift: case RightShift:
+		case LeftShift: case RightShift: case And: case Or:
 		case StringAdd: case Arrow: case Pointer:
 			parseDoubleTermOperator(&pctx);
 			break;
