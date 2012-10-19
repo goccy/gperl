@@ -337,10 +337,10 @@ GPerlTokens *GPerlTokenizer::tokenize(char *script)
 			if (isSKIP()) break;
 			scanTabKeyword();
 			break;
-		case '*': case '/' :
-			if (isSKIP()) break;
-			scanMDOperator(tokens, script[i]);
-			break;
+			//case '*': case '/' :
+			//if (isSKIP()) break;
+			//scanMDOperator(tokens, script[i]);
+			//break;
 		case '-':
 			if (isSKIP()) break;
 			if (i + 1 < script_size &&
@@ -366,7 +366,7 @@ GPerlTokens *GPerlTokenizer::tokenize(char *script)
 			//fall through
 		case ',': case ':': case ';': case '+':
 		case '<': case '>': case '&': case '|':
-        case '.': case '!':
+        case '.': case '!': case '*': case '/':
 		case '(': case ')': case '{': case '}':
 		case '[': case ']': {
 			if (isSKIP()) break;
