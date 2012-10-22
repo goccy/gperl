@@ -69,14 +69,28 @@ public:
 	GPerlValue eval(char *script, int argc = 0, char **argv = NULL);
 };
 
+typedef enum {
+    Value,
+    Term,
+    Expr,
+    Stmt,
+    BlockStmt
+} GPerlSyntaxType;
+
 class GPerlToken {
 public:
+    GPerlSyntaxType stype;
 	std::string data;
 	GPerlT type;
 	GPerlTokenInfo info;
 	int idx;
 	int indent;
+    GPerlToken **tks;
+    size_t token_num;
+    size_t total_token_num;
+
 	GPerlToken(std::string data_, int idx_ = 0);
+    GPerlToken(std::vector<GPerlToken *> *tokens);
 };
 
 typedef std::vector<GPerlToken *> GPerlTokens;
@@ -89,6 +103,7 @@ public:
 	char *token;
 	int token_idx;
 	int max_token_size;
+    std::vector<GPerlToken *>::iterator pos;
 
 	GPerlTokenizer(void);
 	void scanDoubleQuote(GPerlTokens *tks);
@@ -101,7 +116,10 @@ public:
 	void scanSymbol(GPerlTokens *tks, char symbol);
 	std::vector<GPerlToken *> *tokenize(char *script);
 	void annotateTokens(std::vector<GPerlToken *> *tokens);
+    void prepare(std::vector<GPerlToken *> *tokens);
+    GPerlToken *parseSyntax(GPerlToken *start_token, std::vector<GPerlToken *> *tokens);
 	void dump(std::vector<GPerlToken *> *tokens);
+    void dumpSyntax(GPerlToken *tk, int indent);
 	GPerlTokenInfo getTokenInfo(const char *name, const char *data);
 	bool search(std::vector<std::string> list, std::string str);
 	void insertParenthesis(std::vector<GPerlToken *> *tokens);

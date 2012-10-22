@@ -122,7 +122,11 @@ GPerlValue GPerl::eval(char *script, int argc, char **argv)
 	GPerlTokenizer t;
 	std::vector<GPerlToken *> *tokens = t.tokenize(script);
 	t.annotateTokens(tokens);
-	t.insertParenthesis(tokens);
+    t.prepare(tokens);
+    GPerlToken *root = t.parseSyntax(NULL, tokens);
+    DBG_PL("=============<dump syntax>============");
+    t.dumpSyntax(root, 0);
+    t.insertParenthesis(tokens);
 	DBG_PL("=============<TOKENIZE>============");
 	t.dump(tokens);
 	GPerlParser *p;

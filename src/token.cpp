@@ -3,9 +3,11 @@
 #include "gen_token_decl.cpp"
 using namespace std;
 
-GPerlToken::GPerlToken(string data_, int idx_) : data(data_), idx(idx_), indent(0)
+GPerlToken::GPerlToken(string data_, int idx_) :
+    data(data_), idx(idx_), indent(0), token_num(0), total_token_num(0)
 {
 	type = Undefined;
+    stype = Value;
 }
 
 GPerlTokenizer::GPerlTokenizer(void)
@@ -484,7 +486,7 @@ void GPerlTokenizer::annotateTokens(vector<GPerlToken *> *tokens)
 			it++;
 			continue;
 		}
-		DBG_PL("TOKEN = [%s]", cstr(data));
+		//DBG_PL("TOKEN = [%s]", cstr(data));
 		if (isReservedKeyword(data)) {
 			t->info = getTokenInfo(NULL, cstr(data));
 			cur_type = t->info.type;
@@ -567,6 +569,136 @@ bool GPerlTokenizer::search(vector<string> list, string target)
 		ret = true;
 	}
 	return ret;
+}
+
+typedef vector<GPerlToken *>::iterator GPerlTokenPos;
+
+GPerlToken::GPerlToken(vector<GPerlToken *> *tokens) : stype(Value)
+{
+    size_t size = tokens->size();
+    GPerlTokenPos pos = tokens->begin();
+    this->tks = (GPerlToken **)safe_malloc(size * PTR_SIZE);
+    this->token_num = size;
+    for (size_t i = 0; i < size; i++) {
+        GPerlToken *t = (GPerlToken *)*pos;
+        this->tks[i] = t;
+        this->total_token_num += (t->token_num > 1) ? t->token_num : 1;
+        pos++;
+    }
+}
+
+void GPerlTokenizer::prepare(vector<GPerlToken *> *tokens)
+{
+    pos = tokens->begin();
+}
+
+GPerlToken *GPerlTokenizer::parseSyntax(GPerlToken *start_token, vector<GPerlToken *> *tokens)
+{
+    GPerlT prev_type = Undefined;
+    GPerlTokenPos end_pos = tokens->end();
+    vector<GPerlToken *> *new_tokens = new vector<GPerlToken *>();
+    GPerlTokenPos intermediate_pos = pos;
+    if (start_token) {
+        new_tokens->push_back(start_token);
+        intermediate_pos--;
+    }
+    while (pos != end_pos) {
+        GPerlToken *t = (GPerlToken *)(*pos);
+        GPerlT type = t->info.type;
+        switch (type) {
+        case LeftBracket: {
+            pos++;
+            GPerlToken *syntax = parseSyntax(t, tokens);
+            syntax->stype = Expr;
+            new_tokens->push_back(syntax);
+            break;
+        }
+        case LeftParenthesis: {
+            pos++;
+            GPerlToken *syntax = parseSyntax(t, tokens);
+            syntax->stype = Expr;
+            new_tokens->push_back(syntax);
+            break;
+        }
+        case LeftBrace: {
+            pos++;
+            GPerlToken *syntax = parseSyntax(t, tokens);
+            if (prev_type == Pointer) {
+                syntax->stype = Expr;
+            } else {
+                syntax->stype = BlockStmt;
+            }
+            new_tokens->push_back(syntax);
+            intermediate_pos = pos;
+            break;
+        }
+        case RightBracket: case RightBrace: case RightParenthesis:
+            new_tokens->push_back(t);
+            return new GPerlToken(new_tokens);
+            break;
+        case SemiColon: {
+            size_t k = pos - intermediate_pos;
+            //DBG_PL("stmt_token_num = [%lu]", k);
+            //DBG_PL("pos = [%s], intermediate_pos = [%s]", (*pos)->info.name, (*intermediate_pos)->info.name);
+            //DBG_PL("new_tokens_num = [%d]", new_tokens->size());
+            vector<GPerlToken *> *stmt = new vector<GPerlToken *>();
+            for (size_t j = 0; j < k - 1; j++) {
+                GPerlToken *tk = new_tokens->back();
+                //DBG_PL("stype = [%d], total_token_num = [%d]", tk->stype, tk->total_token_num);
+                j += (tk->total_token_num > 0) ? tk->total_token_num - 1 : 0;
+                stmt->insert(stmt->begin(), tk);
+                new_tokens->pop_back();
+            }
+            stmt->push_back(t);
+            //DBG_PL("last_token = [%s]", new_tokens->back()->info.name);
+            GPerlToken *stmt_ = new GPerlToken(stmt);
+            stmt_->stype = Stmt;
+            new_tokens->push_back(stmt_);
+            intermediate_pos = pos;
+            break;
+        }
+        default:
+            new_tokens->push_back(t);
+            break;
+        }
+        prev_type = type;
+        pos++;
+    }
+    return new GPerlToken(new_tokens);
+}
+
+void GPerlTokenizer::dumpSyntax(GPerlToken *syntax, int indent)
+{
+    size_t tk_n = syntax->token_num;
+    for (size_t i = 0; i < tk_n; i++) {
+        GPerlToken *tk = syntax->tks[i];
+        for (int j = 0; j < indent; j++) {
+            DBG_P("----------------");
+        }
+        switch (tk->stype) {
+        case Expr:
+            DBG_PL("Expr |");
+            indent++;
+            dumpSyntax(tk, indent);
+            indent--;
+            break;
+        case Stmt:
+            DBG_PL("Stmt |");
+            indent++;
+            dumpSyntax(tk, indent);
+            indent--;
+            break;
+        case BlockStmt:
+            DBG_PL("BlockStmt |");
+            indent++;
+            dumpSyntax(tk, indent);
+            indent--;
+            break;
+        default:
+            DBG_PL("%-12s", syntax->tks[i]->info.name);
+            break;
+        }
+    }
 }
 
 void GPerlTokenizer::insertParenthesis(vector<GPerlToken *> *tokens)
