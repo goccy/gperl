@@ -901,9 +901,12 @@ GPerlVirtualMachineCode *GPerlCompiler::createVMCode(GPerlCell *c)
 		setFUNC(code, c);
 		break;
 	case Return:
-		code->op = RET;
-		code->dst = 0;
-		code->src = c->left->reg;//dst-1;
+		if (c->left) {
+			code->op = RET;
+			code->dst = 0;
+			code->src = c->left->reg;//dst-1;
+		}
+		else code->op = NOP;
 		break;
 	case Package: {
 		GPerlPackage pkg;

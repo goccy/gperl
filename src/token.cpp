@@ -582,7 +582,7 @@ GPerlToken::GPerlToken(vector<GPerlToken *> *tokens) : stype(Value)
     for (size_t i = 0; i < size; i++) {
         GPerlToken *t = (GPerlToken *)*pos;
         this->tks[i] = t;
-        this->total_token_num += (t->token_num > 1) ? t->token_num : 1;
+        this->total_token_num += t->total_token_num > 1 ? t->total_token_num : 1;
         pos++;
     }
 }
@@ -642,7 +642,7 @@ GPerlToken *GPerlTokenizer::parseSyntax(GPerlToken *start_token, vector<GPerlTok
             //DBG_PL("pos = [%s], intermediate_pos = [%s]", (*pos)->info.name, (*intermediate_pos)->info.name);
             //DBG_PL("new_tokens_num = [%d]", new_tokens->size());
             vector<GPerlToken *> *stmt = new vector<GPerlToken *>();
-            for (size_t j = 0; j < k - 1; j++) {
+            for (size_t j = 1; j < k; j++) {
                 GPerlToken *tk = new_tokens->back();
                 //DBG_PL("stype = [%d], total_token_num = [%d]", tk->stype, tk->total_token_num);
                 j += (tk->total_token_num > 0) ? tk->total_token_num - 1 : 0;
@@ -714,16 +714,18 @@ void GPerlTokenizer::insertParenthesis(vector<GPerlToken *> *tokens)
 			if (next_token->info.type != LeftParenthesis) {
 				GPerlToken *token = new GPerlToken("(");
 				token->info = getTokenInfo(NULL, "(");
+				int pos = it - tokens->begin();
 				tokens->insert(it+1, token);
-				it++;
+				it = tokens->begin() + pos + 1;
 				pcount++;
 				if (next_token->info.type == Comma) {
 					token = new GPerlToken(")");
 					token->info = getTokenInfo(NULL, ")");
 					DBG_PL("*****(%s)******", ((GPerlToken *)*it+2)->info.name);
+					int pos = it - tokens->begin();
 					tokens->insert(it+1, token);
 					pcount--;
-					it++;
+					it = tokens->begin() + pos + 1;
 				}
 			}
 			break;
@@ -733,8 +735,9 @@ void GPerlTokenizer::insertParenthesis(vector<GPerlToken *> *tokens)
 				GPerlToken *token = new GPerlToken(")");
 				token->info = getTokenInfo(NULL, ")");
 				DBG_PL("******(%s)******", ((GPerlToken *)*it)->info.name);
+				int pos = it - tokens->begin();
 				tokens->insert(it, token);
-				it++;
+				it = tokens->begin() + pos + 1;
 			}
 			break;
 		default:
