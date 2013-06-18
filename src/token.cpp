@@ -714,16 +714,18 @@ void GPerlTokenizer::insertParenthesis(vector<GPerlToken *> *tokens)
 			if (next_token->info.type != LeftParenthesis) {
 				GPerlToken *token = new GPerlToken("(");
 				token->info = getTokenInfo(NULL, "(");
+				int pos = it - tokens->begin();
 				tokens->insert(it+1, token);
-				it++;
+				it = tokens->begin() + pos + 1;
 				pcount++;
 				if (next_token->info.type == Comma) {
 					token = new GPerlToken(")");
 					token->info = getTokenInfo(NULL, ")");
 					DBG_PL("*****(%s)******", ((GPerlToken *)*it+2)->info.name);
+					int pos = it - tokens->begin();
 					tokens->insert(it+1, token);
 					pcount--;
-					it++;
+					it = tokens->begin() + pos + 1;
 				}
 			}
 			break;
@@ -733,8 +735,9 @@ void GPerlTokenizer::insertParenthesis(vector<GPerlToken *> *tokens)
 				GPerlToken *token = new GPerlToken(")");
 				token->info = getTokenInfo(NULL, ")");
 				DBG_PL("******(%s)******", ((GPerlToken *)*it)->info.name);
+				int pos = it - tokens->begin();
 				tokens->insert(it, token);
-				it++;
+				it = tokens->begin() + pos + 1;
 			}
 			break;
 		default:
