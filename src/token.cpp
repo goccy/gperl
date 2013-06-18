@@ -582,7 +582,7 @@ GPerlToken::GPerlToken(vector<GPerlToken *> *tokens) : stype(Value)
     for (size_t i = 0; i < size; i++) {
         GPerlToken *t = (GPerlToken *)*pos;
         this->tks[i] = t;
-        this->total_token_num += (t->token_num > 1) ? t->token_num : 1;
+        this->total_token_num += t->total_token_num > 1 ? t->total_token_num : 1;
         pos++;
     }
 }
